@@ -14,5 +14,6 @@ namespace Servicio.Usuarios.UsuariosDTO
         public string? Email { get; set; }
         public string? Telefono { get; set;}
         public DateTime FechaDeNacimiento { get; set; }
+        public bool Activo { get; set; }
     }
 }

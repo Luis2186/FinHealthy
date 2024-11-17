@@ -20,20 +20,20 @@ namespace Servicio.Usuarios
             _mapper = mapper;
             _repoUsuario = repositorioUsuario;
         }
-        public async Task<Usuario> Actualizar(ActualizarUsuarioDTO usuarioDto)
+        public async Task<Usuario> Actualizar(string id, ActualizarUsuarioDTO usuarioDto)
         {
-            Usuario usuario = _mapper.Map<Usuario>(usuarioDto);
+            Usuario usuarioBuscado = await ObtenerPorId(id);
 
-            bool usuarioActualizado = await _repoUsuario.ActualizarAsync(usuario);
+            if (usuarioBuscado == null) throw new Exception("El usuario que intenta actualizar no existe");
+
+            // Mapeo de los datos del DTO al usuario existente
+            _mapper.Map(usuarioDto, usuarioBuscado); // Actualizar el usuario con el DTO
+
+            bool usuarioActualizado = await _repoUsuario.ActualizarAsync(usuarioBuscado);
             
-            if (usuarioActualizado) return usuario;
+            if (usuarioActualizado) return usuarioBuscado;
             
             return null;
-        }
-
-        public Task<Usuario> Actualizar(string id, ActualizarUsuarioDTO usuario)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<Usuario> Crear(CrearUsuarioDTO usuarioDto)

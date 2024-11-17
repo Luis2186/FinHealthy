@@ -15,12 +15,24 @@ namespace Servicio.Automapper
             CreateMap<CrearUsuarioDTO, Usuario>()
                 .ForMember(destino => destino.PhoneNumber, opt => opt.MapFrom(origen => origen.Telefono))
                 .ForMember(destino => destino.UserName, opt => opt.MapFrom(origen => origen.NombreDeUsuario))
-                .ForMember(dest => dest.Edad, opt => opt.MapFrom(src => CalcularEdad(src.FechaDeNacimiento)));
-
+                .ForMember(dest => dest.Edad, opt => opt.MapFrom(src => CalcularEdad(src.FechaDeNacimiento)))
+                .ForMember(dest => dest.Activo, opt => opt.MapFrom(src => true));
 
             CreateMap<Usuario, CrearUsuarioDTO>()
                .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber))
                .ForMember(destino => destino.NombreDeUsuario, opt => opt.MapFrom(origen => origen.UserName));
+
+            CreateMap<ActualizarUsuarioDTO, Usuario>()
+                .ForMember(destino => destino.PhoneNumber, opt => opt.MapFrom(origen => origen.Telefono))
+                .ForMember(destino => destino.UserName, opt => opt.MapFrom(origen => origen.NombreDeUsuario))
+                .ForMember(dest => dest.Edad, opt => opt.MapFrom(src => CalcularEdad(src.FechaDeNacimiento)));
+
+            CreateMap<Usuario, ActualizarUsuarioDTO>()
+               .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber))
+               .ForMember(destino => destino.NombreDeUsuario, opt => opt.MapFrom(origen => origen.UserName));
+
+
+
 
         }
 

@@ -67,7 +67,7 @@ namespace FinHealthAPI.Controllers
                 return BadRequest("Los datos del usuario son requeridos.");
             }
 
-            var usuarioActualizado = await _servicioUsuario.Actualizar(id, usuarioDto);
+            var usuarioActualizado = await _servicioUsuario.Actualizar(id,usuarioDto);
 
             if (usuarioActualizado == null)
             {
