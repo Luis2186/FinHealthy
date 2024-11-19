@@ -27,10 +27,10 @@ namespace FinHealthAPI.Controllers
         }
 
         // Obtener un usuario por su ID
-        [HttpGet("obtener/{id}")]
-        public async Task<ActionResult<Usuario>> ObtenerUsuarioPorId(string id)
+        [HttpGet("obtener/{usuarioId}")]
+        public async Task<ActionResult<Usuario>> ObtenerUsuarioPorId(string usuarioId)
         {
-            var usuario = await _servicioUsuario.ObtenerPorId(id);
+            var usuario = await _servicioUsuario.ObtenerPorId(usuarioId);
             if (usuario == null)
             {
                 return NotFound();  // Devuelve 404 si no se encuentra el usuario
@@ -59,36 +59,71 @@ namespace FinHealthAPI.Controllers
         }
 
         // Actualizar un usuario
-        [HttpPut("actualizar/{id}")]
-        public async Task<ActionResult<Usuario>> ActualizarUsuario(string id, [FromBody] ActualizarUsuarioDTO usuarioDto)
+        [HttpPut("actualizar/{usuarioId}")]
+        public async Task<ActionResult<Usuario>> ActualizarUsuario(string usuarioId, [FromBody] ActualizarUsuarioDTO usuarioDto)
         {
             if (usuarioDto == null)
             {
                 return BadRequest("Los datos del usuario son requeridos.");
             }
 
-            var usuarioActualizado = await _servicioUsuario.Actualizar(id,usuarioDto);
+            var usuarioActualizado = await _servicioUsuario.Actualizar(usuarioId, usuarioDto);
 
             if (usuarioActualizado == null)
             {
-                return NotFound($"Usuario con id {id} no encontrado.");
+                return NotFound($"Usuario con id {usuarioId} no encontrado.");
             }
 
             return Ok(usuarioActualizado);  // Devuelve el usuario actualizado con estado 200 OK
         }
 
         // Eliminar un usuario
-        [HttpDelete("eliminar/{id}")]
-        public async Task<ActionResult> EliminarUsuario(string id)
+        [HttpDelete("eliminar/{usuarioId}")]
+        public async Task<ActionResult> EliminarUsuario(string usuarioId)
         {
-            var exito = await _servicioUsuario.Eliminar(id);
+            var exito = await _servicioUsuario.Eliminar(usuarioId);
 
             if (!exito)
             {
-                return NotFound($"Usuario con id {id} no encontrado.");
+                return NotFound($"Usuario con id {usuarioId} no encontrado.");
             }
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
         }
+        [HttpDelete("eliminarRol/{usuarioId}")]
+        public async Task<ActionResult> EliminarRolAUsuario(string usuarioId, [FromBody] UsuarioRolDTO rol)
+        {
+            var exito = await _servicioUsuario.RemoverRol(usuarioId,rol.IdRol);
+
+            if (!exito)
+            {
+                return NotFound($"El rol con id {rol.IdRol} no se pudo eliminar.");
+            }
+
+            return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
+        }
+
+        [HttpPost("agregarRol/{usuarioId}")]
+        public async Task<ActionResult> AgregarRolAUsuario(string usuarioId, [FromBody] UsuarioRolDTO rol)
+        {
+            var exito = await _servicioUsuario.AgregarRol(usuarioId, rol.IdRol);
+
+            if (!exito)
+            {
+                return NotFound($"El rol con id {rol.IdRol} no se pudo agregar al usuario con id {rol.IdRol}.");
+            }
+
+            return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
+        }
+
+        // Obtener todos los usuarios con paginación
+        [HttpGet("obtenerRoles/{usuarioId}")]
+        public async Task<ActionResult<Usuario>> ObtenerRolesPorUsuario(string usuarioId)
+        {
+            var resultado = await _servicioUsuario.ObtenerRolesPorUsuario(usuarioId);
+            return Ok(resultado);  // Devuelve los datos con estado HTTP 200 OK
+        }
+
+
     }
 }

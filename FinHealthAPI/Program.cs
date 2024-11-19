@@ -19,12 +19,15 @@ builder.Services.AddAuthentication().AddCookie(IdentityConstants.ApplicationSche
 builder.Services.AddControllers();
 
 builder.Services.AddIdentityCore<Usuario>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddApiEndpoints();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Db_Local"),
     b => b.MigrationsAssembly("Repositorio"))
+    
+
 );
 
 // Configuración de AutoMapper
@@ -37,6 +40,7 @@ builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
 
 var app = builder.Build();
 
+await app.CrearRoles();
 
 if (app.Environment.IsDevelopment())
 {
@@ -44,6 +48,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.AplicarMigraciones();
 }
+
 
 // Configure the HTTP request pipeline.
 

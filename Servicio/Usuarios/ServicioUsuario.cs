@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Dominio.Usuarios;
+using Microsoft.AspNetCore.Identity;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.Usuarios.UsuariosDTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,6 +38,16 @@ namespace Servicio.Usuarios
             return null;
         }
 
+        public async Task<bool> AgregarClaim(string usuarioId, string tipoClaim, string claim)
+        {
+            return await _repoUsuario.AgregarClaim(usuarioId, tipoClaim, claim);
+        }
+
+        public async Task<bool> AgregarRol(string usuarioId, string idRol)
+        {
+            return await _repoUsuario.AgregarRol(usuarioId, idRol);
+        }
+
         public async Task<Usuario> Crear(CrearUsuarioDTO usuarioDto)
         {
             Usuario usuario = _mapper.Map<Usuario>(usuarioDto);
@@ -55,9 +67,35 @@ namespace Servicio.Usuarios
         {
             return await _repoUsuario.ObtenerPorIdAsync(id);
         }
+
+        public async Task<IEnumerable<string>> ObtenerRolesPorUsuario(string usuarioId)
+        {
+            return await _repoUsuario.ObtenerRolesPorUsuario(usuarioId);
+        }
+
         public async Task<IEnumerable<Usuario>> ObtenerTodos()
         {
            return await _repoUsuario.ObtenerTodosAsync();
+        }
+
+        public async Task<IEnumerable<Claim>> ObtenerTodosLosClaim(string usuarioId)
+        {
+            return await _repoUsuario.ObtenerTodosLosClaim(usuarioId);
+        }
+
+        public async Task<IEnumerable<IdentityRole>> ObtenerTodosLosRoles()
+        {
+            return await _repoUsuario.ObtenerTodosLosRoles();
+        }
+
+        public async Task<bool> RemoverClaim(string usuarioId, string tipoClaim, string claim)
+        {
+            return await _repoUsuario.RemoverClaim(usuarioId, tipoClaim, claim);
+        }
+
+        public async Task<bool> RemoverRol(string usuarioId, string idRol)
+        {
+            return await _repoUsuario.RemoverRol(usuarioId, idRol);
         }
     }
 }
