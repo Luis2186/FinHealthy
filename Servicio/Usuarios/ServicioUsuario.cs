@@ -16,6 +16,7 @@ namespace Servicio.Usuarios
     {
         private readonly IMapper _mapper;
         private readonly IRepositorioUsuario _repoUsuario;
+       
 
         public ServicioUsuario(IRepositorioUsuario repositorioUsuario, IMapper mapper)
         {

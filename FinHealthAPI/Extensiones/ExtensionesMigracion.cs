@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Repositorio;
 
-namespace Repositorio.Extensiones
+namespace FinHealthAPI.Extensiones
 {
     public static class ExtensionesMigracion
     {

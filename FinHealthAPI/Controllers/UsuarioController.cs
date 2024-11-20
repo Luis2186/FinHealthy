@@ -1,4 +1,7 @@
-﻿using Dominio.Usuarios;
+﻿using AutoMapper;
+using Dominio.Usuarios;
+using FinHealthAPI.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Servicio.Usuarios;
@@ -11,15 +14,19 @@ namespace FinHealthAPI.Controllers
     public class UsuarioController : Controller
     {
         private readonly IServicioUsuario _servicioUsuario;
-
-        public UsuarioController(IServicioUsuario servicioUsuario)
+        private readonly IProvedorJwt _provedorJwt;
+        private readonly IMapper _mapper;
+        public UsuarioController(IServicioUsuario servicioUsuario, IProvedorJwt provedorJwt, IMapper mapper)
         {
-            _servicioUsuario = servicioUsuario; 
+            _servicioUsuario = servicioUsuario;
+            _provedorJwt = provedorJwt;
+            _mapper = mapper;
         }
 
 
         // Obtener todos los usuarios con paginación
         [HttpGet("paginados")]
+
         public async Task<ActionResult<Usuario>> ObtenerUsuariosPaginados()
         {
             var resultado = await _servicioUsuario.ObtenerTodos();
@@ -40,6 +47,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("crear")]
+        [AllowAnonymous]
         public async Task<ActionResult<Usuario>> CrearUsuario([FromBody] CrearUsuarioDTO usuarioDto)
         {
             if (usuarioDto == null)
@@ -48,14 +56,15 @@ namespace FinHealthAPI.Controllers
             }
 
             var usuarioCreado = await _servicioUsuario.Crear(usuarioDto);
-
+            
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (usuarioCreado == null)
             {
                 return Conflict("Ya existe un usuario con este correo o nombre de usuario.");
             }
-
-            return CreatedAtAction(nameof(ObtenerUsuarioPorId), new { id = usuarioCreado.Id }, usuarioCreado);
+            usuarioCreado.Token = _provedorJwt.Generate(usuarioCreado);
+            var usuarioDTO = _mapper.Map<ActualizarUsuarioDTO>(usuarioCreado);
+            return Ok(usuarioDTO);
         }
 
         // Actualizar un usuario

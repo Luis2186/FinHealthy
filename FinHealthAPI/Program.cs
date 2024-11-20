@@ -2,10 +2,13 @@ using Dominio.Usuarios;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Repositorio;
-using Repositorio.Extensiones;
+using FinHealthAPI.Extensiones;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.Automapper;
 using Servicio.Usuarios;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using FinHealthAPI.ConfigOpcionesJwt;
+using FinHealthAPI.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +17,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddAuthorization();
-builder.Services.AddAuthentication().AddCookie(IdentityConstants.ApplicationScheme);
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer()
+    .AddCookie(IdentityConstants.ApplicationScheme);
+
+builder.Services.ConfigureOptions<ConfigJwtOpciones>();
+builder.Services.ConfigureOptions<ConfigBearerOpciones>();
 
 builder.Services.AddControllers();
 
@@ -34,7 +44,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddAutoMapper(typeof(PerfilDeMapeo));
 
 /* Inyeccion de dependencias*/
-
+builder.Services.AddScoped<IProvedorJwt, ProvedorJwt>();
 builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
 
@@ -54,6 +64,7 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseAuthorization();
+app.UseAuthentication();
 
 app.MapControllers();
 

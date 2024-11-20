@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using Dominio.Usuarios;
 
-namespace Repositorio.Extensiones
+namespace FinHealthAPI.Extensiones
 {
     public static class ExtensionesRoles
     {
