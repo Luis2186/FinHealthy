@@ -7,8 +7,9 @@ using Repositorio.Repositorios.Usuarios;
 using Servicio.Automapper;
 using Servicio.Usuarios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using FinHealthAPI.ConfigOpcionesJwt;
-using FinHealthAPI.Authentication;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Servicio.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,11 +21,17 @@ builder.Services.AddAuthorization();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer()
-    .AddCookie(IdentityConstants.ApplicationScheme);
-
-builder.Services.ConfigureOptions<ConfigJwtOpciones>();
-builder.Services.ConfigureOptions<ConfigBearerOpciones>();
+    .AddJwtBearer(o =>
+    {
+        o.RequireHttpsMetadata = false;
+        o.TokenValidationParameters = new TokenValidationParameters()
+        {
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:ClaveSecreta"])),
+            ValidIssuer = builder.Configuration["Jwt:Editor"],
+            ValidAudience = builder.Configuration["Jwt:Audiencia"],
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
 builder.Services.AddControllers();
 
@@ -36,18 +43,15 @@ builder.Services.AddIdentityCore<Usuario>()
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Db_Local"),
     b => b.MigrationsAssembly("Repositorio"))
-    
-
 );
 
 // Configuración de AutoMapper
 builder.Services.AddAutoMapper(typeof(PerfilDeMapeo));
 
 /* Inyeccion de dependencias*/
-builder.Services.AddScoped<IProvedorJwt, ProvedorJwt>();
 builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
-
+builder.Services.AddSingleton<ProveedorToken>();
 var app = builder.Build();
 
 await app.CrearRoles();
@@ -63,11 +67,12 @@ if (app.Environment.IsDevelopment())
 // Configure the HTTP request pipeline.
 
 
-app.UseAuthorization();
+app.MapIdentityApi<Usuario>();
+
 app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapIdentityApi<Usuario>();
 app.UseHttpsRedirection();
 app.Run();

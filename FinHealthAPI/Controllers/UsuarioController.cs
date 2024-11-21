@@ -1,32 +1,31 @@
 ﻿using AutoMapper;
 using Dominio.Usuarios;
-using FinHealthAPI.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Servicio.Usuarios;
 using Servicio.Usuarios.UsuariosDTO;
 
 namespace FinHealthAPI.Controllers
 {
+    [Authorize(Roles = "Sys_Adm , Administrador")]
     [ApiController]
     [Route("/usuario")]
     public class UsuarioController : Controller
     {
         private readonly IServicioUsuario _servicioUsuario;
-        private readonly IProvedorJwt _provedorJwt;
+   
         private readonly IMapper _mapper;
-        public UsuarioController(IServicioUsuario servicioUsuario, IProvedorJwt provedorJwt, IMapper mapper)
+        public UsuarioController(IServicioUsuario servicioUsuario, IMapper mapper)
         {
             _servicioUsuario = servicioUsuario;
-            _provedorJwt = provedorJwt;
             _mapper = mapper;
         }
 
 
         // Obtener todos los usuarios con paginación
         [HttpGet("paginados")]
-
         public async Task<ActionResult<Usuario>> ObtenerUsuariosPaginados()
         {
             var resultado = await _servicioUsuario.ObtenerTodos();
@@ -46,27 +45,41 @@ namespace FinHealthAPI.Controllers
         }
 
         // Crear un nuevo usuario
-        [HttpPost("crear")]
+        [HttpPost("registrar")]
         [AllowAnonymous]
-        public async Task<ActionResult<Usuario>> CrearUsuario([FromBody] CrearUsuarioDTO usuarioDto)
+        public async Task<ActionResult<Usuario>> RegistrarUsuario([FromBody] CrearUsuarioDTO usuarioDto)
         {
             if (usuarioDto == null)
             {
                 return BadRequest("Los datos del usuario son requeridos.");
             }
 
-            var usuarioCreado = await _servicioUsuario.Crear(usuarioDto);
+            var usuarioCreado = await _servicioUsuario.Registrar(usuarioDto);
             
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (usuarioCreado == null)
             {
                 return Conflict("Ya existe un usuario con este correo o nombre de usuario.");
             }
-            usuarioCreado.Token = _provedorJwt.Generate(usuarioCreado);
-            var usuarioDTO = _mapper.Map<ActualizarUsuarioDTO>(usuarioCreado);
-            return Ok(usuarioDTO);
-        }
 
+            return Ok(new { usuarioId = usuarioCreado.Id, usuarioCreado.Token }) ;
+        }
+        // Obtener un usuario por su ID
+        [HttpPost("login")]
+        [AllowAnonymous]
+        public async Task<ActionResult<Usuario>> Login([FromBody] UsuarioLoginDTO usuarioDto)
+        {
+            var usuario = await _servicioUsuario.Login(usuarioDto);
+
+            if (usuario == null)
+            {
+                return NotFound("Ah ocurrido un error al intentar loguearse, por favor verifique sus credenciales");  // Devuelve 404 si no se encuentra el usuario
+            }
+
+            //var token = _provedorJwt.Crear(usuario);
+
+            return Ok( new { usuarioId = usuario.Id , usuario.Token });  // Devuelve el usuario con estado 200 OK
+        }
         // Actualizar un usuario
         [HttpPut("actualizar/{usuarioId}")]
         public async Task<ActionResult<Usuario>> ActualizarUsuario(string usuarioId, [FromBody] ActualizarUsuarioDTO usuarioDto)
