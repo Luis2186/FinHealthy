@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Dominio.Usuarios
 {
-    public class Usuario : IdentityUser
+    public class Usuario() : IdentityUser
     {
         public string? Nombre { get; set; }
         public string? Apellido { get; set; }
@@ -17,6 +17,20 @@ namespace Dominio.Usuarios
         public int Edad { get; set; }
         public bool Activo { get; set; }
         [NotMapped]
+        public List<string> Roles { get; set; }
+        [NotMapped]
         public string? Token { get; set; }
+
+
+        public void AsignarRoles(List<string> Roles)
+        {
+            this.Roles = Roles;
+        }
+
+        public void AsignarToken(string token)
+        {
+            this.Token = token; 
+        }
+
     }
 }

@@ -11,6 +11,7 @@ namespace Servicio.Usuarios.UsuariosDTO
         public DateTime FechaDeRegistro { get; set; }
         public string? Password { get; set; }
         public string? ConfirmacionPassword { get; set; }
+        public string? Rol { get; set; }
 
         public CrearUsuarioDTO()
         {

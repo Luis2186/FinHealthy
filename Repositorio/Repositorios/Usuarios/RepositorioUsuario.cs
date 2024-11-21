@@ -14,11 +14,13 @@ namespace Repositorio.Repositorios.Usuarios
     {
         private readonly UserManager<Usuario> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-
-        public RepositorioUsuario(UserManager<Usuario> userManager, RoleManager<IdentityRole> roleManager)
+        private readonly SignInManager<Usuario> _signInManager;
+        
+        public RepositorioUsuario(UserManager<Usuario> userManager, RoleManager<IdentityRole> roleManager, SignInManager<Usuario> signInManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _signInManager = signInManager;
         }
 
         public async Task<bool> ActualizarAsync(Usuario model)
@@ -31,12 +33,12 @@ namespace Repositorio.Repositorios.Usuarios
         {
             Usuario usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
             Claim claimParaAgregar = new Claim(tipoClaim, claim);
-            
+
             if (usuarioBuscado == null) return false;
-            
+
             var resultado = await _userManager.AddClaimAsync(usuarioBuscado, claimParaAgregar);
-            
-            return resultado.Succeeded;   
+
+            return resultado.Succeeded;
         }
 
         public async Task<bool> AgregarRol(string usuarioId, string idRol)
@@ -44,11 +46,20 @@ namespace Repositorio.Repositorios.Usuarios
             Usuario usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
             var role = await _roleManager.FindByIdAsync(idRol);
 
-            if (usuarioBuscado == null || role == null) return false; 
+            if (usuarioBuscado == null || role == null) return false;
 
             var resultado = await _userManager.AddToRoleAsync(usuarioBuscado, role.Name);
 
             return resultado.Succeeded;
+        }
+
+        public async Task<IdentityRole> BuscarRol(string rolId, string rolNombre)
+        {
+            IdentityRole rolBuscado = await _roleManager.FindByIdAsync(rolId);
+
+            if(rolBuscado == null) rolBuscado = await _roleManager.FindByNameAsync(rolNombre);
+
+            return rolBuscado;
         }
 
         public async Task<bool> CrearAsync(Usuario model)
@@ -73,6 +84,16 @@ namespace Repositorio.Repositorios.Usuarios
                 return resultado.Succeeded;
             }
             return false;
+        }
+
+        public async Task<bool> Login(Usuario usuario, string password)
+        {
+            return await _userManager.CheckPasswordAsync(usuario, password);
+        }
+
+        public async Task<Usuario> ObtenerPorEmailAsync(string email)
+        {
+            return await _userManager.FindByEmailAsync(email);
         }
 
         public async Task<Usuario> ObtenerPorIdAsync(string id)
@@ -107,16 +128,18 @@ namespace Repositorio.Repositorios.Usuarios
             return await _userManager.GetClaimsAsync(usuarioBuscado);
         }
 
-        public async Task<IEnumerable<IdentityRole>> ObtenerTodosLosRoles()
+        public async Task<IEnumerable<string>> ObtenerTodosLosRoles()
         {
-            return await _roleManager.Roles.ToListAsync();
+            return await _roleManager.Roles
+                .Select(r => r.Name)
+                .ToListAsync();
         }
 
         public async Task<bool> RemoverClaim(string usuarioId, string tipoClaim, string claim)
         {
             Usuario usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
             Claim claimParaRemover = new Claim(tipoClaim, claim);
-            
+
             if (usuarioBuscado == null) return false;
 
             var resultado = await _userManager.RemoveClaimAsync(usuarioBuscado, claimParaRemover);
@@ -135,5 +158,29 @@ namespace Repositorio.Repositorios.Usuarios
 
             return resultado.Succeeded;
         }
+
+        public async Task<Usuario> RestablecerContraseña(string email, string contraseñaVieja, string nuevaContraseña)
+        {
+            var user = await ObtenerPorEmailAsync(email);
+
+            if (user != null)
+            {
+                var resultado =  await _userManager.ChangePasswordAsync(user, contraseñaVieja, nuevaContraseña);
+                
+                if (resultado.Succeeded)
+                {
+                    // Inicia sesión con la nueva contraseña
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    
+                    return user;
+                }
+            }
+
+            return null;
+        }
+
+
+
+
     }
 }
