@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Dominio.Usuarios
 {
-    public class Usuario() : IdentityUser
+    public class Usuario : IdentityUser
     {
         public string? Nombre { get; set; }
         public string? Apellido { get; set; }

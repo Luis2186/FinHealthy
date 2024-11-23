@@ -1,4 +1,5 @@
-﻿using Dominio.Usuarios;
+﻿using Dominio;
+using Dominio.Usuarios;
 using Microsoft.AspNetCore.Identity;
 using Servicio.Usuarios.UsuariosDTO;
 using System;
@@ -12,20 +13,20 @@ namespace Servicio.Usuarios
 {
     public interface IServicioUsuario
     {
-        public Task<Usuario> ObtenerPorId(string id);
+        public Task<Resultado<Usuario>> ObtenerPorId(string id);
         // Obtener todos los elementos con soporte de paginación y cancelación
-        public Task<IEnumerable<Usuario>> ObtenerTodos();
-        public Task<Usuario> Registrar(CrearUsuarioDTO usuario);
-        public Task<Usuario> Login(UsuarioLoginDTO usuario);
-        public Task<bool> Logout();
-        public Task<Usuario> Actualizar(string id, ActualizarUsuarioDTO usuario);
-        public Task<bool> Eliminar(string id);
-        public Task<bool> AgregarRol(string usuarioId, string rol);
-        public Task<bool> RemoverRol(string usuarioId, string rol);
-        public Task<bool> AgregarClaim(string usuarioId, string tipoClaim, string claim);
-        public Task<bool> RemoverClaim(string usuarioId, string tipoClaim, string claim);
-        public Task<IEnumerable<Claim>> ObtenerTodosLosClaim(string usuarioId);
-        public Task<IEnumerable<string>> ObtenerTodosLosRoles();
-        public Task<IEnumerable<string>> ObtenerRolesPorUsuario(string usuarioId);
+        public Task<Resultado<IEnumerable<Usuario>>> ObtenerTodos();
+        public Task<Resultado<Usuario>> Registrar(CrearUsuarioDTO usuario);
+        public Task<Resultado<Usuario>> Login(UsuarioLoginDTO usuario);
+        public Task<Resultado<bool>> Logout();
+        public Task<Resultado<Usuario>> Actualizar(string id, ActualizarUsuarioDTO usuario);
+        public Task<Resultado<bool>> Eliminar(string id);
+        public Task<Resultado<bool>> AgregarRol(string usuarioId, string idRol,string nombreRol);
+        public Task<Resultado<bool>> RemoverRol(string usuarioId, string rol, string nombreRol);
+        public Task<Resultado<bool>> AgregarClaim(string usuarioId, string tipoClaim, string claim);
+        public Task<Resultado<bool>> RemoverClaim(string usuarioId, string tipoClaim, string claim);
+        public Task<Resultado<IEnumerable<Claim>>> ObtenerTodosLosClaim(string usuarioId);
+        public Task<Resultado<IEnumerable<string>>> ObtenerTodosLosRoles();
+        public Task<Resultado<IEnumerable<string>>> ObtenerRolesPorUsuario(string usuarioId);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Dominio.Usuarios;
+﻿using Dominio;
+using Dominio.Usuarios;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections;
@@ -12,18 +13,18 @@ namespace Repositorio.Repositorios.Usuarios
 {
     public interface IRepositorioUsuario : IRepositorioCRUD<Usuario>
     {
-        public Task<bool> CrearAsync(Usuario model,string password);
-        public Task<bool> Login(Usuario usuario, string password);
-        public Task<Usuario> RestablecerContraseña(string email, string contraseñaVieja ,string nuevaContraseña);
-        public Task<Usuario> ObtenerPorIdAsync(string id);
-        public Task<Usuario> ObtenerPorEmailAsync(string email);
-        public Task<bool> AgregarRol(string usuarioId, string idRol);
-        public Task<IdentityRole> BuscarRol(string rolId, string rolNombre);
-        public Task<bool> RemoverRol(string usuarioId, string idRol);
-        public Task<bool> AgregarClaim(string usuarioId, string tipoClaim, string claim);
-        public Task<bool> RemoverClaim(string usuarioId, string tipoClaim, string claim);
-        public Task<IEnumerable<Claim>> ObtenerTodosLosClaim(string usuarioId);
-        public Task<IEnumerable<string>> ObtenerTodosLosRoles();
-        public Task<IEnumerable<string>> ObtenerRolesPorUsuario(string usuarioId);
+        public Task<Resultado<Usuario>> CrearAsync(Usuario model,string password);
+        public Task<Resultado<Usuario>> Login(Usuario usuario, string password);
+        public Task<Resultado<Usuario>> RestablecerContraseña(string email, string contraseñaVieja ,string nuevaContraseña);
+        public Task<Resultado<Usuario>> ObtenerPorIdAsync(string id);
+        public Task<Resultado<Usuario>> ObtenerPorEmailAsync(string email);
+        public Task<Resultado<bool>> AgregarRol(string usuarioId, string idRol,string nombreRol);
+        public Task<Resultado<IdentityRole>> BuscarRol(string rolId, string rolNombre);
+        public Task<Resultado<bool>> RemoverRol(string usuarioId, string idRol, string nombreRol);
+        public Task<Resultado<bool>> AgregarClaim(string usuarioId, string tipoClaim, string claim);
+        public Task<Resultado<bool>> RemoverClaim(string usuarioId, string tipoClaim, string claim);
+        public Task<Resultado<IEnumerable<Claim>>> ObtenerTodosLosClaim(string usuarioId);
+        public Task<Resultado<IEnumerable<string>>> ObtenerTodosLosRoles();
+        public Task<Resultado<IEnumerable<string>>> ObtenerRolesPorUsuario(string usuarioId);
     }
 }

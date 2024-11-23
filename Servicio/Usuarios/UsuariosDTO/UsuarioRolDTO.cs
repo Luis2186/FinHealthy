@@ -10,7 +10,8 @@ namespace Servicio.Usuarios.UsuariosDTO
     public class UsuarioRolDTO
     {
         [Required]
-        public string? IdRol { get; set; }
-        public string? NameRol { get; set; }
+        public string? idUsuario { get; set; } = string.Empty;
+        public string? IdRol { get; set; } = string.Empty;
+        public string? NombreRol { get; set; } = string.Empty;
     }
 }

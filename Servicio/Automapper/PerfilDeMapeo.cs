@@ -12,6 +12,11 @@ namespace Servicio.Automapper
     public class PerfilDeMapeo : Profile
     {
         public PerfilDeMapeo() {
+
+            CreateMap<Usuario, UsuarioDTO>()
+            .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber))
+            .ForMember(destino => destino.NombreDeUsuario, opt => opt.MapFrom(origen => origen.UserName));
+
             CreateMap<CrearUsuarioDTO, Usuario>()
                 .ForMember(destino => destino.PhoneNumber, opt => opt.MapFrom(origen => origen.Telefono))
                 .ForMember(destino => destino.UserName, opt => opt.MapFrom(origen => origen.NombreDeUsuario))

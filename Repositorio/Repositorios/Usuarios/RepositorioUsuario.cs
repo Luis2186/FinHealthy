@@ -1,4 +1,6 @@
-﻿using Dominio.Usuarios;
+﻿using Dominio;
+using Dominio.Abstracciones;
+using Dominio.Usuarios;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -23,160 +25,394 @@ namespace Repositorio.Repositorios.Usuarios
             _signInManager = signInManager;
         }
 
-        public async Task<bool> ActualizarAsync(Usuario model)
+        public async Task<Resultado<Usuario>> ActualizarAsync(Usuario model)
         {
-            var resultado = await _userManager.UpdateAsync(model);
-            return resultado.Succeeded;
+            var resultadoValidacion = DataAnnotationsValidator.Validar(model);
+
+            if (resultadoValidacion.TieneErrores) return resultadoValidacion;
+
+            try
+            {
+                var resultadoUpdate = await _userManager.UpdateAsync(model);
+
+                if (resultadoUpdate.Succeeded)
+                {
+                    return Resultado<Usuario>.Success(model); 
+                }
+                else
+                {
+                    var errores = resultadoUpdate.Errors
+                        .Select(e => new Error(e.Code, e.Description))
+                        .ToList();
+                    return Resultado<Usuario>.Failure(errores);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Resultado<Usuario>.Failure(new Error("ACTUALIZACION_ERROR", $"Error inesperado al actualizar el usuario: {ex.Message}"));
+            }
         }
 
-        public async Task<bool> AgregarClaim(string usuarioId, string tipoClaim, string claim)
+        public async Task<Resultado<bool>> AgregarClaim(string usuarioId, string tipoClaim, string claim)
         {
-            Usuario usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
+      
+            var usuarioBuscadoResultado = await ObtenerPorIdAsync(usuarioId);
+
+            if (usuarioBuscadoResultado.TieneErrores) return Resultado<bool>.Failure(usuarioBuscadoResultado.Errores);
+
+            var usuarioBuscado = usuarioBuscadoResultado.Valor;
             Claim claimParaAgregar = new Claim(tipoClaim, claim);
 
-            if (usuarioBuscado == null) return false;
+            try
+            {
+                var resultado = await _userManager.AddClaimAsync(usuarioBuscado, claimParaAgregar);
+                if (resultado.Succeeded)
+                {
+                    return Resultado<bool>.Success(resultado.Succeeded);  
+                }
+                else
+                {
+                    var errores = resultado.Errors
+                        .Select(e => new Error(e.Code, e.Description))
+                        .ToList();
 
-            var resultado = await _userManager.AddClaimAsync(usuarioBuscado, claimParaAgregar);
-
-            return resultado.Succeeded;
+                    return Resultado<bool>.Failure(errores);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Resultado<bool>.Failure(new Error("CREACION_ERROR", $"Error inesperado al agregar el claim al usuario: {ex.Message}"));
+            }
         }
 
-        public async Task<bool> AgregarRol(string usuarioId, string idRol)
+        public async Task<Resultado<bool>> AgregarRol(string usuarioId, string idRol, string nombreRol)
         {
-            Usuario usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
-            var role = await _roleManager.FindByIdAsync(idRol);
+            var usuarioBuscadoResultado = await ObtenerPorIdAsync(usuarioId);
 
-            if (usuarioBuscado == null || role == null) return false;
+            if (usuarioBuscadoResultado.TieneErrores)
+            {
+                return Resultado<bool>.Failure(usuarioBuscadoResultado.Errores);
+            }
 
-            var resultado = await _userManager.AddToRoleAsync(usuarioBuscado, role.Name);
+            var usuarioBuscado = usuarioBuscadoResultado.Valor;
 
-            return resultado.Succeeded;
+            var role = await BuscarRol(idRol, nombreRol);
+
+            if (role.TieneErrores) return Resultado<bool>.Failure(role.Errores);
+
+            var rolEncontrado = role.Valor;
+
+            var resultado = await _userManager.AddToRoleAsync(usuarioBuscado, rolEncontrado.Name);
+
+            if (resultado.Succeeded) return Resultado<bool>.Success(resultado.Succeeded);
+
+            var errores = resultado.Errors
+                .Select(e => new Error(e.Code, e.Description))
+                .ToList();
+
+            return Resultado<bool>.Failure(errores);
         }
 
-        public async Task<IdentityRole> BuscarRol(string rolId, string rolNombre)
+        public async Task<Resultado<IdentityRole>> BuscarRol(string rolId, string rolNombre)
         {
-            IdentityRole rolBuscado = await _roleManager.FindByIdAsync(rolId);
+            try
+            {
+                var rolBuscado = await _roleManager.FindByIdAsync(rolId);
 
-            if(rolBuscado == null) rolBuscado = await _roleManager.FindByNameAsync(rolNombre);
+                if (rolBuscado == null) rolBuscado = await _roleManager.FindByNameAsync(rolNombre);
 
-            return rolBuscado;
+                if (rolBuscado == null) return Resultado<IdentityRole>.Failure(new Error("ROL_NO_ENCONTRADO", "No se encontró el rol con el ID o nombre proporcionado."));
+                
+                return Resultado<IdentityRole>.Success(rolBuscado);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<IdentityRole>.Failure(new Error("BUSCAR_ROL_ERROR", $"Ocurrió un error al intentar buscar el rol: {ex.Message}"));
+            }
         }
 
-        public async Task<bool> CrearAsync(Usuario model)
+        public async Task<Resultado<Usuario>> CrearAsync(Usuario model)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<bool> CrearAsync(Usuario model, string password)
+        public async Task<Resultado<Usuario>> CrearAsync(Usuario model, string password)
         {
-            var resultado = await _userManager.CreateAsync(model, password);
+            var resultadoValidacion = DataAnnotationsValidator.Validar(model);
 
-            return resultado.Succeeded;
+            if (resultadoValidacion.TieneErrores) return resultadoValidacion;
+
+            try
+            {
+                var usuarioBuscado= await ObtenerPorEmailAsync(model.Email);
+
+                if (usuarioBuscado.EsCorrecto) return Resultado<Usuario>.Failure(new Error("CREACION_ERROR", "Ya existe el email brindando"));
+
+                var usuarioCreado = await _userManager.CreateAsync(model, password);
+               
+                if (usuarioCreado.Succeeded)
+                {
+                    return Resultado<Usuario>.Success(model);
+                }else
+                {
+                    var errores = usuarioCreado.Errors
+                        .Select(e => new Error(e.Code,e.Description))
+                        .ToList();
+                    return Resultado<Usuario>.Failure(errores);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Resultado<Usuario>.Failure(new Error("CREACION_ERROR",ex.Message));
+            }
         }
 
-        public async Task<bool> EliminarAsync(string id)
+        public async Task<Resultado<bool>> EliminarAsync(string id)
         {
             var usuario = await _userManager.FindByIdAsync(id);
 
-            if (usuario != null)
+            if (usuario == null) return Resultado<bool>.Failure(ErroresUsuario.UsuarioInexistente);
+
+            try
             {
-                var resultado = await _userManager.DeleteAsync(usuario);
-                return resultado.Succeeded;
+                var usuarioEliminado = await _userManager.DeleteAsync(usuario);
+                if (usuarioEliminado.Succeeded)
+                {
+                    return Resultado<bool>.Success(usuarioEliminado.Succeeded);
+                } else
+                {
+                    var errores = usuarioEliminado.Errors
+                        .Select(error => new Error(error.Code, error.Description))
+                        .ToList();
+
+                    return Resultado<bool>.Failure(errores);
+                }
             }
-            return false;
+            catch (Exception ex)
+            {
+                return Resultado<bool>.Failure(new Error("ELIMINACION_ERROR", ex.Message));
+            }
         }
 
-        public async Task<bool> Login(Usuario usuario, string password)
+        public async Task<Resultado<Usuario>> Login(Usuario usuario, string password)
         {
-            return await _userManager.CheckPasswordAsync(usuario, password);
+            try
+            {
+                var usuarioLogueado = await _userManager.CheckPasswordAsync(usuario, password);
+
+                if (usuarioLogueado)
+                {
+                    return Resultado<Usuario>.Success(usuario);
+                }
+
+                return Resultado<Usuario>.Failure(new Error("CREDENCIALES_INVALIDAS", "El usuario y/o la contraseña son incorrectos."));
+
+            }
+            catch (Exception ex)
+            {
+                return Resultado<Usuario>.Failure(new Error("LOGIN_ERROR", $"Ocurrió un error al intentar iniciar sesión: {ex.Message}"));
+            }
         }
 
-        public async Task<Usuario> ObtenerPorEmailAsync(string email)
+        public async Task<Resultado<Usuario>> ObtenerPorEmailAsync(string email)
         {
-            return await _userManager.FindByEmailAsync(email);
+            try
+            {
+                var usuarioBuscado = await _userManager.FindByEmailAsync(email);
+
+                if (usuarioBuscado == null)
+                {
+                    return Resultado<Usuario>.Failure(new Error("USUARIO_NO_ENCONTRADO", "No se encontró un usuario con el email proporcionado."));
+                }
+
+                return Resultado<Usuario>.Success(usuarioBuscado);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<Usuario>.Failure(new Error("OBTENER_USUARIO_ERROR", $"Ocurrió un error al intentar obtener el usuario: {ex.Message}"));
+            }
         }
 
-        public async Task<Usuario> ObtenerPorIdAsync(string id)
+        public async Task<Resultado<Usuario>> ObtenerPorIdAsync(string id)
         {
-            return await _userManager.FindByIdAsync(id);
+            try
+            {
+                var usuarioBuscado = await _userManager.FindByIdAsync(id);
+
+                if (usuarioBuscado == null)
+                {
+                    return Resultado<Usuario>.Failure(new Error("USUARIO_NO_ENCONTRADO", "No se encontró un usuario con el id proporcionado."));
+                }
+
+                return Resultado<Usuario>.Success(usuarioBuscado);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<Usuario>.Failure(new Error("OBTENER_USUARIO_ERROR", $"Ocurrió un error al intentar obtener el usuario: {ex.Message}"));
+            }
         }
 
-        public Task<Usuario> ObtenerPorIdAsync(int id)
+        public Task<Resultado<Usuario>> ObtenerPorIdAsync(int id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<string>> ObtenerRolesPorUsuario(string usuarioId)
+        public async Task<Resultado<IEnumerable<string>>> ObtenerRolesPorUsuario(string usuarioId)
         {
-            Usuario usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
-            if (usuarioBuscado == null) return null;
+            var usuarioBuscadoResultado = await ObtenerPorIdAsync(usuarioId);
 
-            return await _userManager.GetRolesAsync(usuarioBuscado);
-        }
+            if (usuarioBuscadoResultado.TieneErrores) return Resultado<IEnumerable<string>>.Failure(usuarioBuscadoResultado.Errores);
 
-        public async Task<IEnumerable<Usuario>> ObtenerTodosAsync()
-        {
-            return _userManager.Users.ToList();
-        }
+            var usuarioBuscado = usuarioBuscadoResultado.Valor;
 
-        public async Task<IEnumerable<Claim>> ObtenerTodosLosClaim(string usuarioId)
-        {
-            Usuario usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
-
-            if (usuarioBuscado == null) return null;
-
-            return await _userManager.GetClaimsAsync(usuarioBuscado);
-        }
-
-        public async Task<IEnumerable<string>> ObtenerTodosLosRoles()
-        {
-            return await _roleManager.Roles
-                .Select(r => r.Name)
-                .ToListAsync();
-        }
-
-        public async Task<bool> RemoverClaim(string usuarioId, string tipoClaim, string claim)
-        {
-            Usuario usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
-            Claim claimParaRemover = new Claim(tipoClaim, claim);
-
-            if (usuarioBuscado == null) return false;
-
-            var resultado = await _userManager.RemoveClaimAsync(usuarioBuscado, claimParaRemover);
-
-            return resultado.Succeeded;
-        }
-
-        public async Task<bool> RemoverRol(string usuarioId, string idRol)
-        {
-            Usuario usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
-            var role = await _roleManager.FindByIdAsync(idRol);
-
-            if (usuarioBuscado == null || role == null) return false;
-
-            var resultado = await _userManager.RemoveFromRoleAsync(usuarioBuscado, role.Name);
-
-            return resultado.Succeeded;
-        }
-
-        public async Task<Usuario> RestablecerContraseña(string email, string contraseñaVieja, string nuevaContraseña)
-        {
-            var user = await ObtenerPorEmailAsync(email);
-
-            if (user != null)
+            try
             {
-                var resultado =  await _userManager.ChangePasswordAsync(user, contraseñaVieja, nuevaContraseña);
-                
-                if (resultado.Succeeded)
-                {
-                    // Inicia sesión con la nueva contraseña
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    
-                    return user;
-                }
-            }
+                var roles = await _userManager.GetRolesAsync(usuarioBuscado);
 
-            return null;
+                return Resultado<IEnumerable<string>>.Success(roles);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<IEnumerable<string>>.Failure(new Error("OBTENER_ROLES_ERROR", $"Ocurrió un error al intentar obtener los roles: {ex.Message}"));
+            }
+        }
+
+        public async Task<Resultado<IEnumerable<Usuario>>> ObtenerTodosAsync()
+        {
+            try
+            {
+                var usuarios = _userManager.Users
+                    .Where(user => user.UserName.ToLower() != "sys_adm")
+                    .ToList();
+
+                return Resultado<IEnumerable<Usuario>>.Success(usuarios);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<IEnumerable<Usuario>>.Failure(new Error("OBTENER_TODOS_ERROR", $"Ocurrió un error al intentar obtener los usuarios: {ex.Message}"));
+            }
+        }
+
+        public async Task<Resultado<IEnumerable<Claim>>> ObtenerTodosLosClaim(string usuarioId)
+        {
+            var usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
+
+            if (usuarioBuscado.TieneErrores) return Resultado<IEnumerable<Claim>>.Failure(usuarioBuscado.Errores);
+
+            try
+            {
+                var claims = await _userManager.GetClaimsAsync(usuarioBuscado.Valor);
+
+                if (!claims.Any()) return Resultado<IEnumerable<Claim>>.Failure(new Error("SIN_CLAIMS", "El usuario no tiene ningún claim asignado."));
+                
+                return Resultado<IEnumerable<Claim>>.Success(claims);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<IEnumerable<Claim>>.Failure(new Error("OBTENER_CLAIMS_ERROR", $"Ocurrió un error al intentar obtener los claims: {ex.Message}"));
+            }
+        }
+
+        public async Task<Resultado<IEnumerable<string>>> ObtenerTodosLosRoles()
+        {
+            try
+            {
+                var roles = await _roleManager.Roles
+                    .Select(r => r.Name)
+                    .ToListAsync();
+
+                if (!roles.Any()) return Resultado<IEnumerable<string>>.Failure(new Error("SIN_ROLES", "No existen roles registrados en el sistema."));
+
+                return Resultado<IEnumerable<string>>.Success(roles);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<IEnumerable<string>>.Failure(new Error("OBTENER_ROLES_ERROR", $"Ocurrió un error al intentar obtener los roles: {ex.Message}"));
+            }
+        }
+
+        public async Task<Resultado<bool>> RemoverClaim(string usuarioId, string tipoClaim, string claim)
+        {
+            var usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
+
+            if (usuarioBuscado.TieneErrores) return Resultado<bool>.Failure(usuarioBuscado.Errores);
+
+            try
+            {
+                var claimParaRemover = new Claim(tipoClaim, claim);
+
+                var resultado = await _userManager.RemoveClaimAsync(usuarioBuscado.Valor, claimParaRemover);
+
+                if (resultado.Succeeded) return Resultado<bool>.Success(resultado.Succeeded);
+
+                var errores = resultado.Errors
+                    .Select(e => new Error(e.Code, e.Description))
+                    .ToList();
+
+                return Resultado<bool>.Failure(errores);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<bool>.Failure(new Error("REMOVER_CLAIM_ERROR", $"Ocurrió un error al intentar remover el claim: {ex.Message}"));
+            }
+        }
+
+        public async Task<Resultado<bool>> RemoverRol(string usuarioId, string idRol, string nombreRol)
+        {
+            var usuarioBuscado = await ObtenerPorIdAsync(usuarioId);
+
+            if (usuarioBuscado.TieneErrores) return Resultado<bool>.Failure(usuarioBuscado.Errores);
+
+            try
+            {
+                // Buscar el rol por su ID
+                var role = await BuscarRol(idRol, nombreRol);
+
+                if (role.TieneErrores) return Resultado<bool>.Failure(role.Errores);
+
+                var rol = role.Valor;
+                var resultado = await _userManager.RemoveFromRoleAsync(usuarioBuscado.Valor, rol.Name);
+
+                if (resultado.Succeeded) return Resultado<bool>.Success(resultado.Succeeded);
+
+                var errores = resultado.Errors
+                    .Select(e => new Error(e.Code, e.Description))
+                    .ToList();
+
+                return Resultado<bool>.Failure(errores);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<bool>.Failure(new Error("REMOVER_ROL_ERROR", $"Ocurrió un error al intentar remover el rol: {ex.Message}"));
+            }
+        }
+
+        public async Task<Resultado<Usuario>> RestablecerContraseña(string email, string contraseñaVieja, string nuevaContraseña)
+        {
+            try
+            {
+                var usuarioBuscado = await ObtenerPorEmailAsync(email);
+
+                if (usuarioBuscado.TieneErrores) return Resultado<Usuario>.Failure(usuarioBuscado.Errores);
+                
+                var resultadoCambio = await _userManager.ChangePasswordAsync(usuarioBuscado.Valor, contraseñaVieja, nuevaContraseña);
+
+                if (resultadoCambio.Succeeded)
+                {
+                    await _signInManager.SignInAsync(usuarioBuscado.Valor, isPersistent: false);
+                    return Resultado<Usuario>.Success(usuarioBuscado.Valor);
+                }
+
+                var errores = resultadoCambio.Errors
+                    .Select(e => new Error(e.Code, e.Description))
+                    .ToList();
+
+                return Resultado<Usuario>.Failure(errores);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<Usuario>.Failure(new Error("RESTABLECER_CONTRASEÑA_ERROR", $"Ocurrió un error al intentar restablecer la contraseña: {ex.Message}"));
+            }
         }
 
 

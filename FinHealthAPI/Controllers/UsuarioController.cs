@@ -29,7 +29,12 @@ namespace FinHealthAPI.Controllers
         public async Task<ActionResult<Usuario>> ObtenerUsuariosPaginados()
         {
             var resultado = await _servicioUsuario.ObtenerTodos();
-            return Ok(resultado);  // Devuelve los datos con estado HTTP 200 OK
+
+            if (resultado.TieneErrores) return NotFound(resultado.Errores);
+
+            var usuariosDTOS = _mapper.Map<List<UsuarioDTO>>(resultado.Valor);
+
+            return Ok(usuariosDTOS);  // Devuelve los datos con estado HTTP 200 OK
         }
 
         // Obtener un usuario por su ID
@@ -37,11 +42,11 @@ namespace FinHealthAPI.Controllers
         public async Task<ActionResult<Usuario>> ObtenerUsuarioPorId(string usuarioId)
         {
             var usuario = await _servicioUsuario.ObtenerPorId(usuarioId);
-            if (usuario == null)
+            if (usuario.TieneErrores)
             {
-                return NotFound();  // Devuelve 404 si no se encuentra el usuario
+                return NotFound(usuario.Errores);  // Devuelve 404 si no se encuentra el usuario
             }
-            return Ok(usuario);  // Devuelve el usuario con estado 200 OK
+            return Ok(usuario.Valor);  // Devuelve el usuario con estado 200 OK
         }
 
         // Crear un nuevo usuario
@@ -57,12 +62,12 @@ namespace FinHealthAPI.Controllers
             var usuarioCreado = await _servicioUsuario.Registrar(usuarioDto);
             
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
-            if (usuarioCreado == null)
+            if (usuarioCreado.TieneErrores)
             {
-                return Conflict("Ya existe un usuario con este correo o nombre de usuario.");
+                return Conflict(usuarioCreado.Errores);
             }
 
-            return Ok(new { usuarioId = usuarioCreado.Id, usuarioCreado.Token }) ;
+            return Ok(new { usuarioId = usuarioCreado.Valor.Id, usuarioCreado.Valor.Token }) ;
         }
         // Obtener un usuario por su ID
         [HttpPost("login")]
@@ -71,14 +76,14 @@ namespace FinHealthAPI.Controllers
         {
             var usuario = await _servicioUsuario.Login(usuarioDto);
 
-            if (usuario == null)
+            if (usuario.TieneErrores)
             {
-                return NotFound("Ah ocurrido un error al intentar loguearse, por favor verifique sus credenciales");  // Devuelve 404 si no se encuentra el usuario
+                return NotFound(usuario.Errores);
             }
 
             //var token = _provedorJwt.Crear(usuario);
 
-            return Ok( new { usuarioId = usuario.Id , usuario.Token });  // Devuelve el usuario con estado 200 OK
+            return Ok( new { usuarioId = usuario.Valor.Id , usuario.Valor.Token });  // Devuelve el usuario con estado 200 OK
         }
         // Actualizar un usuario
         [HttpPut("actualizar/{usuarioId}")]
@@ -91,9 +96,9 @@ namespace FinHealthAPI.Controllers
 
             var usuarioActualizado = await _servicioUsuario.Actualizar(usuarioId, usuarioDto);
 
-            if (usuarioActualizado == null)
+            if (usuarioActualizado.TieneErrores)
             {
-                return NotFound($"Usuario con id {usuarioId} no encontrado.");
+                return NotFound(usuarioActualizado.Errores);
             }
 
             return Ok(usuarioActualizado);  // Devuelve el usuario actualizado con estado 200 OK
@@ -103,36 +108,36 @@ namespace FinHealthAPI.Controllers
         [HttpDelete("eliminar/{usuarioId}")]
         public async Task<ActionResult> EliminarUsuario(string usuarioId)
         {
-            var exito = await _servicioUsuario.Eliminar(usuarioId);
+            var usuarioEliminado = await _servicioUsuario.Eliminar(usuarioId);
 
-            if (!exito)
+            if (usuarioEliminado.TieneErrores)
             {
-                return NotFound($"Usuario con id {usuarioId} no encontrado.");
+                return NotFound(usuarioEliminado.Errores);
             }
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
         }
-        [HttpDelete("eliminarRol/{usuarioId}")]
-        public async Task<ActionResult> EliminarRolAUsuario(string usuarioId, [FromBody] UsuarioRolDTO rol)
+        [HttpDelete("eliminarRol")]
+        public async Task<ActionResult> EliminarRolAUsuario([FromBody] UsuarioRolDTO rol)
         {
-            var exito = await _servicioUsuario.RemoverRol(usuarioId,rol.IdRol);
+            var rolEliminado = await _servicioUsuario.RemoverRol(rol.idUsuario, rol.IdRol,rol.NombreRol);
 
-            if (!exito)
+            if (rolEliminado.TieneErrores)
             {
-                return NotFound($"El rol con id {rol.IdRol} no se pudo eliminar.");
+                return NotFound(rolEliminado.Errores);
             }
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
         }
 
-        [HttpPost("agregarRol/{usuarioId}")]
-        public async Task<ActionResult> AgregarRolAUsuario(string usuarioId, [FromBody] UsuarioRolDTO rol)
+        [HttpPost("agregarRol")]
+        public async Task<ActionResult> AgregarRolAUsuario([FromBody] UsuarioRolDTO rol)
         {
-            var exito = await _servicioUsuario.AgregarRol(usuarioId, rol.IdRol);
+            var rolAgregado = await _servicioUsuario.AgregarRol(rol.idUsuario, rol.IdRol,rol.NombreRol);
 
-            if (!exito)
+            if (rolAgregado.TieneErrores)
             {
-                return NotFound($"El rol con id {rol.IdRol} no se pudo agregar al usuario con id {rol.IdRol}.");
+                return NotFound(rolAgregado.Errores);
             }
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
@@ -143,7 +148,10 @@ namespace FinHealthAPI.Controllers
         public async Task<ActionResult<Usuario>> ObtenerRolesPorUsuario(string usuarioId)
         {
             var resultado = await _servicioUsuario.ObtenerRolesPorUsuario(usuarioId);
-            return Ok(resultado);  // Devuelve los datos con estado HTTP 200 OK
+            
+            if(resultado.TieneErrores) return NotFound(resultado.Errores);
+
+            return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
         }
 
 
