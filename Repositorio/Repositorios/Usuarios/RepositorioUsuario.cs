@@ -121,7 +121,7 @@ namespace Repositorio.Repositorios.Usuarios
 
                 if (rolBuscado == null) rolBuscado = await _roleManager.FindByNameAsync(rolNombre);
 
-                if (rolBuscado == null) return Resultado<IdentityRole>.Failure(new Error("ROL_NO_ENCONTRADO", "No se encontró el rol con el ID o nombre proporcionado."));
+                if (rolBuscado == null) return Resultado<IdentityRole>.Failure(ErroresUsuario.RolNoEncontrado);
                 
                 return Resultado<IdentityRole>.Success(rolBuscado);
             }
@@ -146,7 +146,7 @@ namespace Repositorio.Repositorios.Usuarios
             {
                 var usuarioBuscado= await ObtenerPorEmailAsync(model.Email);
 
-                if (usuarioBuscado.EsCorrecto) return Resultado<Usuario>.Failure(new Error("CREACION_ERROR", "Ya existe el email brindando"));
+                if (usuarioBuscado.EsCorrecto) return Resultado<Usuario>.Failure(ErroresUsuario.EmailExistente);
 
                 var usuarioCreado = await _userManager.CreateAsync(model, password);
                
@@ -171,7 +171,7 @@ namespace Repositorio.Repositorios.Usuarios
         {
             var usuario = await _userManager.FindByIdAsync(id);
 
-            if (usuario == null) return Resultado<bool>.Failure(ErroresUsuario.UsuarioInexistente);
+            if (usuario == null) return Resultado<bool>.Failure(ErroresUsuario.IdInexistente);
 
             try
             {
@@ -205,7 +205,7 @@ namespace Repositorio.Repositorios.Usuarios
                     return Resultado<Usuario>.Success(usuario);
                 }
 
-                return Resultado<Usuario>.Failure(new Error("CREDENCIALES_INVALIDAS", "El usuario y/o la contraseña son incorrectos."));
+                return Resultado<Usuario>.Failure(ErroresUsuario.CredencialesInvalidas);
 
             }
             catch (Exception ex)
@@ -222,7 +222,7 @@ namespace Repositorio.Repositorios.Usuarios
 
                 if (usuarioBuscado == null)
                 {
-                    return Resultado<Usuario>.Failure(new Error("USUARIO_NO_ENCONTRADO", "No se encontró un usuario con el email proporcionado."));
+                    return Resultado<Usuario>.Failure(ErroresUsuario.EmailInexistente);
                 }
 
                 return Resultado<Usuario>.Success(usuarioBuscado);
@@ -241,7 +241,7 @@ namespace Repositorio.Repositorios.Usuarios
 
                 if (usuarioBuscado == null)
                 {
-                    return Resultado<Usuario>.Failure(new Error("USUARIO_NO_ENCONTRADO", "No se encontró un usuario con el id proporcionado."));
+                    return Resultado<Usuario>.Failure(ErroresUsuario.IdInexistente);
                 }
 
                 return Resultado<Usuario>.Success(usuarioBuscado);
@@ -303,7 +303,7 @@ namespace Repositorio.Repositorios.Usuarios
             {
                 var claims = await _userManager.GetClaimsAsync(usuarioBuscado.Valor);
 
-                if (!claims.Any()) return Resultado<IEnumerable<Claim>>.Failure(new Error("SIN_CLAIMS", "El usuario no tiene ningún claim asignado."));
+                if (!claims.Any()) return Resultado<IEnumerable<Claim>>.Failure(ErroresUsuario.UsuarioSinClaims);
                 
                 return Resultado<IEnumerable<Claim>>.Success(claims);
             }
@@ -321,7 +321,7 @@ namespace Repositorio.Repositorios.Usuarios
                     .Select(r => r.Name)
                     .ToListAsync();
 
-                if (!roles.Any()) return Resultado<IEnumerable<string>>.Failure(new Error("SIN_ROLES", "No existen roles registrados en el sistema."));
+                if (!roles.Any()) return Resultado<IEnumerable<string>>.Failure(ErroresUsuario.UsuarioSinRoles);
 
                 return Resultado<IEnumerable<string>>.Success(roles);
             }

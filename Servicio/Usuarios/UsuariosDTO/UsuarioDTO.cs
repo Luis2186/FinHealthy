@@ -19,6 +19,5 @@ namespace Servicio.Usuarios.UsuariosDTO
         public DateTime FechaDeRegistro { get; set; }
         public List<string> Roles { get; set; }
         public bool Activo { get; set; }
-        public string? Token { get; set; }
     }
 }
