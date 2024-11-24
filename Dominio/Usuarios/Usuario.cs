@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Dominio.Notificaciones;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -20,9 +21,11 @@ namespace Dominio.Usuarios
         public List<string> Roles { get; set; }
         [NotMapped]
         public string? Token { get; set; }
+        // Relación con las notificaciones recibidas
+        public ICollection<Notificacion> Notificaciones { get; set; } = new List<Notificacion>();
+    
 
-
-        public void AsignarRoles(List<string> Roles)
+    public void AsignarRoles(List<string> Roles)
         {
             this.Roles = Roles;
         }
