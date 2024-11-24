@@ -107,15 +107,15 @@ namespace Repositorio.Repositorios.Notificaciones
         public async Task<Resultado<IEnumerable<Notificacion>>> ObtenerNotificacionesEmitidas(string usuarioEmisorId)
         {
             return dbContext.Notificaciones
-                .Include(not => not.UsuarioEmisor)
-                .Where(not => not.UsuarioEmisor.Id == usuarioEmisorId && not.Activa == true).ToList();
+                .Include(noti => noti.UsuarioEmisor)
+                .Where(noti => noti.UsuarioEmisor.Id == usuarioEmisorId && noti.Activa == true).ToList();
         }
 
         public async Task<Resultado<IEnumerable<Notificacion>>> ObtenerNotificacionesRecibidas(string usuarioReceptorId)
         {
             return dbContext.Notificaciones
                 .Include(noti => noti.UsuarioReceptor)
-                .Where(not => not.UsuarioReceptor.Id == usuarioReceptorId && not.Activa == true).ToList();
+                .Where(noti => noti.UsuarioReceptor.Id == usuarioReceptorId && noti.Activa == true).ToList();
         }
     }
 }
