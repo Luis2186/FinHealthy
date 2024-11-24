@@ -58,9 +58,9 @@ namespace FinHealthAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<Usuario>> RegistrarUsuario([FromBody] CrearUsuarioDTO usuarioDto)
         {
-            if (usuarioDto == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Los datos del usuario son requeridos.");
+                return BadRequest(ModelState);
             }
 
             var usuarioCreado = await _servicioUsuario.Registrar(usuarioDto);
@@ -78,6 +78,12 @@ namespace FinHealthAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<Usuario>> Login([FromBody] UsuarioLoginDTO usuarioDto)
         {
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var usuario = await _servicioUsuario.Login(usuarioDto);
 
             if (usuario.TieneErrores)
@@ -93,9 +99,9 @@ namespace FinHealthAPI.Controllers
         [HttpPut("actualizar/{usuarioId}")]
         public async Task<ActionResult<Usuario>> ActualizarUsuario(string usuarioId, [FromBody] ActualizarUsuarioDTO usuarioDto)
         {
-            if (usuarioDto == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Los datos del usuario son requeridos.");
+                return BadRequest(ModelState);
             }
 
             var usuarioActualizado = await _servicioUsuario.Actualizar(usuarioId, usuarioDto);
@@ -139,6 +145,11 @@ namespace FinHealthAPI.Controllers
         [HttpPost("agregarRol")]
         public async Task<ActionResult> AgregarRolAUsuario([FromBody] UsuarioRolDTO rol)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var rolAgregado = await _servicioUsuario.AgregarRol(rol.idUsuario, rol.IdRol,rol.NombreRol);
 
             if (rolAgregado.TieneErrores)
