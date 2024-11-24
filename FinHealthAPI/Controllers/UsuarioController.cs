@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Dominio;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -46,7 +47,10 @@ namespace FinHealthAPI.Controllers
             {
                 return NotFound(usuario.Errores);  // Devuelve 404 si no se encuentra el usuario
             }
-            return Ok(usuario.Valor);  // Devuelve el usuario con estado 200 OK
+
+            var usuarioDTO = _mapper.Map<UsuarioDTO>(usuario.Valor);
+
+            return Ok(usuarioDTO);  // Devuelve el usuario con estado 200 OK
         }
 
         // Crear un nuevo usuario
@@ -101,7 +105,9 @@ namespace FinHealthAPI.Controllers
                 return NotFound(usuarioActualizado.Errores);
             }
 
-            return Ok(usuarioActualizado);  // Devuelve el usuario actualizado con estado 200 OK
+            var usuarioDTO = _mapper.Map<UsuarioDTO>(usuarioActualizado.Valor);
+
+            return Ok(usuarioDTO);  // Devuelve el usuario actualizado con estado 200 OK
         }
 
         // Eliminar un usuario

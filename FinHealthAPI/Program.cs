@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Servicio.Authentication;
+using FinHealthAPI.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +36,7 @@ builder.Services
 
 builder.Services.AddControllers();
 
+// Configuración de Identity con roles
 builder.Services.AddIdentityCore<Usuario>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -47,6 +49,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Configuración de AutoMapper
 builder.Services.AddAutoMapper(typeof(PerfilDeMapeo));
+
+builder.Services.AddLogging();
+builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
 
 /* Inyeccion de dependencias*/
 builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
@@ -71,6 +76,8 @@ app.MapIdentityApi<Usuario>();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 app.MapControllers();
 
