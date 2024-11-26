@@ -18,7 +18,7 @@ namespace Dominio.Usuarios
         public int Edad { get; set; }
         public bool Activo { get; set; }
         [NotMapped]
-        public List<string> Roles { get; set; }
+        public List<string> Roles { get; set; } = new List<string>();
         [NotMapped]
         public string? Token { get; set; }
         // Relación con las notificaciones recibidas

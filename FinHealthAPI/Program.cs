@@ -11,6 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Servicio.Authentication;
 using FinHealthAPI.Middlewares;
+using Servicio.Notificaciones;
+using Repositorio.Repositorios.Notificaciones;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,8 +56,12 @@ builder.Services.AddLogging();
 builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
 
 /* Inyeccion de dependencias*/
+builder.Services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
 builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
+
+builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
+
 builder.Services.AddSingleton<ProveedorToken>();
 var app = builder.Build();
 

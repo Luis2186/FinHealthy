@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Dominio.Notificaciones;
 using Dominio.Usuarios;
+using Servicio.Notificaciones.NotificacionesDTO;
 using Servicio.Usuarios.UsuariosDTO;
 using System;
 using System.Collections.Generic;
@@ -13,9 +15,27 @@ namespace Servicio.Automapper
     {
         public PerfilDeMapeo() {
 
+            MapearUsuarios();
+            MapearNotificaciones();
+
+        }
+
+        private int CalcularEdad(DateTime fechaNacimiento)
+        {
+            var today = DateTime.Today;
+            var edad = today.Year - fechaNacimiento.Year;
+
+            // Ajustar la edad si aún no ha pasado el cumpleaños este año
+            if (fechaNacimiento.Date > today.AddYears(-edad)) edad--;
+
+            return edad;
+        }
+
+        public void MapearUsuarios()
+        {
             CreateMap<Usuario, UsuarioDTO>()
-            .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber))
-            .ForMember(destino => destino.NombreDeUsuario, opt => opt.MapFrom(origen => origen.UserName));
+          .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber))
+          .ForMember(destino => destino.NombreDeUsuario, opt => opt.MapFrom(origen => origen.UserName));
 
             CreateMap<CrearUsuarioDTO, Usuario>()
                 .ForMember(destino => destino.PhoneNumber, opt => opt.MapFrom(origen => origen.Telefono))
@@ -35,23 +55,17 @@ namespace Servicio.Automapper
             CreateMap<Usuario, ActualizarUsuarioDTO>()
                .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber))
                .ForMember(destino => destino.NombreDeUsuario, opt => opt.MapFrom(origen => origen.UserName));
-
-
-
-
         }
 
-        private int CalcularEdad(DateTime fechaNacimiento)
+        public void MapearNotificaciones()
         {
-            var today = DateTime.Today;
-            var edad = today.Year - fechaNacimiento.Year;
+            CreateMap<Notificacion, NotificacionCreacionDTO>();
+            CreateMap<NotificacionCreacionDTO, Notificacion>();
 
-            // Ajustar la edad si aún no ha pasado el cumpleaños este año
-            if (fechaNacimiento.Date > today.AddYears(-edad)) edad--;
+            CreateMap<Notificacion, NotificacionDTO>();
+            CreateMap<NotificacionDTO, Notificacion>();
 
-            return edad;
         }
-
 
     }
 }

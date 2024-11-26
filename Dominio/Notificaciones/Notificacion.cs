@@ -24,6 +24,7 @@ namespace Dominio.Notificaciones
         public DateTime FechaDeLectura { get; set; } = DateTime.UtcNow;
         public bool Activa { get; set; }
 
+        public Notificacion() { }
         public Notificacion(Usuario UsuarioEmisor, Usuario UsuarioReceptor,string mensaje)
         {
             this.UsuarioEmisor = UsuarioEmisor;

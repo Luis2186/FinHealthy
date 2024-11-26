@@ -9,7 +9,7 @@ namespace Dominio.Solicitudes
 {
     public class SolicitudUnionGrupoFamiliar 
     {
-        public int IdSolicitud { get; set; }
+        public int Id { get; set; }
         public Usuario? UsuarioSolicitante { get; set; }
         public Usuario? usuarioAdministradorGrupo { get; set; }
         public string? CodigoDeSeguridad { get; set; } //Si tiene el codigo de seguridad se une automaticamente
@@ -35,7 +35,7 @@ namespace Dominio.Solicitudes
 
         public void AsignarUsuarioDestino(Usuario usuarioDestino)
         {
-            this.UsuarioDestino = usuarioDestino;
+            this.usuarioAdministradorGrupo = usuarioDestino;
         }
 
         public void CambiarEstado(string estado)

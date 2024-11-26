@@ -109,7 +109,7 @@ namespace Repositorio.Repositorios.Notificaciones
             return dbContext.Notificaciones
                 .Include(noti => noti.UsuarioEmisor)
                 .Where(noti => noti.UsuarioEmisor.Id == usuarioEmisorId && noti.Activa == true).ToList();
-        }
+        } 
 
         public async Task<Resultado<IEnumerable<Notificacion>>> ObtenerNotificacionesRecibidas(string usuarioReceptorId)
         {

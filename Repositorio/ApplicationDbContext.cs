@@ -1,4 +1,5 @@
 ﻿using Dominio.Notificaciones;
+using Dominio.Solicitudes;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -76,7 +77,7 @@ namespace Repositorio
 
         // DbSet para las notificaciones
         public DbSet<Notificacion> Notificaciones { get; set; }
-
-
+        //public DbSet<SolicitudUnionGrupoFamiliar> SolcitudesGrupoFamiliar { get; set; }
+        
     }
 }
