@@ -33,6 +33,11 @@ namespace Servicio.Automapper
 
         public void MapearUsuarios()
         {
+            CreateMap<Usuario, UsuarioPDFDTO>()
+            .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber)).ReverseMap();
+
+            CreateMap<UsuarioDTO, UsuarioPDFDTO>().ReverseMap();
+
             CreateMap<Usuario, UsuarioDTO>()
           .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber))
           .ForMember(destino => destino.NombreDeUsuario, opt => opt.MapFrom(origen => origen.UserName));

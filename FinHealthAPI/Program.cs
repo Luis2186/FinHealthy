@@ -76,7 +76,7 @@ if (app.Environment.IsDevelopment())
 
 
 // Configure the HTTP request pipeline.
-
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 app.MapIdentityApi<Usuario>();
 

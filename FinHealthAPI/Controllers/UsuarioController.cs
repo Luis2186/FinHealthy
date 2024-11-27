@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using QuestPDF.Fluent;
+using Servicio.Pdf;
 using Servicio.Usuarios;
 using Servicio.Usuarios.UsuariosDTO;
 
@@ -34,6 +36,11 @@ namespace FinHealthAPI.Controllers
             if (resultado.TieneErrores) return NotFound(resultado.Errores);
 
             var usuariosDTOS = _mapper.Map<List<UsuarioDTO>>(resultado.Valor);
+            
+            var usuariosPDFDTOS = _mapper.Map<List<UsuarioPDFDTO>>(resultado.Valor);
+
+            var reporte = new Pdf<UsuarioPDFDTO>(usuariosPDFDTOS, "Listado de Usuarios");
+            reporte.GeneratePdf("C:\\Users\\lilp_\\Desktop\\Usuarios.pdf");
 
             return Ok(usuariosDTOS);  // Devuelve los datos con estado HTTP 200 OK
         }

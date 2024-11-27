@@ -13,7 +13,7 @@ namespace Servicio.Notificaciones.NotificacionesDTO
         public int Id { get; set; }
         public bool Leida { get; set; } = false;
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
-        public DateTime FechaDeLectura { get; set; } = DateTime.UtcNow;
+        public DateTime FechaDeLectura { get; set; }
         public bool Activa { get; set; }
     }
 }
