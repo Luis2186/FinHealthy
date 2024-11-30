@@ -194,6 +194,11 @@ namespace Repositorio.Repositorios.Usuarios
             }
         }
 
+        public Task<Resultado<bool>> EliminarAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<Resultado<Usuario>> Login(Usuario usuario, string password)
         {
             try
