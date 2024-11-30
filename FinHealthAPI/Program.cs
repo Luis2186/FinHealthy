@@ -13,6 +13,7 @@ using Servicio.Authentication;
 using FinHealthAPI.Middlewares;
 using Servicio.Notificaciones;
 using Repositorio.Repositorios.Notificaciones;
+using Repositorio.Repositorios.Familia;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +60,8 @@ builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
 builder.Services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
 builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
 
+builder.Services.AddScoped<IRepositorioGrupoFamilia, RepositorioGrupoFamilia>();
+builder.Services.AddScoped<IRepositorioMiembroFamilia, RepositorioMiembroFamilia>();
 builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
 
