@@ -63,7 +63,7 @@ builder.Services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
 builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
 builder.Services.AddScoped<IServicioFamilia, ServicioFamilia>();
 
-builder.Services.AddScoped<IRepositorioGrupoFamilia, RepositorioGrupoFamilia>();
+builder.Services.AddScoped<IRepositorioFamilia, RepositorioFamilia>();
 builder.Services.AddScoped<IRepositorioMiembroFamilia, RepositorioMiembroFamilia>();
 builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();

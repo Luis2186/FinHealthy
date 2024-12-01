@@ -6,7 +6,6 @@ using Dominio.Usuarios;
 using Repositorio.Repositorios.Notificaciones;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.Notificaciones.NotificacionesDTO;
-using Servicio.Usuarios.UsuariosDTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;

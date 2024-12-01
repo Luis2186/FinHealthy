@@ -1,5 +1,6 @@
 ﻿using Dominio;
 using Dominio.Familias;
+using Servicio.DTOS.FamiliasDTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,10 @@ namespace Servicio.S_Familias
 {
     public interface IServicioFamilia
     {
-        //public Task<Resultado<Familia>> ObtenerFamiliaPorId(int id);
-        //public Task<Resultado<IEnumerable<Familia>>> ObtenerTodasLasFamilias();
-        //public Task<Resultado<Familia>> CrearFamilia(Familia familia);
-        //public Task<Resultado<Familia>> ActualizarFamilia(Familia model);
-        //public Task<Resultado<bool>> EliminarFamilia(int id);
+        public Task<Resultado<FamiliaDTO>> ObtenerFamiliaPorId(int id);
+        public Task<Resultado<IEnumerable<FamiliaDTO>>> ObtenerTodasLasFamilias();
+        public Task<Resultado<FamiliaDTO>> CrearFamilia(FamiliaCreacionDTO familiaCreacionDTO);
+        public Task<Resultado<FamiliaDTO>> ActualizarFamilia(int familiaId,FamiliaActualizacionDTO familiaActualizacionDTO);
+        public Task<Resultado<bool>> EliminarFamilia(int id);
     }
 }

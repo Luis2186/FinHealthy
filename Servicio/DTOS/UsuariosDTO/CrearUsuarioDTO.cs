@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Servicio.Usuarios.UsuariosDTO
+namespace Servicio.DTOS.UsuariosDTO
 {
     public class CrearUsuarioDTO : ActualizarUsuarioDTO
     {

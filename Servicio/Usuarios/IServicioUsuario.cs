@@ -1,7 +1,7 @@
 ﻿using Dominio;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Identity;
-using Servicio.Usuarios.UsuariosDTO;
+using Servicio.DTOS.UsuariosDTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;

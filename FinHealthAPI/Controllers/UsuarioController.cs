@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using QuestPDF.Fluent;
+using Servicio.DTOS.UsuariosDTO;
 using Servicio.Pdf;
 using Servicio.Usuarios;
-using Servicio.Usuarios.UsuariosDTO;
 
 namespace FinHealthAPI.Controllers
 {

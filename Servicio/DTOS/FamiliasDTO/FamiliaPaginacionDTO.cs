@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Servicio.Usuarios.UsuariosDTO
+namespace Servicio.DTOS.FamiliasDTO
 {
-    public class PaginacionUsuarioDTO
+    public class FamiliaPaginacionDTO
     {
-        public IEnumerable<Usuario> Usuarios { get; set; }
+        public IEnumerable<FamiliaDTO> Usuarios { get; set; }
         public int TotalElementos { get; set; }
         public int TotalPaginas { get; set; }
         public int PaginaActual { get; set; }

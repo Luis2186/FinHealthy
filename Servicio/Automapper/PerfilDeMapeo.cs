@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using Dominio.Familias;
 using Dominio.Notificaciones;
 using Dominio.Usuarios;
+using Servicio.DTOS.FamiliasDTO;
+using Servicio.DTOS.UsuariosDTO;
 using Servicio.Notificaciones.NotificacionesDTO;
-using Servicio.Usuarios.UsuariosDTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +19,7 @@ namespace Servicio.Automapper
 
             MapearUsuarios();
             MapearNotificaciones();
-
+            MapearFamilias();
         }
 
         private int CalcularEdad(DateTime fechaNacimiento)
@@ -69,8 +71,12 @@ namespace Servicio.Automapper
 
             CreateMap<Notificacion, NotificacionDTO>();
             CreateMap<NotificacionDTO, Notificacion>();
-
         }
-
+        public void MapearFamilias()
+        {
+            CreateMap<Familia, FamiliaCreacionDTO>().ReverseMap();
+            CreateMap<Familia, FamiliaActualizacionDTO>().ReverseMap();
+            CreateMap<Familia, FamiliaDTO>().ReverseMap();
+        }
     }
 }

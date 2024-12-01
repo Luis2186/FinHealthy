@@ -6,10 +6,10 @@ using Repositorio.Repositorios.R_Familias;
 
 namespace Repositorio.Repositorios.R_Familia
 {
-    public class RepositorioGrupoFamilia : IRepositorioGrupoFamilia
+    public class RepositorioFamilia : IRepositorioFamilia
     {
         private readonly ApplicationDbContext _context;
-        public RepositorioGrupoFamilia(ApplicationDbContext context)
+        public RepositorioFamilia(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -85,7 +85,9 @@ namespace Repositorio.Repositorios.R_Familia
         {
             try
             {
-                var grupo = _context.Familias.Find(id);
+                var grupo = _context.Familias
+                    .Include( f=> f.UsuarioAdministrador)
+                    .FirstOrDefault(f => f.Id == id);
 
                 if (grupo == null) return Resultado<Familia>.Failure(ErroresCrud.ErrorBuscarPorId("Grupo Familiar"));
 
@@ -101,7 +103,9 @@ namespace Repositorio.Repositorios.R_Familia
         {
             try
             {
-                var familias = await _context.Familias.ToListAsync();
+                var familias = await _context.Familias
+                    .Include(f => f.UsuarioAdministrador)
+                    .ToListAsync();
 
                 if (familias == null || !familias.Any())
                     return Resultado<IEnumerable<Familia>>.Failure(ErroresCrud.ErrorBuscarTodos("Grupos Familiares"));

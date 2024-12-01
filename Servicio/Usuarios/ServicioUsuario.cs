@@ -4,7 +4,7 @@ using Dominio.Abstracciones;
 using Dominio.Usuarios;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.Authentication;
-using Servicio.Usuarios.UsuariosDTO;
+using Servicio.DTOS.UsuariosDTO;
 using System.Security.Claims;
 
 namespace Servicio.Usuarios

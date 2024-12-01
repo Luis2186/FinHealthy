@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using Servicio.Notificaciones;
 using Servicio.Notificaciones.NotificacionesDTO;
 using Servicio.Usuarios;
-using Servicio.Usuarios.UsuariosDTO;
 
 namespace FinHealthAPI.Controllers
 {

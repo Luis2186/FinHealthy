@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Servicio.Usuarios.UsuariosDTO
+namespace Servicio.DTOS.UsuariosDTO
 {
     public class ActualizarUsuarioDTO
     {
@@ -26,7 +26,7 @@ namespace Servicio.Usuarios.UsuariosDTO
         public string? Email { get; set; }
 
         [Phone(ErrorMessage = "El formato del teléfono no es válido.")]
-        public string? Telefono { get; set;}
+        public string? Telefono { get; set; }
 
         [Required(ErrorMessage = "La fecha de nacimiento es obligatoria.")]
         [DataType(DataType.Date, ErrorMessage = "La fecha no tiene un formato válido.")]

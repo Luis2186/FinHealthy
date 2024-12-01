@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Repositorio.Repositorios.R_Familias
 {
-    public interface IRepositorioGrupoFamilia : IRepositorioCRUD<Familia>
+    public interface IRepositorioFamilia : IRepositorioCRUD<Familia>
     {
     }
 }
