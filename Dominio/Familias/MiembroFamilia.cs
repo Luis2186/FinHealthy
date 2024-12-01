@@ -12,10 +12,11 @@ namespace Dominio.Familias
     {
         public int Id { get; set; }
         public string UsuarioId { get; set; }
+        [Required (ErrorMessage ="El usuario es requerido, por favor asignelo")]
         public Usuario Usuario { get; set; }
-        public DateTime FechaDeUnion { get; set; }
-        public int GrupoFamiliarId { get; set; }
-        public Familia GrupoFamiliar { get; set; }
+        public DateTime? FechaDeUnion { get; set; }
+        public int? GrupoFamiliarId { get; set; }
+        public Familia? GrupoFamiliar { get; set; }
         public bool Activo { get; set; }
 
         public MiembroFamilia()
@@ -25,15 +26,23 @@ namespace Dominio.Familias
         public MiembroFamilia(Usuario usuario,Familia grupoFamiliar)
         {
             this.Usuario = usuario;
-            this.FechaDeUnion = DateTime.Now;
             this.GrupoFamiliar = grupoFamiliar;
             this.FechaDeUnion = DateTime.Now;
             this.Activo = true;
         }
 
+        public MiembroFamilia ConvertirUsuarioEnMiembro(Usuario usuario) {
+            this.Usuario = usuario;
+            this.Activo = true;
+            return this;
+        }
 
-
-
+        public MiembroFamilia UnirserAGrupoFamiliar(Familia grupoFamiliar)
+        {
+            this.GrupoFamiliar = grupoFamiliar;
+            this.FechaDeUnion = DateTime.Now;
+            return this;
+        }
 
 
 

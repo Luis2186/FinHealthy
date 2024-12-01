@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Servicio.DTOS.FamiliasDTO
 {
-    public class FamiliaActualizacionDTO
+    public class ActualizarFamiliaDTO
     {
         [Required(ErrorMessage = "El apellido de la familia es un campo requerido, por favor ingreselo")]
         public string? Apellido { get; set; }

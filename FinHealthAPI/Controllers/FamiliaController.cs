@@ -53,7 +53,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("crear")]
-        public async Task<ActionResult<FamiliaDTO>> CrearFamilia([FromBody] FamiliaCreacionDTO familiaCreacionDTO)
+        public async Task<ActionResult<FamiliaDTO>> CrearFamilia([FromBody] CrearFamiliaDTO familiaCreacionDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -68,12 +68,32 @@ namespace FinHealthAPI.Controllers
                 return Conflict(familiaCreada.Errores);
             }
 
-            return Ok(new { usuarioId = familiaCreada.Valor.Id });
+            return Ok(new { familiaId = familiaCreada.Valor.Id });
         }
-        
+
+        // Crear un nuevo usuario
+        [HttpPost("unirseAFamilia")]
+        public async Task<ActionResult<FamiliaDTO>> UnirseAFamilia([FromBody] UnirseAFamiliaDTO unionFamiliaDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var unionFamilia = await _servicioFamilia.IngresarAFamilia(unionFamiliaDTO);
+
+            // En caso de que el usuario ya exista o haya un error, devolver BadRequest
+            if (unionFamilia.TieneErrores)
+            {
+                return Conflict(unionFamilia.Errores);
+            }
+
+            return NoContent(); 
+        }
+
         // Actualizar un usuario
         [HttpPut("actualizar/{familiaId}")]
-        public async Task<ActionResult<FamiliaDTO>> ActualizarFamilia(int familiaId, [FromBody] FamiliaActualizacionDTO familiaActDTO)
+        public async Task<ActionResult<FamiliaDTO>> ActualizarFamilia(int familiaId, [FromBody] ActualizarFamiliaDTO familiaActDTO)
         {
             if (!ModelState.IsValid)
             {

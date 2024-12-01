@@ -3,6 +3,7 @@ using Dominio.Familias;
 using Dominio.Notificaciones;
 using Dominio.Usuarios;
 using Servicio.DTOS.FamiliasDTO;
+using Servicio.DTOS.MiembrosFamiliaDTO;
 using Servicio.DTOS.UsuariosDTO;
 using Servicio.Notificaciones.NotificacionesDTO;
 using System;
@@ -20,6 +21,7 @@ namespace Servicio.Automapper
             MapearUsuarios();
             MapearNotificaciones();
             MapearFamilias();
+            MapearMiembros();
         }
 
         private int CalcularEdad(DateTime fechaNacimiento)
@@ -41,8 +43,9 @@ namespace Servicio.Automapper
             CreateMap<UsuarioDTO, UsuarioPDFDTO>().ReverseMap();
 
             CreateMap<Usuario, UsuarioDTO>()
-          .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber))
-          .ForMember(destino => destino.NombreDeUsuario, opt => opt.MapFrom(origen => origen.UserName));
+              .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber))
+              .ForMember(destino => destino.NombreDeUsuario, opt => opt.MapFrom(origen => origen.UserName))
+              .ReverseMap();
 
             CreateMap<CrearUsuarioDTO, Usuario>()
                 .ForMember(destino => destino.PhoneNumber, opt => opt.MapFrom(origen => origen.Telefono))
@@ -74,9 +77,21 @@ namespace Servicio.Automapper
         }
         public void MapearFamilias()
         {
-            CreateMap<Familia, FamiliaCreacionDTO>().ReverseMap();
-            CreateMap<Familia, FamiliaActualizacionDTO>().ReverseMap();
-            CreateMap<Familia, FamiliaDTO>().ReverseMap();
+            CreateMap<Familia, CrearFamiliaDTO>().ReverseMap();
+            CreateMap<Familia, ActualizarFamiliaDTO>().ReverseMap();
+            
+            CreateMap<Familia, FamiliaDTO>()
+                .ForMember(dest => dest.Miembros, opt => opt.MapFrom(src => src.Miembros))
+                .ReverseMap();
+        }
+
+        public void MapearMiembros()
+        {
+            CreateMap<MiembroFamilia, CrearMiembroFamiliaDTO>().ReverseMap();
+            CreateMap<MiembroFamilia, ActualizarMiembroFamiliaDTO>().ReverseMap();
+            CreateMap<MiembroFamilia, MiembroFamiliaDTO>()
+                .ForMember(dest => dest.Usuario, opt => opt.MapFrom(src => src.Usuario))
+                .ReverseMap();
         }
     }
 }

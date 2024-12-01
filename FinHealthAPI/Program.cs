@@ -16,6 +16,7 @@ using Repositorio.Repositorios.Notificaciones;
 using Repositorio.Repositorios.R_Familias;
 using Repositorio.Repositorios.R_Familia;
 using Servicio.S_Familias;
+using Repositorio.Repositorios;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +60,7 @@ builder.Services.AddLogging();
 builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
 
 /* Inyeccion de dependencias*/
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
 builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
 builder.Services.AddScoped<IServicioFamilia, ServicioFamilia>();

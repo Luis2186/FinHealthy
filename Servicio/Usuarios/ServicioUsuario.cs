@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Dominio;
 using Dominio.Abstracciones;
+using Dominio.Familias;
 using Dominio.Usuarios;
+using Repositorio.Repositorios.R_Familias;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.Authentication;
 using Servicio.DTOS.UsuariosDTO;
@@ -13,12 +15,16 @@ namespace Servicio.Usuarios
     {
         private readonly IMapper _mapper;
         private readonly IRepositorioUsuario _repoUsuario;
+        private readonly IRepositorioMiembroFamilia _repoMiembrosFamilia;
         private readonly ProveedorToken _provedorJwt;
 
-        public ServicioUsuario(IRepositorioUsuario repositorioUsuario, IMapper mapper, ProveedorToken provedorJwt)
+        public ServicioUsuario(IRepositorioUsuario repositorioUsuario,
+            IRepositorioMiembroFamilia repositorioMiembroFamilia,
+            IMapper mapper, ProveedorToken provedorJwt)
         {
             _mapper = mapper;
             _repoUsuario = repositorioUsuario;
+            _repoMiembrosFamilia = repositorioMiembroFamilia;
             _provedorJwt = provedorJwt;
         }
         public async Task<Resultado<Usuario>> Actualizar(string id, ActualizarUsuarioDTO usuarioDto)
@@ -71,6 +77,12 @@ namespace Servicio.Usuarios
 
             usuario.AsignarRoles(listaRolesUsuarios);
             usuario.AsignarToken(token);
+
+            var miembro = new MiembroFamilia();
+            miembro = miembro.ConvertirUsuarioEnMiembro(usuarioCreado.Valor);
+            var crearMiembro = await _repoMiembrosFamilia.CrearAsync(miembro);
+
+            if(crearMiembro.TieneErrores) return Resultado<Usuario>.Failure(crearMiembro.Errores);
 
             return usuarioCreado;
         }

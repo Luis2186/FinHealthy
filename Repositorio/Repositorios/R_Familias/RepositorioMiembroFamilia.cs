@@ -97,14 +97,31 @@ namespace Repositorio.Repositorios.R_Familia
             }
         }
 
+        public async Task<Resultado<MiembroFamilia>> ObtenerPorUsuarioId(string id)
+        {
+            try
+            {
+                var miembro = await _context.MiembrosFamiliares
+                    .Include(m => m.Usuario)
+                    .FirstOrDefaultAsync(m => m.UsuarioId == id);
+
+                if (miembro == null) return Resultado<MiembroFamilia>.Failure(ErroresCrud.ErrorBuscarPorId("Miembro Familiar"));
+
+                return Resultado<MiembroFamilia>.Success(miembro);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<MiembroFamilia>.Failure(ErroresCrud.ErrorDeExcepcion("FIND_BY_USUARIO_ID", ex.Message));
+            }
+        }
+
         public async Task<Resultado<IEnumerable<MiembroFamilia>>> ObtenerTodosAsync()
         {
             try
             {
-                var miembros = await _context.MiembrosFamiliares.ToListAsync();
-
-                if (miembros == null || !miembros.Any())
-                    return Resultado<IEnumerable<MiembroFamilia>>.Failure(ErroresCrud.ErrorBuscarTodos("Miembros Familiares"));
+                var miembros = await _context.MiembrosFamiliares
+                    .Include(m => m.Usuario)
+                    .ToListAsync();
 
                 return Resultado<IEnumerable<MiembroFamilia>>.Success(miembros);
             }

@@ -29,7 +29,7 @@ namespace Repositorio.Repositorios.R_Familia
                 _context.Familias.Update(model);
                 var resultadoActualizado = await _context.SaveChangesAsync() == 1;
 
-                if (!resultadoActualizado) return Resultado<Familia>.Failure(ErroresCrud.ErrorDeActualizacion("Grupo Familiar"));
+                if (!resultadoActualizado) return Resultado<Familia>.Failure(ErroresCrud.ErrorDeActualizacion("Familia"));
 
                 return Resultado<Familia>.Success(model);
             }
@@ -50,7 +50,7 @@ namespace Repositorio.Repositorios.R_Familia
                 await _context.Familias.AddAsync(model);
                 var resultadoCreado = await _context.SaveChangesAsync() == 1;
 
-                if (!resultadoCreado) return Resultado<Familia>.Failure(ErroresCrud.ErrorDeCreacion("Grupo Familiar"));
+                if (!resultadoCreado) return Resultado<Familia>.Failure(ErroresCrud.ErrorDeCreacion("Familia"));
 
                 return Resultado<Familia>.Success(model);
             }
@@ -71,7 +71,7 @@ namespace Repositorio.Repositorios.R_Familia
                 _context.Familias.Remove(grupo.Valor);
                 var resultadoEliminado = await _context.SaveChangesAsync() == 1;
 
-                if (!resultadoEliminado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeEliminacion("Grupo Familiar"));
+                if (!resultadoEliminado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeEliminacion("Familia"));
 
                 return Resultado<bool>.Success(resultadoEliminado);
             }
@@ -87,9 +87,11 @@ namespace Repositorio.Repositorios.R_Familia
             {
                 var grupo = _context.Familias
                     .Include( f=> f.UsuarioAdministrador)
+                    .Include(f => f.Miembros)
+                    .ThenInclude(m => m.Usuario)
                     .FirstOrDefault(f => f.Id == id);
 
-                if (grupo == null) return Resultado<Familia>.Failure(ErroresCrud.ErrorBuscarPorId("Grupo Familiar"));
+                if (grupo == null) return Resultado<Familia>.Failure(ErroresCrud.ErrorBuscarPorId("Familia"));
 
                 return Resultado<Familia>.Success(grupo);
             }
@@ -105,10 +107,9 @@ namespace Repositorio.Repositorios.R_Familia
             {
                 var familias = await _context.Familias
                     .Include(f => f.UsuarioAdministrador)
+                    .Include(f => f.Miembros)
+                    .ThenInclude(m => m.Usuario)
                     .ToListAsync();
-
-                if (familias == null || !familias.Any())
-                    return Resultado<IEnumerable<Familia>>.Failure(ErroresCrud.ErrorBuscarTodos("Grupos Familiares"));
 
                 return Resultado<IEnumerable<Familia>>.Success(familias);
             }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dominio.Abstracciones;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +9,7 @@ namespace Dominio.Familias
 {
     public static class ErroresMiembroFamiliar
     {
+       
+
     }
 }

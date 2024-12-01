@@ -1,5 +1,6 @@
 ﻿using Dominio.Familias;
 using Dominio.Usuarios;
+using Servicio.DTOS.MiembrosFamiliaDTO;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,7 +17,7 @@ namespace Servicio.DTOS.FamiliasDTO
         public string? Descripcion { get; set; }
         public DateTime FechaDeCreacion { get; set; }
         public string UsuarioAdministradorId { get; set; }
-        //public List<MiembroFamilia> Miembros { get; set; }
+        public List<MiembroFamiliaDTO> Miembros { get; set; }
         public bool Activo { get; set; }
     }
 }

@@ -72,5 +72,21 @@ namespace Dominio.Familias
                 return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("VerificarCodigo", ex.Message));
             }
         }
+
+        public Resultado<bool> AgregarMiembroAFamilia(MiembroFamilia miembro)
+        {
+            if (!Miembros.Contains(miembro))
+            {
+                Miembros.Add(miembro);
+            }
+            else
+            {
+                return Resultado<bool>.Failure(ErroresFamilia.Error_Miembro_Existente("AgregarMiembroAFamilia"));
+            }
+            return Resultado<bool>.Success(true);   
+        }
+
+
+
     }
 }

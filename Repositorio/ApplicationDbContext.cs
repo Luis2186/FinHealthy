@@ -181,11 +181,11 @@ namespace Repositorio
                       .WithMany(g => g.Miembros) // Un GrupoFamiliar tiene múltiples MiembroFamilia
                       .HasForeignKey(m => m.GrupoFamiliarId)
                       .OnDelete(DeleteBehavior.Cascade)
-                      .IsRequired(); // Elimina a los miembros si el grupo se elimina
+                      .IsRequired(false);
 
                 // Configuración de propiedades
                 entity.Property(m => m.FechaDeUnion)
-                      .HasDefaultValueSql("GETUTCDATE()");
+                .IsRequired(false);
 
                 entity.Property(m => m.Activo)
                       .IsRequired();

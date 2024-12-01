@@ -2,9 +2,12 @@
 using Dominio;
 using Dominio.Errores;
 using Dominio.Familias;
+using Microsoft.EntityFrameworkCore;
+using Repositorio.Repositorios;
 using Repositorio.Repositorios.R_Familias;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.DTOS.FamiliasDTO;
+using System.Transactions;
 
 namespace Servicio.S_Familias
 {
@@ -13,19 +16,21 @@ namespace Servicio.S_Familias
         private readonly IRepositorioUsuario _repoUsuarios;
         private readonly IRepositorioFamilia _repoFamilia;
         private readonly IRepositorioMiembroFamilia _repoMiembroFamilia;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         public ServicioFamilia(IRepositorioFamilia repoGrupoFamilia,
                                IRepositorioMiembroFamilia repoMiembroFamilia,
                                IRepositorioUsuario repositorioUsuario,
-                               IMapper mapper)
+                               IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repoFamilia = repoGrupoFamilia;
             _repoMiembroFamilia = repoMiembroFamilia;
             _repoUsuarios = repositorioUsuario;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
-        public async Task<Resultado<FamiliaDTO>> ActualizarFamilia(int familiaId,FamiliaActualizacionDTO familiaActDTO)
+        public async Task<Resultado<FamiliaDTO>> ActualizarFamilia(int familiaId,ActualizarFamiliaDTO familiaActDTO)
         {
             try
             {
@@ -50,7 +55,7 @@ namespace Servicio.S_Familias
             }
         }
 
-        public async Task<Resultado<FamiliaDTO>> CrearFamilia(FamiliaCreacionDTO familiaCreacionDTO)
+        public async Task<Resultado<FamiliaDTO>> CrearFamilia(CrearFamiliaDTO familiaCreacionDTO)
         {
             try
             {
@@ -90,6 +95,45 @@ namespace Servicio.S_Familias
             catch (Exception ex)
             {
                 return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.EliminarFamilia", ex.Message));
+            }
+        }
+
+        public async Task<Resultado<bool>> IngresarAFamilia(UnirseAFamiliaDTO unionFamiliaDTO)
+        {
+            try
+            {
+                await _unitOfWork.IniciarTransaccionAsync();
+
+                var miembroBuscado = await _repoMiembroFamilia.ObtenerPorUsuarioId(unionFamiliaDTO.UsuarioId);
+
+                if (miembroBuscado.TieneErrores) return Resultado<bool>.Failure(miembroBuscado.Errores);
+
+                var familiaBuscada = await _repoFamilia.ObtenerPorIdAsync(unionFamiliaDTO.FamiliaId);
+
+                if (familiaBuscada.TieneErrores) return Resultado<bool>.Failure(familiaBuscada.Errores);
+
+                Familia familia = familiaBuscada.Valor;
+                MiembroFamilia miembro = miembroBuscado.Valor;
+
+                familia.AgregarMiembroAFamilia(miembro);
+                miembro.UnirserAGrupoFamiliar(familia);
+
+                var resultadoActualizacionMiembro = await _repoMiembroFamilia.ActualizarAsync(miembro);
+                var resultadoActualizacionFamilia = await _repoFamilia.ActualizarAsync(familia);
+
+                if (resultadoActualizacionFamilia.EsCorrecto && resultadoActualizacionMiembro.EsCorrecto)
+                {
+                    await _unitOfWork.ConfirmarTransaccionAsync();
+                    return Resultado<bool>.Success(true);
+                }
+
+                var errores = resultadoActualizacionFamilia.Errores.Concat(resultadoActualizacionMiembro.Errores);
+                await _unitOfWork.RevertirTransaccionAsync();
+                return Resultado<bool>.Failure(errores.ToList());
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 

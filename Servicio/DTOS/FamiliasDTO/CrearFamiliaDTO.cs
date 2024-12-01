@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Servicio.DTOS.FamiliasDTO
 {
-    public class FamiliaCreacionDTO : FamiliaActualizacionDTO
+    public class CrearFamiliaDTO : ActualizarFamiliaDTO
     {
 
         [Required(ErrorMessage = "El administrador es un campo requerido, por favor ingreselo")]
