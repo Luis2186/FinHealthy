@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repositorio;
 
@@ -11,9 +12,11 @@ using Repositorio;
 namespace Repositorio.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241201144813_Codigo_GrupoFamiliar")]
+    partial class Codigo_GrupoFamiliar
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,7 +26,7 @@ namespace Repositorio.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Dominio.Familias.Familia", b =>
+            modelBuilder.Entity("Dominio.Familia.GrupoFamiliar", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -61,10 +64,10 @@ namespace Repositorio.Migrations
                     b.HasIndex("UsuarioAdministradorId")
                         .IsUnique();
 
-                    b.ToTable("Familias", "identity");
+                    b.ToTable("GruposFamiliares", "identity");
                 });
 
-            modelBuilder.Entity("Dominio.Familias.MiembroFamilia", b =>
+            modelBuilder.Entity("Dominio.Familia.MiembroFamilia", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -195,7 +198,7 @@ namespace Repositorio.Migrations
 
                     b.HasIndex("UsuarioSolicitanteId");
 
-                    b.ToTable("SolcitudesUnionFamilia", "identity");
+                    b.ToTable("SolcitudesGrupoFamiliar", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Usuarios.Usuario", b =>
@@ -426,20 +429,20 @@ namespace Repositorio.Migrations
                     b.ToTable("AspNetUserTokens", "identity");
                 });
 
-            modelBuilder.Entity("Dominio.Familias.Familia", b =>
+            modelBuilder.Entity("Dominio.Familia.GrupoFamiliar", b =>
                 {
                     b.HasOne("Dominio.Usuarios.Usuario", "UsuarioAdministrador")
                         .WithOne()
-                        .HasForeignKey("Dominio.Familias.Familia", "UsuarioAdministradorId")
+                        .HasForeignKey("Dominio.Familia.GrupoFamiliar", "UsuarioAdministradorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("UsuarioAdministrador");
                 });
 
-            modelBuilder.Entity("Dominio.Familias.MiembroFamilia", b =>
+            modelBuilder.Entity("Dominio.Familia.MiembroFamilia", b =>
                 {
-                    b.HasOne("Dominio.Familias.Familia", "GrupoFamiliar")
+                    b.HasOne("Dominio.Familia.GrupoFamiliar", "GrupoFamiliar")
                         .WithMany("Miembros")
                         .HasForeignKey("GrupoFamiliarId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -545,7 +548,7 @@ namespace Repositorio.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Dominio.Familias.Familia", b =>
+            modelBuilder.Entity("Dominio.Familia.GrupoFamiliar", b =>
                 {
                     b.Navigation("Miembros");
                 });

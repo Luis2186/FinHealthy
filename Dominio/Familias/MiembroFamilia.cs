@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dominio.Familia
+namespace Dominio.Familias
 {
     public class MiembroFamilia
     {
@@ -15,14 +15,14 @@ namespace Dominio.Familia
         public Usuario Usuario { get; set; }
         public DateTime FechaDeUnion { get; set; }
         public int GrupoFamiliarId { get; set; }
-        public GrupoFamiliar GrupoFamiliar { get; set; }
+        public Familia GrupoFamiliar { get; set; }
         public bool Activo { get; set; }
 
         public MiembroFamilia()
         {
             
         }
-        public MiembroFamilia(Usuario usuario,GrupoFamiliar grupoFamiliar)
+        public MiembroFamilia(Usuario usuario,Familia grupoFamiliar)
         {
             this.Usuario = usuario;
             this.FechaDeUnion = DateTime.Now;

@@ -1,17 +1,10 @@
 ﻿using Dominio;
-using Dominio.Abstracciones;
 using Dominio.Errores;
-using Dominio.Familia;
-using Dominio.Usuarios;
-using Microsoft.AspNetCore.Identity;
+using Dominio.Familias;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Repositorio.Repositorios.R_Familias;
 
-namespace Repositorio.Repositorios.Familia
+namespace Repositorio.Repositorios.R_Familia
 {
     public class RepositorioMiembroFamilia : IRepositorioMiembroFamilia
     {
@@ -36,13 +29,13 @@ namespace Repositorio.Repositorios.Familia
                 _context.MiembrosFamiliares.Update(model);
                 var resultadoActualizado = await _context.SaveChangesAsync() == 1;
 
-                if (!resultadoActualizado) return Resultado<MiembroFamilia>.Failure(Errores.ErrorDeActualizacion("Miembro Familiar"));
+                if (!resultadoActualizado) return Resultado<MiembroFamilia>.Failure(ErroresCrud.ErrorDeActualizacion("Miembro Familiar"));
                 
                 return Resultado<MiembroFamilia>.Success(model);
             }
             catch (Exception ex)
             {
-                return Resultado<MiembroFamilia>.Failure(Errores.ErrorDeExcepcion("UPDATE",ex.Message));
+                return Resultado<MiembroFamilia>.Failure(ErroresCrud.ErrorDeExcepcion("UPDATE",ex.Message));
             }
         }
 
@@ -57,13 +50,13 @@ namespace Repositorio.Repositorios.Familia
                 await _context.MiembrosFamiliares.AddAsync(model);
                 var resultadoCreado = await _context.SaveChangesAsync() == 1;
 
-                if (!resultadoCreado) return Resultado<MiembroFamilia>.Failure(Errores.ErrorDeCreacion("Miembro Familiar"));
+                if (!resultadoCreado) return Resultado<MiembroFamilia>.Failure(ErroresCrud.ErrorDeCreacion("Miembro Familiar"));
 
                 return Resultado<MiembroFamilia>.Success(model);
             }
             catch (Exception ex)
             {
-                return Resultado<MiembroFamilia>.Failure(Errores.ErrorDeExcepcion("CREATE", ex.Message));
+                return Resultado<MiembroFamilia>.Failure(ErroresCrud.ErrorDeExcepcion("CREATE", ex.Message));
             };
         }
 
@@ -78,13 +71,13 @@ namespace Repositorio.Repositorios.Familia
                 _context.MiembrosFamiliares.Remove(buscarMiembro.Valor);
                 var resultadoEliminado = await _context.SaveChangesAsync() == 1;
 
-                if (!resultadoEliminado) return Resultado<bool>.Failure(Errores.ErrorDeEliminacion("Miembro Familiar"));
+                if (!resultadoEliminado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeEliminacion("Miembro Familiar"));
 
                 return Resultado<bool>.Success(resultadoEliminado);
             }
             catch (Exception ex)
             {
-                return Resultado<bool>.Failure(Errores.ErrorDeExcepcion("REMOVE", ex.Message));
+                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("REMOVE", ex.Message));
             }
         }
 
@@ -94,13 +87,13 @@ namespace Repositorio.Repositorios.Familia
             {
                 var miembro = _context.MiembrosFamiliares.Find(id);
 
-                if (miembro == null) return Resultado<MiembroFamilia>.Failure(Errores.ErrorBuscarPorId("Miembro Familiar"));
+                if (miembro == null) return Resultado<MiembroFamilia>.Failure(ErroresCrud.ErrorBuscarPorId("Miembro Familiar"));
 
                 return Resultado<MiembroFamilia>.Success(miembro);
             }
             catch (Exception ex)
             {
-                return Resultado<MiembroFamilia>.Failure(Errores.ErrorDeExcepcion("FIND_BY_ID", ex.Message));
+                return Resultado<MiembroFamilia>.Failure(ErroresCrud.ErrorDeExcepcion("FIND_BY_ID", ex.Message));
             }
         }
 
@@ -111,13 +104,13 @@ namespace Repositorio.Repositorios.Familia
                 var miembros = await _context.MiembrosFamiliares.ToListAsync();
 
                 if (miembros == null || !miembros.Any())
-                    return Resultado<IEnumerable<MiembroFamilia>>.Failure(Errores.ErrorBuscarTodos("Miembros Familiares"));
+                    return Resultado<IEnumerable<MiembroFamilia>>.Failure(ErroresCrud.ErrorBuscarTodos("Miembros Familiares"));
 
                 return Resultado<IEnumerable<MiembroFamilia>>.Success(miembros);
             }
             catch (Exception ex)
             {
-                return Resultado<IEnumerable<MiembroFamilia>>.Failure(Errores.ErrorDeExcepcion("FIND_ALL", ex.Message));
+                return Resultado<IEnumerable<MiembroFamilia>>.Failure(ErroresCrud.ErrorDeExcepcion("FIND_ALL", ex.Message));
             }
         }
     }

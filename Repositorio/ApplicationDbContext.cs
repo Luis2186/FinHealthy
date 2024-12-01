@@ -1,4 +1,4 @@
-﻿using Dominio.Familia;
+﻿using Dominio.Familias;
 using Dominio.Notificaciones;
 using Dominio.Solicitudes;
 using Dominio.Usuarios;
@@ -139,7 +139,7 @@ namespace Repositorio
 
         protected private void ConfigurarBuilderGrupoFamiliar(ModelBuilder builder)
         {
-            builder.Entity<GrupoFamiliar>(entity =>
+            builder.Entity<Familia>(entity =>
             {
                 // Configuración de clave primaria
                 entity.HasKey(g => g.Id);
@@ -147,7 +147,7 @@ namespace Repositorio
                 // Relación con UsuarioAdministrador (uno a uno)
                 entity.HasOne(g => g.UsuarioAdministrador) // Relación con Usuario
                       .WithOne() // Relación uno a uno
-                      .HasForeignKey<GrupoFamiliar>(g => g.UsuarioAdministradorId) // Clave foránea explícita
+                      .HasForeignKey<Familia>(g => g.UsuarioAdministradorId) // Clave foránea explícita
                       .OnDelete(DeleteBehavior.Restrict); // No permite eliminar al administrador si el grupo está activo
 
                 // Configuración de propiedades adicionales
@@ -194,8 +194,8 @@ namespace Repositorio
 
         // DbSet para las notificaciones
         public DbSet<Notificacion> Notificaciones { get; set; }
-        public DbSet<SolicitudUnionGrupoFamiliar> SolcitudesGrupoFamiliar { get; set; }
-        public DbSet<GrupoFamiliar> GruposFamiliares { get; set; }
+        public DbSet<SolicitudUnionGrupoFamiliar> SolcitudesUnionFamilia { get; set; }
+        public DbSet<Familia> Familias { get; set; }
         public DbSet<MiembroFamilia> MiembrosFamiliares { get; set; }
 
     }

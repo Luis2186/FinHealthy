@@ -13,7 +13,9 @@ using Servicio.Authentication;
 using FinHealthAPI.Middlewares;
 using Servicio.Notificaciones;
 using Repositorio.Repositorios.Notificaciones;
-using Repositorio.Repositorios.Familia;
+using Repositorio.Repositorios.R_Familias;
+using Repositorio.Repositorios.R_Familia;
+using Servicio.S_Familias;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +61,7 @@ builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
 /* Inyeccion de dependencias*/
 builder.Services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
 builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
+builder.Services.AddScoped<IServicioFamilia, ServicioFamilia>();
 
 builder.Services.AddScoped<IRepositorioGrupoFamilia, RepositorioGrupoFamilia>();
 builder.Services.AddScoped<IRepositorioMiembroFamilia, RepositorioMiembroFamilia>();

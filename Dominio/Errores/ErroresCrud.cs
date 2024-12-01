@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Dominio.Errores
 {
-    public static class Errores
+    public static class ErroresCrud
     {
         //Errores Excepcion
         public static Func<string,string, Error> ErrorDeExcepcion = (string metodo,string ex) => new Error($"ERROR_EXCEPTION_{metodo}", $"Ah ocurrido un error inesperado: {ex}");
