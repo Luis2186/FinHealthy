@@ -84,7 +84,7 @@ namespace Repositorio
         protected private void ConfigurarBuilderSolicitudesGrupoFamiliar(ModelBuilder builder)
         {
             // Configuración de la tabla Notificaciones
-            builder.Entity<SolicitudUnionGrupoFamiliar>(entity =>
+            builder.Entity<SolicitudUnionFamilia>(entity =>
             {
                 // Configuración de clave primaria
                 entity.HasKey(n => n.Id);
@@ -119,7 +119,7 @@ namespace Repositorio
                       .HasDefaultValueSql("GETUTCDATE()"); // Valor por defecto en SQL Server
 
                 entity.Property(n => n.FechaDeRespuesta)
-                     .HasDefaultValueSql("GETUTCDATE()");
+                     .IsRequired(false);
 
                 entity.Property(n => n.CodigoDeSeguridad)
                 .HasMaxLength(150);
@@ -194,7 +194,7 @@ namespace Repositorio
 
         // DbSet para las notificaciones
         public DbSet<Notificacion> Notificaciones { get; set; }
-        public DbSet<SolicitudUnionGrupoFamiliar> SolcitudesUnionFamilia { get; set; }
+        public DbSet<SolicitudUnionFamilia> SolcitudesUnionFamilia { get; set; }
         public DbSet<Familia> Familias { get; set; }
         public DbSet<MiembroFamilia> MiembrosFamiliares { get; set; }
 

@@ -8,7 +8,7 @@ namespace Dominio.Solicitudes
 {
     public interface ISolicitudUnionGrupoFamiliar
     {
-        Resultado<bool> Aceptar(SolicitudUnionGrupoFamiliar solicitud);
-        Resultado<bool> Rechazar(SolicitudUnionGrupoFamiliar solicitud);
+        Resultado<bool> Aceptar(SolicitudUnionFamilia solicitud);
+        Resultado<bool> Rechazar(SolicitudUnionFamilia solicitud);
     }
 }

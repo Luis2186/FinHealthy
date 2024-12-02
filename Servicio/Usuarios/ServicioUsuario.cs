@@ -3,6 +3,7 @@ using Dominio;
 using Dominio.Abstracciones;
 using Dominio.Familias;
 using Dominio.Usuarios;
+using Repositorio.Repositorios;
 using Repositorio.Repositorios.R_Familias;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.Authentication;
@@ -16,15 +17,17 @@ namespace Servicio.Usuarios
         private readonly IMapper _mapper;
         private readonly IRepositorioUsuario _repoUsuario;
         private readonly IRepositorioMiembroFamilia _repoMiembrosFamilia;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ProveedorToken _provedorJwt;
 
         public ServicioUsuario(IRepositorioUsuario repositorioUsuario,
             IRepositorioMiembroFamilia repositorioMiembroFamilia,
-            IMapper mapper, ProveedorToken provedorJwt)
+            IMapper mapper, IUnitOfWork unitOfWork, ProveedorToken provedorJwt)
         {
             _mapper = mapper;
             _repoUsuario = repositorioUsuario;
             _repoMiembrosFamilia = repositorioMiembroFamilia;
+            _unitOfWork = unitOfWork;
             _provedorJwt = provedorJwt;
         }
         public async Task<Resultado<Usuario>> Actualizar(string id, ActualizarUsuarioDTO usuarioDto)
@@ -53,6 +56,8 @@ namespace Servicio.Usuarios
 
         public async Task<Resultado<Usuario>> Registrar(CrearUsuarioDTO usuarioDto)
         {
+            await _unitOfWork.IniciarTransaccionAsync();
+
             Usuario usuario = _mapper.Map<Usuario>(usuarioDto);
 
             var usuarioCreado = await _repoUsuario.CrearAsync(usuario, usuarioDto.Password);
@@ -82,8 +87,13 @@ namespace Servicio.Usuarios
             miembro = miembro.ConvertirUsuarioEnMiembro(usuarioCreado.Valor);
             var crearMiembro = await _repoMiembrosFamilia.CrearAsync(miembro);
 
-            if(crearMiembro.TieneErrores) return Resultado<Usuario>.Failure(crearMiembro.Errores);
+            if (crearMiembro.TieneErrores)
+            {
+                _unitOfWork.RevertirTransaccionAsync();
+                return Resultado<Usuario>.Failure(crearMiembro.Errores);
+            }
 
+            await _unitOfWork.ConfirmarTransaccionAsync();
             return usuarioCreado;
         }
 

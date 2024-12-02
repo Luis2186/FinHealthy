@@ -1,6 +1,7 @@
 ﻿using Dominio;
 using Dominio.Familias;
 using Servicio.DTOS.FamiliasDTO;
+using Servicio.DTOS.SolicitudesDTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,5 +18,8 @@ namespace Servicio.S_Familias
         public Task<Resultado<FamiliaDTO>> ActualizarFamilia(int familiaId,ActualizarFamiliaDTO familiaActualizacionDTO);
         public Task<Resultado<bool>> EliminarFamilia(int id);
         public Task<Resultado<bool>> IngresarAFamilia(UnirseAFamiliaDTO unionFamiliaDTO);
+        public Task<Resultado<bool>> AceptarSolicitudIngresoAFamilia(int idSolicitud);
+        public Task<Resultado<bool>> RechazarSolicitudIngresoAFamilia(int idSolicitud);
+        public Task<Resultado<SolicitudDTO>> EnviarSolicitudIngresoAFamilia(EnviarSolicitudDTO solicitud);
     }
 }

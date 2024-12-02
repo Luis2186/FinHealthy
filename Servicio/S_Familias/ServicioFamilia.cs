@@ -1,12 +1,17 @@
 ﻿using AutoMapper;
 using Dominio;
+using Dominio.Abstracciones;
 using Dominio.Errores;
 using Dominio.Familias;
+using Dominio.Solicitudes;
+using Dominio.Usuarios;
 using Microsoft.EntityFrameworkCore;
 using Repositorio.Repositorios;
 using Repositorio.Repositorios.R_Familias;
+using Repositorio.Repositorios.Solicitudes;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.DTOS.FamiliasDTO;
+using Servicio.DTOS.SolicitudesDTO;
 using System.Transactions;
 
 namespace Servicio.S_Familias
@@ -16,18 +21,31 @@ namespace Servicio.S_Familias
         private readonly IRepositorioUsuario _repoUsuarios;
         private readonly IRepositorioFamilia _repoFamilia;
         private readonly IRepositorioMiembroFamilia _repoMiembroFamilia;
+        private readonly IRepositorioSolicitud _repositorioSolicitud;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         public ServicioFamilia(IRepositorioFamilia repoGrupoFamilia,
                                IRepositorioMiembroFamilia repoMiembroFamilia,
                                IRepositorioUsuario repositorioUsuario,
+                               IRepositorioSolicitud repositorioSolicitud,
                                IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repoFamilia = repoGrupoFamilia;
             _repoMiembroFamilia = repoMiembroFamilia;
             _repoUsuarios = repositorioUsuario;
+            _repositorioSolicitud = repositorioSolicitud;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+        }
+
+        public Task<Resultado<bool>> AceptarSolicitudIngresoAFamilia(UnirseAFamiliaDTO unionFamiliaDTO)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Resultado<bool>> AceptarSolicitudIngresoAFamilia(int idSolicitud)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<Resultado<FamiliaDTO>> ActualizarFamilia(int familiaId,ActualizarFamiliaDTO familiaActDTO)
@@ -95,6 +113,39 @@ namespace Servicio.S_Familias
             catch (Exception ex)
             {
                 return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.EliminarFamilia", ex.Message));
+            }
+        }
+
+        public async Task<Resultado<SolicitudDTO>> EnviarSolicitudIngresoAFamilia(EnviarSolicitudDTO solicitud)
+        {
+            try
+            {
+                await _unitOfWork.IniciarTransaccionAsync();
+
+                SolicitudUnionFamilia solicitudUnion = _mapper.Map<SolicitudUnionFamilia>(solicitud);
+
+                var resultado_usuarioSolicitante = await _repoUsuarios.ObtenerPorIdAsync(solicitud.UsuarioSolicitanteId);
+                var resultado_usuarioAdmin = await _repoUsuarios.ObtenerPorIdAsync(solicitud.UsuarioAdministradorGrupoId);
+
+                if (resultado_usuarioSolicitante.TieneErrores) return Resultado<SolicitudDTO>.Failure(new Error("El usuario solicitante no existe"));
+                if (resultado_usuarioAdmin.TieneErrores) return Resultado<SolicitudDTO>.Failure(new Error("El usuario administrador no existe"));
+
+                solicitudUnion.EnviarSolicitudParaUnirseAFamilia(resultado_usuarioSolicitante.Valor, resultado_usuarioAdmin.Valor);
+                
+                var solicitudEnviada = await _repositorioSolicitud.CrearAsync(solicitudUnion);
+
+                if (solicitudEnviada.TieneErrores) return Resultado<SolicitudDTO>.Failure(solicitudEnviada.Errores);
+
+                var solicitudDTO = _mapper.Map<SolicitudDTO>(solicitudEnviada.Valor);
+
+                await _unitOfWork.ConfirmarTransaccionAsync();
+                
+                return Resultado<SolicitudDTO>.Success(solicitudDTO);
+
+            }
+            catch (Exception ex)
+            {
+                return Resultado<SolicitudDTO>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.EnviarSolicitudIngresoAFamilia", ex.Message));
             }
         }
 
@@ -171,6 +222,11 @@ namespace Servicio.S_Familias
             {
                 return Resultado<IEnumerable<FamiliaDTO>>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.ObtenerTodasLasFamilias", ex.Message));
             }
+        }
+
+        public Task<Resultado<bool>> RechazarSolicitudIngresoAFamilia(int idSolicitud)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -17,6 +17,7 @@ using Repositorio.Repositorios.R_Familias;
 using Repositorio.Repositorios.R_Familia;
 using Servicio.S_Familias;
 using Repositorio.Repositorios;
+using Repositorio.Repositorios.Solicitudes;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,6 +67,7 @@ builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
 builder.Services.AddScoped<IServicioFamilia, ServicioFamilia>();
 
 builder.Services.AddScoped<IRepositorioFamilia, RepositorioFamilia>();
+builder.Services.AddScoped<IRepositorioSolicitud, RepositorioSolicitud>();
 builder.Services.AddScoped<IRepositorioMiembroFamilia, RepositorioMiembroFamilia>();
 builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();

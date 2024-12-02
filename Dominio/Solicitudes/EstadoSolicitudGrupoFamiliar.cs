@@ -8,7 +8,7 @@ namespace Dominio.Solicitudes
 {
     public abstract class EstadoSolicitudGrupoFamiliar
     {
-        public abstract Resultado<bool> Aceptar(SolicitudUnionGrupoFamiliar solicitud);
-        public abstract Resultado<bool> Rechazar(SolicitudUnionGrupoFamiliar solicitud);
+        public abstract Resultado<bool> Aceptar(SolicitudUnionFamilia solicitud);
+        public abstract Resultado<bool> Rechazar(SolicitudUnionFamilia solicitud);
     }
 }
