@@ -88,9 +88,9 @@ namespace Repositorio
             {
                 // Configuración de clave primaria
                 entity.HasKey(n => n.Id);
-
+                
                 // Definir cómo se almacena el estado en la base de datos
-              
+
                     entity.Property(p => p.EstadoSolicitudGrupo)
                     .HasConversion(
                         v => v.GetType().Name,   // Convertir el estado a un nombre de tipo
@@ -157,9 +157,12 @@ namespace Repositorio
                 entity.Property(g => g.Descripcion)
                       .HasMaxLength(250);
 
+                entity.HasIndex(user => user.Apellido).IsUnique();
+
                 entity.Property(g => g.FechaDeCreacion)
                       .HasDefaultValueSql("GETUTCDATE()");
             });
+        
         }
 
         protected private void ConfigurarBuilderMiembroFamiliar(ModelBuilder builder)
