@@ -26,6 +26,17 @@ namespace Dominio.Gastos
         // País o región donde se utiliza la moneda
         public string? Pais { get; set; }
 
+
+        public Moneda(string codigo, string nombre, string simbolo, double tipoDeCambio, string pais)
+        {
+            this.Codigo = codigo;
+            this.Nombre = nombre;
+            this.Simbolo = simbolo;
+            this.TipoDeCambio = tipoDeCambio;
+            this.Pais = pais;
+        }
+
+
         // Método para convertir un monto de esta moneda a otra
         public double Convertir(double monto, Moneda otraMoneda)
         {

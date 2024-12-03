@@ -13,5 +13,6 @@ namespace Dominio.Documentos
         [Required(ErrorMessage ="El nombre del tipo de documento es requerido")]
         public string? Nombre { get; set; }
         public string? Descripcion { get; set; }
+        public string? Ejemplo { get; set; }
     }
 }
