@@ -12,5 +12,6 @@ namespace Repositorio.Repositorios.Solicitudes
     {
         public Task<Resultado<bool>> AceptarSolicitud(int idSolicitud);
         public Task<Resultado<bool>> RechazarSolicitud(int idSolicitud);
+        public Task<Resultado<IEnumerable<SolicitudUnionFamilia>>> ObtenerTodasPorAdministrador(string idAdministrador,string estado);
     }
 }

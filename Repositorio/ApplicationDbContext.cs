@@ -130,9 +130,9 @@ namespace Repositorio
         {
             return estado switch
             {
-                "Estado_Pendiente" => new SUGF_Pendiente(),
-                "Estado_Aceptado" => new SUGF_Aceptada(),
-                "Estado_Rechazado" => new SUGF_Rechazada(),
+                "SUGF_Pendiente" => new SUGF_Pendiente(),
+                "SUGF_Aceptada" => new SUGF_Aceptada(),
+                "SUGF_Rechazada" => new SUGF_Rechazada(),
                 _ => throw new ArgumentException("Estado desconocido")
             };
         }

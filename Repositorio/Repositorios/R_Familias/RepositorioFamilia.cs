@@ -18,9 +18,9 @@ namespace Repositorio.Repositorios.R_Familia
         {
             try
             {
-                var grupo = await ObtenerPorIdAsync(model.Id);
+                var familia = await ObtenerPorIdAsync(model.Id);
 
-                if (grupo.TieneErrores) return Resultado<Familia>.Failure(grupo.Errores);
+                if (familia.TieneErrores) return Resultado<Familia>.Failure(familia.Errores);
 
                 var resultadoValidacion = DataAnnotationsValidator.Validar(model);
 
@@ -64,11 +64,11 @@ namespace Repositorio.Repositorios.R_Familia
         {
             try
             {
-                var grupo = await ObtenerPorIdAsync(id);
+                var familia = await ObtenerPorIdAsync(id);
 
-                if (grupo.TieneErrores) return Resultado<bool>.Failure(grupo.Errores);
+                if (familia.TieneErrores) return Resultado<bool>.Failure(familia.Errores);
 
-                _context.Familias.Remove(grupo.Valor);
+                _context.Familias.Remove(familia.Valor);
                 var resultadoEliminado = await _context.SaveChangesAsync() == 1;
 
                 if (!resultadoEliminado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeEliminacion("Familia"));
@@ -81,19 +81,39 @@ namespace Repositorio.Repositorios.R_Familia
             }
         }
 
+        public async Task<Resultado<Familia>> ObtenerFamiliaPorIdAdministrador(string usuarioAdminId)
+        {
+            try
+            {
+                var familia = _context.Familias
+                    .Include(f => f.UsuarioAdministrador)
+                    .Include(f => f.Miembros)
+                    .ThenInclude(m => m.Usuario)
+                    .FirstOrDefault(f => f.UsuarioAdministradorId == usuarioAdminId);
+
+                if (familia == null) return Resultado<Familia>.Failure(ErroresCrud.ErrorBuscarPorId("Familia"));
+
+                return Resultado<Familia>.Success(familia);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<Familia>.Failure(ErroresCrud.ErrorDeExcepcion("FIND_BY_ID", ex.Message));
+            }
+        }
+
         public async Task<Resultado<Familia>> ObtenerPorIdAsync(int id)
         {
             try
             {
-                var grupo = _context.Familias
+                var familia = _context.Familias
                     .Include( f=> f.UsuarioAdministrador)
                     .Include(f => f.Miembros)
                     .ThenInclude(m => m.Usuario)
                     .FirstOrDefault(f => f.Id == id);
 
-                if (grupo == null) return Resultado<Familia>.Failure(ErroresCrud.ErrorBuscarPorId("Familia"));
+                if (familia == null) return Resultado<Familia>.Failure(ErroresCrud.ErrorBuscarPorId("Familia"));
 
-                return Resultado<Familia>.Success(grupo);
+                return Resultado<Familia>.Success(familia);
             }
             catch (Exception ex)
             {

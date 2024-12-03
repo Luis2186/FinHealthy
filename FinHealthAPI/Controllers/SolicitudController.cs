@@ -28,10 +28,10 @@ namespace FinHealthAPI.Controllers
 
 
         // Obtener todos los usuarios con paginación
-        [HttpGet("todas")]
-        public async Task<ActionResult<SolicitudDTO>> ObtenerFamilias()
+        [HttpGet("porAdmin")]
+        public async Task<ActionResult<SolicitudDTO>> ObtenerSolicitudesPorAdministrador([FromBody] PaginacionSolicitudDTO solicitudes)
         {
-            var resultado = await _servicioFamilia.ObtenerTodasLasFamilias();
+            var resultado = await _servicioFamilia.ObtenerSolicitudesPorAdministrador(solicitudes.IdAdministrador,solicitudes.Estado);
 
             if (resultado.TieneErrores) return NotFound(resultado.Errores);
 
@@ -73,15 +73,15 @@ namespace FinHealthAPI.Controllers
         }
 
         // Crear un nuevo usuario
-        [HttpPost("unirseAFamilia")]
-        public async Task<ActionResult<FamiliaDTO>> UnirseAFamilia([FromBody] UnirseAFamiliaDTO unionFamiliaDTO)
+        [HttpPost("aceptar/{idSolicitud}")]
+        public async Task<ActionResult<FamiliaDTO>> AceptarSolicitudDeUnionFamilia(int idSolicitud)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var unionFamilia = await _servicioFamilia.IngresarAFamilia(unionFamiliaDTO);
+            var unionFamilia = await _servicioFamilia.AceptarSolicitudIngresoAFamilia(idSolicitud);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (unionFamilia.TieneErrores)

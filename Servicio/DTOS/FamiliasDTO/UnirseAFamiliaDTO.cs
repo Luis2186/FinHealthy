@@ -13,6 +13,7 @@ namespace Servicio.DTOS.FamiliasDTO
         public string? UsuarioId { get; set; }
         [Required(ErrorMessage = "La familia es requerida,por favor ingresela")]
         public int FamiliaId { get; set; }
-         
+
+
     }
 }

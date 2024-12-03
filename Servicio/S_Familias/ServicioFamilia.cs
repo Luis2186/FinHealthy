@@ -38,14 +38,39 @@ namespace Servicio.S_Familias
             _mapper = mapper;
         }
 
-        public Task<Resultado<bool>> AceptarSolicitudIngresoAFamilia(UnirseAFamiliaDTO unionFamiliaDTO)
+        public async Task<Resultado<bool>> AceptarSolicitudIngresoAFamilia(int idSolicitud)
         {
-            throw new NotImplementedException();
-        }
+            try
+            {
+                var solicitudBuscada = await _repositorioSolicitud.ObtenerPorIdAsync(idSolicitud);
 
-        public Task<Resultado<bool>> AceptarSolicitudIngresoAFamilia(int idSolicitud)
-        {
-            throw new NotImplementedException();
+                if (solicitudBuscada.TieneErrores) return Resultado<bool>.Failure(solicitudBuscada.Errores);
+
+                SolicitudUnionFamilia solicitudParaAceptar = solicitudBuscada.Valor;
+
+                if (solicitudParaAceptar.Estado != "Pendiente") return Resultado<bool>.Failure(ErroresSolicitud.Estado_No_Es_Pendiente);
+
+                var familiaAdmin = await _repoFamilia.ObtenerFamiliaPorIdAdministrador(solicitudParaAceptar.UsuarioAdministradorGrupoId);
+                
+                if(familiaAdmin.TieneErrores) return Resultado<bool>.Failure(familiaAdmin.Errores);
+
+                var solicitudAceptada =await _repositorioSolicitud.AceptarSolicitud(idSolicitud);
+
+                if (solicitudAceptada.TieneErrores) return Resultado<bool>.Failure(solicitudAceptada.Errores);
+
+                var usuarioIngresado =await IngresarAFamilia(familiaAdmin.Valor.Id, solicitudParaAceptar.UsuarioSolicitanteId);
+
+                if(usuarioIngresado.EsCorrecto)
+                {              
+                    return Resultado<bool>.Success(usuarioIngresado.EsCorrecto);
+                }
+
+                return Resultado<bool>.Failure(usuarioIngresado.Errores);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.AceptarSolicitudIngresoAFamilia", ex.Message));
+            }
         }
 
         public async Task<Resultado<FamiliaDTO>> ActualizarFamilia(int familiaId,ActualizarFamiliaDTO familiaActDTO)
@@ -120,8 +145,6 @@ namespace Servicio.S_Familias
         {
             try
             {
-                await _unitOfWork.IniciarTransaccionAsync();
-
                 SolicitudUnionFamilia solicitudUnion = _mapper.Map<SolicitudUnionFamilia>(solicitud);
 
                 var resultado_usuarioSolicitante = await _repoUsuarios.ObtenerPorIdAsync(solicitud.UsuarioSolicitanteId);
@@ -138,8 +161,6 @@ namespace Servicio.S_Familias
 
                 var solicitudDTO = _mapper.Map<SolicitudDTO>(solicitudEnviada.Valor);
 
-                await _unitOfWork.ConfirmarTransaccionAsync();
-                
                 return Resultado<SolicitudDTO>.Success(solicitudDTO);
 
             }
@@ -149,37 +170,39 @@ namespace Servicio.S_Familias
             }
         }
 
-        public async Task<Resultado<bool>> IngresarAFamilia(UnirseAFamiliaDTO unionFamiliaDTO)
+        private async Task<Resultado<bool>> IngresarAFamilia(int familiaId, string usuarioSolicitante)
         {
             try
             {
-                await _unitOfWork.IniciarTransaccionAsync();
+                //await _unitOfWork.IniciarTransaccionAsync();
 
-                var miembroBuscado = await _repoMiembroFamilia.ObtenerPorUsuarioId(unionFamiliaDTO.UsuarioId);
+                var miembroBuscado = await _repoMiembroFamilia.ObtenerPorUsuarioId(usuarioSolicitante);
 
                 if (miembroBuscado.TieneErrores) return Resultado<bool>.Failure(miembroBuscado.Errores);
 
-                var familiaBuscada = await _repoFamilia.ObtenerPorIdAsync(unionFamiliaDTO.FamiliaId);
+                var familiaBuscada = await _repoFamilia.ObtenerPorIdAsync(familiaId);
 
                 if (familiaBuscada.TieneErrores) return Resultado<bool>.Failure(familiaBuscada.Errores);
 
                 Familia familia = familiaBuscada.Valor;
                 MiembroFamilia miembro = miembroBuscado.Valor;
+     
+                miembro.UnirserAGrupoFamiliar(familia);
+                var resultadoActualizacionMiembro = await _repoMiembroFamilia.ActualizarAsync(miembro);
 
                 familia.AgregarMiembroAFamilia(miembro);
-                miembro.UnirserAGrupoFamiliar(familia);
-
-                var resultadoActualizacionMiembro = await _repoMiembroFamilia.ActualizarAsync(miembro);
                 var resultadoActualizacionFamilia = await _repoFamilia.ActualizarAsync(familia);
+                
+
 
                 if (resultadoActualizacionFamilia.EsCorrecto && resultadoActualizacionMiembro.EsCorrecto)
                 {
-                    await _unitOfWork.ConfirmarTransaccionAsync();
+                    //await _unitOfWork.ConfirmarTransaccionAsync();
                     return Resultado<bool>.Success(true);
                 }
 
                 var errores = resultadoActualizacionFamilia.Errores.Concat(resultadoActualizacionMiembro.Errores);
-                await _unitOfWork.RevertirTransaccionAsync();
+                //await _unitOfWork.RevertirTransaccionAsync();
                 return Resultado<bool>.Failure(errores.ToList());
             }
             catch (Exception)
@@ -224,9 +247,48 @@ namespace Servicio.S_Familias
             }
         }
 
-        public Task<Resultado<bool>> RechazarSolicitudIngresoAFamilia(int idSolicitud)
+        public async Task<Resultado<bool>> RechazarSolicitudIngresoAFamilia(int idSolicitud)
         {
-            throw new NotImplementedException();
+            try
+            {
+
+                var solicitudBuscada = await _repositorioSolicitud.ObtenerPorIdAsync(idSolicitud);
+
+                if (solicitudBuscada.TieneErrores) return Resultado<bool>.Failure(solicitudBuscada.Errores);
+
+                SolicitudUnionFamilia solicitudParaRechazar = solicitudBuscada.Valor;
+
+                if (solicitudParaRechazar.Estado != "Pendiente") return Resultado<bool>.Failure(ErroresSolicitud.Estado_No_Es_Pendiente);
+
+                var solicitudRechazada = await _repositorioSolicitud.RechazarSolicitud(idSolicitud);
+
+                if (solicitudRechazada.TieneErrores) return Resultado<bool>.Failure(solicitudRechazada.Errores);
+
+                return Resultado<bool>.Success(solicitudRechazada.EsCorrecto);
+
+            }
+            catch (Exception ex)
+            {
+                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.RechazarSolicitudIngresoAFamilia", ex.Message));
+            }
+        }
+
+        public async Task<Resultado<IEnumerable<SolicitudDTO>>> ObtenerSolicitudesPorAdministrador(string idAdministrador, string estado)
+        {
+            try
+            {
+                var resultado = await _repositorioSolicitud.ObtenerTodasPorAdministrador(idAdministrador,estado);
+
+                if (resultado.TieneErrores) return Resultado<IEnumerable<SolicitudDTO>>.Failure(resultado.Errores);
+
+                var solicitudesDTO = _mapper.Map<IEnumerable<SolicitudDTO>>(resultado.Valor);
+
+                return Resultado<IEnumerable<SolicitudDTO>>.Success(solicitudesDTO);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<IEnumerable<SolicitudDTO>>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.ObtenerTodasLasFamilias", ex.Message));
+            }
         }
     }
 }

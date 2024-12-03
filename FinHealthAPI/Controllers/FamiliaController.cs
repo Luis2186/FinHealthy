@@ -71,26 +71,6 @@ namespace FinHealthAPI.Controllers
             return Ok(new { familiaId = familiaCreada.Valor.Id });
         }
 
-        // Crear un nuevo usuario
-        [HttpPost("unirseAFamilia")]
-        public async Task<ActionResult<FamiliaDTO>> UnirseAFamilia([FromBody] UnirseAFamiliaDTO unionFamiliaDTO)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var unionFamilia = await _servicioFamilia.IngresarAFamilia(unionFamiliaDTO);
-
-            // En caso de que el usuario ya exista o haya un error, devolver BadRequest
-            if (unionFamilia.TieneErrores)
-            {
-                return Conflict(unionFamilia.Errores);
-            }
-
-            return NoContent(); 
-        }
-
         // Actualizar un usuario
         [HttpPut("actualizar/{familiaId}")]
         public async Task<ActionResult<FamiliaDTO>> ActualizarFamilia(int familiaId, [FromBody] ActualizarFamiliaDTO familiaActDTO)

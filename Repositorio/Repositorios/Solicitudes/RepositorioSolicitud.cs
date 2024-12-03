@@ -30,7 +30,8 @@ namespace Repositorio.Repositorios.Solicitudes
 
                 SolicitudUnionFamilia solicitud= resultado_solicitud.Valor;
 
-                solicitud.EstadoSolicitudGrupo.Aceptar(solicitud);
+                solicitud.EstadoSolicitudGrupo = new SUGF_Aceptada();
+                solicitud.Aceptar();
 
                 _context.SolcitudesUnionFamilia.Update(solicitud);
                 var resultadoActualizado = await _context.SaveChangesAsync() == 1;
@@ -129,6 +130,22 @@ namespace Repositorio.Repositorios.Solicitudes
             }
         }
 
+        public async Task<Resultado<IEnumerable<SolicitudUnionFamilia>>> ObtenerTodasPorAdministrador(string idAdministrador, string estado)
+        {
+            try
+            {
+                var solicitudesUnion = await _context.SolcitudesUnionFamilia
+                    .Where(s => s.UsuarioAdministradorGrupoId == idAdministrador && s.Estado== estado)
+                    .ToListAsync();
+
+                return Resultado<IEnumerable<SolicitudUnionFamilia>>.Success(solicitudesUnion);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<IEnumerable<SolicitudUnionFamilia>>.Failure(ErroresCrud.ErrorDeExcepcion("FIND_ALL", ex.Message));
+            }
+        }
+
         public async Task<Resultado<IEnumerable<SolicitudUnionFamilia>>> ObtenerTodosAsync()
         {
             try
@@ -154,7 +171,8 @@ namespace Repositorio.Repositorios.Solicitudes
 
                 SolicitudUnionFamilia solicitud = resultado_solicitud.Valor;
 
-                solicitud.EstadoSolicitudGrupo.Rechazar(solicitud);
+                solicitud.EstadoSolicitudGrupo = new SUGF_Rechazada();
+                solicitud.Rechazar();
 
                 _context.SolcitudesUnionFamilia.Update(solicitud);
                 var resultadoActualizado = await _context.SaveChangesAsync() == 1;
@@ -165,7 +183,7 @@ namespace Repositorio.Repositorios.Solicitudes
             }
             catch (Exception ex)
             {
-                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("ACEPTAR_SOLICITUD", ex.Message));
+                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("RECHAZAR_SOLICITUD", ex.Message));
             }
         }
     }

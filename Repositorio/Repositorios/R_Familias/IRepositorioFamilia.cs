@@ -1,4 +1,5 @@
-﻿using Dominio.Familias;
+﻿using Dominio;
+using Dominio.Familias;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,5 +10,6 @@ namespace Repositorio.Repositorios.R_Familias
 {
     public interface IRepositorioFamilia : IRepositorioCRUD<Familia>
     {
+        public Task<Resultado<Familia>> ObtenerFamiliaPorIdAdministrador(string usuarioAdminId);
     }
 }

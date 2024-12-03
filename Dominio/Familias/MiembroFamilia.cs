@@ -40,6 +40,7 @@ namespace Dominio.Familias
         public MiembroFamilia UnirserAGrupoFamiliar(Familia grupoFamiliar)
         {
             this.GrupoFamiliar = grupoFamiliar;
+            GrupoFamiliarId = grupoFamiliar.Id;
             this.FechaDeUnion = DateTime.Now;
             return this;
         }
