@@ -1,4 +1,5 @@
 ﻿using Dominio;
+using Dominio.Abstracciones;
 using Dominio.Errores;
 using Dominio.Familias;
 using Microsoft.EntityFrameworkCore;
@@ -78,6 +79,26 @@ namespace Repositorio.Repositorios.R_Familia
             catch (Exception ex)
             {
                 return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("REMOVE", ex.Message));
+            }
+        }
+
+        public async Task<Resultado<bool>> MiembroExisteEnLaFamilia(int idFamilia, string usuarioId)
+        {
+            try
+            {
+                var familia = await ObtenerPorIdAsync(idFamilia);
+
+                if (familia.TieneErrores) return Resultado<bool>.Failure(familia.Errores);
+
+                MiembroFamilia miembroBuscado = familia.Valor.Miembros.FirstOrDefault(m => m.UsuarioId == usuarioId);
+
+                if (miembroBuscado != null) return Resultado<bool>.Failure(ErroresFamilia.Error_Miembro_Existente("MiembroExisteEnLaFamilia"));
+
+                return Resultado<bool>.Success(miembroBuscado==null);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("MiembroExisteEnLaFamilia", ex.Message));
             }
         }
 

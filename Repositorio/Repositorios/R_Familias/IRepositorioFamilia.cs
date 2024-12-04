@@ -11,5 +11,6 @@ namespace Repositorio.Repositorios.R_Familias
     public interface IRepositorioFamilia : IRepositorioCRUD<Familia>
     {
         public Task<Resultado<Familia>> ObtenerFamiliaPorIdAdministrador(string usuarioAdminId);
+        public Task<Resultado<bool>> MiembroExisteEnLaFamilia(int idFamilia, string usuarioId);
     }
 }

@@ -74,7 +74,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("aceptar/{idSolicitud}")]
-        public async Task<ActionResult<FamiliaDTO>> AceptarSolicitudDeUnionFamilia(int idSolicitud)
+        public async Task<ActionResult<bool>> AceptarSolicitudDeUnionFamilia(int idSolicitud)
         {
             if (!ModelState.IsValid)
             {
@@ -92,39 +92,24 @@ namespace FinHealthAPI.Controllers
             return NoContent(); 
         }
 
-        // Actualizar un usuario
-        [HttpPut("actualizar/{familiaId}")]
-        public async Task<ActionResult<FamiliaDTO>> ActualizarFamilia(int familiaId, [FromBody] ActualizarFamiliaDTO familiaActDTO)
+        // Crear un nuevo usuario
+        [HttpPost("porCodigo")]
+        public async Task<ActionResult<bool>> UnirseConCodigoAFamilia(UnirseAFamiliaDTO solicitud)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var familiaActualizada = await _servicioFamilia.ActualizarFamilia(familiaId, familiaActDTO);
+            var unionFamilia = await _servicioFamilia.IngresoAFamiliaConCodigo(solicitud);
 
-            if (familiaActualizada.TieneErrores)
+            // En caso de que el usuario ya exista o haya un error, devolver BadRequest
+            if (unionFamilia.TieneErrores)
             {
-                return NotFound(familiaActualizada.Errores);
+                return Conflict(unionFamilia.Errores);
             }
 
-            return Ok(familiaActualizada.Valor);  // Devuelve el usuario actualizado con estado 200 OK
+            return NoContent();
         }
-
-        // Eliminar un usuario
-        [HttpDelete("eliminar/{familiaId}")]
-        public async Task<ActionResult> EliminarUsuario(int familiaId)
-        {
-            var familiaEliminada = await _servicioFamilia.EliminarFamilia(familiaId);
-
-            if (familiaEliminada.TieneErrores)
-            {
-                return NotFound(familiaEliminada.Errores);
-            }
-
-            return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
-        }
-
-
     }
 }

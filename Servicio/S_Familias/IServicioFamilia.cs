@@ -22,5 +22,6 @@ namespace Servicio.S_Familias
         public Task<Resultado<bool>> RechazarSolicitudIngresoAFamilia(int idSolicitud);
         public Task<Resultado<SolicitudDTO>> EnviarSolicitudIngresoAFamilia(EnviarSolicitudDTO solicitud);
         public Task<Resultado<IEnumerable<SolicitudDTO>>> ObtenerSolicitudesPorAdministrador(string idAdministrador, string estado);
+        public Task<Resultado<bool>> IngresoAFamiliaConCodigo(UnirseAFamiliaDTO acceso);
     }
 }

@@ -290,5 +290,36 @@ namespace Servicio.S_Familias
                 return Resultado<IEnumerable<SolicitudDTO>>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.ObtenerTodasLasFamilias", ex.Message));
             }
         }
+
+        public async Task<Resultado<bool>> IngresoAFamiliaConCodigo(UnirseAFamiliaDTO acceso)
+        {
+            try
+            {
+                var familia = await _repoFamilia.ObtenerPorIdAsync(acceso.FamiliaId);
+
+                if (familia.TieneErrores) return Resultado<bool>.Failure(familia.Errores);
+
+                var miembroEsIntegrante = await _repoFamilia.MiembroExisteEnLaFamilia(familia.Valor.Id, acceso.UsuarioId);
+
+                if (miembroEsIntegrante.TieneErrores) return Resultado<bool>.Failure(miembroEsIntegrante.Errores);
+
+                var codigoVerificado = familia.Valor.VerificarCodigo(acceso.Codigo);
+
+                if(codigoVerificado.TieneErrores) return Resultado<bool>.Failure(codigoVerificado.Errores);
+
+                var usuarioIngresado = await IngresarAFamilia(familia.Valor.Id, acceso.UsuarioId);
+
+                if (usuarioIngresado.EsCorrecto)
+                {
+                    return Resultado<bool>.Success(usuarioIngresado.EsCorrecto);
+                }
+
+                return Resultado<bool>.Failure(usuarioIngresado.Errores);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.IngresoAFamiliaConCodigo", ex.Message));
+            }
+        }
     }
 }
