@@ -76,6 +76,7 @@ builder.Services.AddSingleton<ProveedorToken>();
 var app = builder.Build();
 
 await app.CrearRoles();
+await app.PoblarDatos();
 
 if (app.Environment.IsDevelopment())
 {

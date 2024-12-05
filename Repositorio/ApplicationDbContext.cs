@@ -1,4 +1,6 @@
-﻿using Dominio.Familias;
+﻿using Dominio.Documentos;
+using Dominio.Familias;
+using Dominio.Gastos;
 using Dominio.Notificaciones;
 using Dominio.Solicitudes;
 using Dominio.Usuarios;
@@ -26,6 +28,10 @@ namespace Repositorio
             ConfigurarBuilderSolicitudesGrupoFamiliar(builder);
             ConfigurarBuilderGrupoFamiliar(builder);
             ConfigurarBuilderMiembroFamiliar(builder);
+            ConfigurarBuilderCategoria(builder);
+            ConfigurarBuilderMetodoDePago(builder);
+            ConfigurarBuilderMoneda(builder);
+            ConfigurarBuilderTipoDeDocumento(builder);
 
             builder.HasDefaultSchema("identity");
         }
@@ -195,11 +201,84 @@ namespace Repositorio
             });
         }
 
+        protected private void ConfigurarBuilderCategoria(ModelBuilder builder)
+        {
+            builder.Entity<Categoria>(entity =>
+            {
+                // Clave primaria
+                entity.HasKey(c => c.Id);
+            
+                // Configuración de propiedades
+                entity.Property(c => c.Nombre)
+                .IsRequired(true);
+
+                entity.HasIndex(c => c.Nombre).IsUnique();
+            });
+        }
+
+        protected private void ConfigurarBuilderMoneda(ModelBuilder builder)
+        {
+            builder.Entity<Moneda>(entity =>
+            {
+                // Clave primaria
+                entity.HasKey(m => m.Codigo);
+
+                // Configuración de propiedades
+                entity.Property(c => c.Nombre)
+                .IsRequired(true);
+
+                entity.Property(c => c.Simbolo)
+                .IsRequired(true);
+
+                entity.Property(c => c.Pais)
+                .IsRequired(true);
+
+                entity.Property(c => c.TipoDeCambio)
+                .IsRequired(true);
+
+                entity.HasIndex(c => new { c.Codigo,c.Nombre } ).IsUnique();
+            });
+        }
+
+        protected private void ConfigurarBuilderTipoDeDocumento(ModelBuilder builder)
+        {
+            builder.Entity<TipoDeDocumento>(entity =>
+            {
+                // Clave primaria
+                entity.HasKey(c => c.Id);
+
+                // Configuración de propiedades
+                entity.Property(c => c.Nombre)
+                .IsRequired(true);
+
+                entity.HasIndex(c => c.Nombre).IsUnique();
+            });
+        }
+
+        protected private void ConfigurarBuilderMetodoDePago(ModelBuilder builder)
+        {
+            builder.Entity<MetodoDePago>(entity =>
+            {
+                // Clave primaria
+                entity.HasKey(c => c.Id);
+
+                // Configuración de propiedades
+                entity.Property(c => c.Nombre)
+                .IsRequired(true);
+
+                entity.HasIndex(c => c.Nombre).IsUnique();
+            });
+        }
+
         // DbSet para las notificaciones
         public DbSet<Notificacion> Notificaciones { get; set; }
         public DbSet<SolicitudUnionFamilia> SolcitudesUnionFamilia { get; set; }
         public DbSet<Familia> Familias { get; set; }
         public DbSet<MiembroFamilia> MiembrosFamiliares { get; set; }
+        public DbSet<Categoria> Categorias { get; set; }
+        public DbSet<Moneda> Monedas { get; set; }
+        public DbSet<TipoDeDocumento> TipoDeDocumentos { get; set; }
+        public DbSet<MetodoDePago> MetodosDePago { get; set; }
 
     }
 }

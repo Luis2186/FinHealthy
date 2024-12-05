@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repositorio;
 
@@ -11,9 +12,11 @@ using Repositorio;
 namespace Repositorio.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241205115804_MonedasCategoriasTDoc")]
+    partial class MonedasCategoriasTDoc
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,12 +42,9 @@ namespace Repositorio.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Nombre")
-                        .IsUnique();
 
                     b.ToTable("TipoDeDocumentos", "identity");
                 });
@@ -135,38 +135,11 @@ namespace Repositorio.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Nombre")
-                        .IsUnique();
-
-                    b.ToTable("Categorias", "identity");
-                });
-
-            modelBuilder.Entity("Dominio.Gastos.MetodoDePago", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Descripcion")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("Nombre")
-                        .IsUnique();
-
-                    b.ToTable("MetodosDePago", "identity");
+                    b.ToTable("Categorias", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Gastos.Moneda", b =>
@@ -176,7 +149,7 @@ namespace Repositorio.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Pais")
                         .IsRequired()
@@ -190,9 +163,6 @@ namespace Repositorio.Migrations
                         .HasColumnType("float");
 
                     b.HasKey("Codigo");
-
-                    b.HasIndex("Codigo", "Nombre")
-                        .IsUnique();
 
                     b.ToTable("Monedas", "identity");
                 });
