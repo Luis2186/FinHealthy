@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using QuestPDF.Fluent;
 using Servicio.DTOS.UsuariosDTO;
 using Servicio.Pdf;
+using Servicio.ServiciosExternos;
 using Servicio.Usuarios;
 
 namespace FinHealthAPI.Controllers
@@ -18,11 +19,13 @@ namespace FinHealthAPI.Controllers
     public class UsuarioController : Controller
     {
         private readonly IServicioUsuario _servicioUsuario;
+        private readonly IServicioMonedas _servicioMoneda;
    
         private readonly IMapper _mapper;
-        public UsuarioController(IServicioUsuario servicioUsuario, IMapper mapper)
+        public UsuarioController(IServicioUsuario servicioUsuario, IMapper mapper, IServicioMonedas servicioMoneda)
         {
             _servicioUsuario = servicioUsuario;
+            _servicioMoneda = servicioMoneda;
             _mapper = mapper;
         }
 
@@ -85,7 +88,7 @@ namespace FinHealthAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<Usuario>> Login([FromBody] UsuarioLoginDTO usuarioDto)
         {
-
+            await _servicioMoneda.ActualizarMonedasDesdeServicio();
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);

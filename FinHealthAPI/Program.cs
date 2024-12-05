@@ -18,6 +18,9 @@ using Repositorio.Repositorios.R_Familia;
 using Servicio.S_Familias;
 using Repositorio.Repositorios;
 using Repositorio.Repositorios.Solicitudes;
+using Repositorio.Repositorios.Monedas;
+using Servicio.ServiciosExternos;
+using FinHealthAPI.ProcesosSegundoPlano;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +57,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     b => b.MigrationsAssembly("Repositorio"))
 );
 
+// Registrar HttpClient
+builder.Services.AddHttpClient();
+builder.Services.AgregarInfrastructura();
 // Configuración de AutoMapper
 builder.Services.AddAutoMapper(typeof(PerfilDeMapeo));
 
@@ -65,7 +71,9 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
 builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
 builder.Services.AddScoped<IServicioFamilia, ServicioFamilia>();
+builder.Services.AddScoped<IServicioMonedas, ServicioMonedas>();
 
+builder.Services.AddScoped<IRepositorioMoneda, RepositorioMoneda>();
 builder.Services.AddScoped<IRepositorioFamilia, RepositorioFamilia>();
 builder.Services.AddScoped<IRepositorioSolicitud, RepositorioSolicitud>();
 builder.Services.AddScoped<IRepositorioMiembroFamilia, RepositorioMiembroFamilia>();
