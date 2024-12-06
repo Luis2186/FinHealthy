@@ -28,9 +28,18 @@ namespace Dominio.Gastos
         public bool EsCompartido { get; set; }
         [Required(ErrorMessage = "El monto del gasto es requerido")]
         public double Monto { get; set; }
-        public GastoFinanciado? GastoFinanciado { get; set; }
-        public GastoCompartido? GastoCompartido { get; set; }
+        public List<Cuota> Cuotas { get; set; }  
+        public List<GastoCompartido> CompartidoCon { get; set; }
         public bool Estado { get; set; }
+
+
+        public Gasto()
+        {
+            this.CompartidoCon = new List<GastoCompartido>();
+            this.Cuotas = new List<Cuota>();
+        }
+
+        
 
     }
 }

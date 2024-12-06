@@ -10,9 +10,17 @@ namespace Dominio.Gastos
 {
     public class GastoCompartido
     {
-        public int Id { get; set; }
-        public List<MiembroFamilia> Miembros { get; set; }
-        public bool EnPartesIguales { get; set; }
-        public Dictionary<MiembroFamilia,double> ImportePorMiembro { get; set; }
+        public int GastoId { get; set; }
+        public Gasto Gasto { get; set; }
+        public int MiembroId { get; set; }
+        public MiembroFamilia Miembro { get; set; }
+        public double Porcentaje { get; set; }
+        public double MontoAsignado { get; set; } 
+
+        public GastoCompartido()
+        {
+            Gasto = new Gasto();
+            Miembro = new MiembroFamilia();
+        }
     }
 }
