@@ -48,9 +48,20 @@ builder.Services
         };
     });
 
+// Agregar CORS con polÃ­ticas personalizadas
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin", builder =>
+    {
+        builder.WithOrigins("http://localhost:4321")  // Origen de tu frontend
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddControllers();
 
-// Configuración de Identity con roles
+// Configuraciï¿½n de Identity con roles
 builder.Services.AddIdentityCore<Usuario>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -64,7 +75,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Registrar HttpClient
 builder.Services.AddHttpClient();
 builder.Services.AgregarInfrastructura();
-// Configuración de AutoMapper
+// Configuraciï¿½n de AutoMapper
 builder.Services.AddAutoMapper(typeof(PerfilDeMapeo));
 
 builder.Services.AddLogging();
@@ -103,9 +114,11 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.AplicarMigraciones();
 }
+// Usar CORS antes de las rutas
+app.UseCors("AllowSpecificOrigin");
 
+app.AplicarMigraciones();
 
 // Configure the HTTP request pipeline.
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;

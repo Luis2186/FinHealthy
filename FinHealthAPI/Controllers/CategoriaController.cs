@@ -102,5 +102,16 @@ namespace FinHealthAPI.Controllers
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
         }
+
+        // Obtener todos los usuarios con paginación
+        [HttpGet("prueba")]
+        public async Task<ActionResult<Categoria>> ObtenerPrueba()
+        {
+            var resultado = "Esto es una prueba de docker";
+
+            return Ok(resultado);  // Devuelve los datos con estado HTTP 200 OK
+        }
+
+
     }
 }

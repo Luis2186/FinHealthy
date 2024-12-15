@@ -36,7 +36,12 @@ namespace FinHealthAPI.Controllers
         {
             var resultado = await _servicioUsuario.ObtenerTodos();
 
-            if (resultado.TieneErrores) return NotFound(resultado.Errores);
+            if (resultado.TieneErrores) return NotFound(new ProblemDetails
+            {
+                Title = "Error al obtener usuarios paginados",
+                Detail = resultado.ObtenerErroresComoString(),
+                Status = 404
+            });
 
             var usuariosDTOS = _mapper.Map<List<UsuarioDTO>>(resultado.Valor);
             
@@ -50,13 +55,17 @@ namespace FinHealthAPI.Controllers
 
         // Obtener un usuario por su ID
         [HttpGet("obtener/{usuarioId}")]
+        [AllowAnonymous]
         public async Task<ActionResult<Usuario>> ObtenerUsuarioPorId(string usuarioId)
         {
             var usuario = await _servicioUsuario.ObtenerPorId(usuarioId);
-            if (usuario.TieneErrores)
+            
+            if (usuario.TieneErrores) return NotFound(new ProblemDetails
             {
-                return NotFound(usuario.Errores);  // Devuelve 404 si no se encuentra el usuario
-            }
+                Title = "Error al obtener usuario por id",
+                Detail = usuario.ObtenerErroresComoString(),
+                Status = 404
+            }); 
 
             var usuarioDTO = _mapper.Map<UsuarioDTO>(usuario.Valor);
 
@@ -78,10 +87,15 @@ namespace FinHealthAPI.Controllers
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (usuarioCreado.TieneErrores)
             {
-                return Conflict(usuarioCreado.Errores);
+                return Conflict(new ProblemDetails
+                {
+                    Title = "Error al registrar usuario",
+                    Detail = usuarioCreado.ObtenerErroresComoString(),
+                    Status = 409
+                });
             }
 
-            return Ok(new { usuarioId = usuarioCreado.Valor.Id, usuarioCreado.Valor.Token }) ;
+            return Ok(new { id = usuarioCreado.Valor.Id, usuarioCreado.Valor.Token }) ;
         }
         // Obtener un usuario por su ID
         [HttpPost("login")]
@@ -89,6 +103,7 @@ namespace FinHealthAPI.Controllers
         public async Task<ActionResult<Usuario>> Login([FromBody] UsuarioLoginDTO usuarioDto)
         {
             await _servicioMoneda.ActualizarMonedasDesdeServicio();
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -98,12 +113,17 @@ namespace FinHealthAPI.Controllers
 
             if (usuario.TieneErrores)
             {
-                return NotFound(usuario.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error Login",
+                    Detail = usuario.ObtenerErroresComoString(),
+                    Status = 404
+                });
             }
 
             //var token = _provedorJwt.Crear(usuario);
 
-            return Ok( new { usuarioId = usuario.Valor.Id , usuario.Valor.Token });  // Devuelve el usuario con estado 200 OK
+            return Ok( new { id = usuario.Valor.Id , usuario.Valor.Token });  // Devuelve el usuario con estado 200 OK
         }
         // Actualizar un usuario
         [HttpPut("actualizar/{usuarioId}")]
@@ -118,7 +138,12 @@ namespace FinHealthAPI.Controllers
 
             if (usuarioActualizado.TieneErrores)
             {
-                return NotFound(usuarioActualizado.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al actualizar usuario",
+                    Detail = usuarioActualizado.ObtenerErroresComoString(),
+                    Status = 404
+                });
             }
 
             var usuarioDTO = _mapper.Map<UsuarioDTO>(usuarioActualizado.Valor);
@@ -134,7 +159,12 @@ namespace FinHealthAPI.Controllers
 
             if (usuarioEliminado.TieneErrores)
             {
-                return NotFound(usuarioEliminado.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al eliminar usuario",
+                    Detail = usuarioEliminado.ObtenerErroresComoString(),
+                    Status = 404
+                });
             }
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
@@ -146,7 +176,12 @@ namespace FinHealthAPI.Controllers
 
             if (rolEliminado.TieneErrores)
             {
-                return NotFound(rolEliminado.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al eliminar rol a usuario",
+                    Detail = rolEliminado.ObtenerErroresComoString(),
+                    Status = 404
+                });
             }
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
@@ -164,7 +199,12 @@ namespace FinHealthAPI.Controllers
 
             if (rolAgregado.TieneErrores)
             {
-                return NotFound(rolAgregado.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al intentar agregar rol a usuario",
+                    Detail = rolAgregado.ObtenerErroresComoString(),
+                    Status = 404
+                });
             }
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
@@ -176,7 +216,12 @@ namespace FinHealthAPI.Controllers
         {
             var resultado = await _servicioUsuario.ObtenerRolesPorUsuario(usuarioId);
             
-            if(resultado.TieneErrores) return NotFound(resultado.Errores);
+            if(resultado.TieneErrores) return NotFound(new ProblemDetails
+            {
+                Title = "Error Login",
+                Detail = resultado.ObtenerErroresComoString(),
+                Status = 404
+            });
 
             return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
         }
