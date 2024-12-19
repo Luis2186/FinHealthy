@@ -39,8 +39,12 @@ namespace FinHealthAPI.Controllers
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
                 Title = "Error al obtener usuarios paginados",
-                Detail = resultado.ObtenerErroresComoString(),
-                Status = 404
+                Detail = "Ah ocurrido un error cuando se intento obtener los usuarios",
+                Status = 404,
+                Instance = HttpContext.Request.Path,
+                Extensions = {
+                        ["errors"] = resultado.Errores
+                }
             });
 
             var usuariosDTOS = _mapper.Map<List<UsuarioDTO>>(resultado.Valor);
@@ -63,8 +67,12 @@ namespace FinHealthAPI.Controllers
             if (usuario.TieneErrores) return NotFound(new ProblemDetails
             {
                 Title = "Error al obtener usuario por id",
-                Detail = usuario.ObtenerErroresComoString(),
-                Status = 404
+                Detail = "Ah ocurrido un error al intentar obtener el usuario por id",
+                Status = 404,
+                Instance = HttpContext.Request.Path,
+                Extensions = {
+                        ["errors"] = usuario.Errores
+                }
             }); 
 
             var usuarioDTO = _mapper.Map<UsuarioDTO>(usuario.Valor);
@@ -79,7 +87,18 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
             var usuarioCreado = await _servicioUsuario.Registrar(usuarioDto);
@@ -90,8 +109,12 @@ namespace FinHealthAPI.Controllers
                 return Conflict(new ProblemDetails
                 {
                     Title = "Error al registrar usuario",
-                    Detail = usuarioCreado.ObtenerErroresComoString(),
-                    Status = 409
+                    Detail = "Ah ocurrido un error cuando se intento registrar el usuario",
+                    Status = 409,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = usuarioCreado.Errores
+                    }
                 });
             }
 
@@ -106,7 +129,18 @@ namespace FinHealthAPI.Controllers
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
             var usuario = await _servicioUsuario.Login(usuarioDto);
@@ -116,8 +150,12 @@ namespace FinHealthAPI.Controllers
                 return NotFound(new ProblemDetails
                 {
                     Title = "Error Login",
-                    Detail = usuario.ObtenerErroresComoString(),
-                    Status = 404
+                    Detail = "Ah ocurrido un error al intentar loguearse",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = usuario.Errores
+                    }
                 });
             }
 
@@ -131,7 +169,18 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
             var usuarioActualizado = await _servicioUsuario.Actualizar(usuarioId, usuarioDto);
@@ -141,8 +190,12 @@ namespace FinHealthAPI.Controllers
                 return NotFound(new ProblemDetails
                 {
                     Title = "Error al actualizar usuario",
-                    Detail = usuarioActualizado.ObtenerErroresComoString(),
-                    Status = 404
+                    Detail = "Ah ocurrido un error al actualizar usuario",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = usuarioActualizado.Errores
+                    }
                 });
             }
 
@@ -163,7 +216,11 @@ namespace FinHealthAPI.Controllers
                 {
                     Title = "Error al eliminar usuario",
                     Detail = usuarioEliminado.ObtenerErroresComoString(),
-                    Status = 404
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = usuarioEliminado.Errores
+                    }
                 });
             }
 
@@ -179,8 +236,12 @@ namespace FinHealthAPI.Controllers
                 return NotFound(new ProblemDetails
                 {
                     Title = "Error al eliminar rol a usuario",
-                    Detail = rolEliminado.ObtenerErroresComoString(),
-                    Status = 404
+                    Detail = "Ah ocurrido un error al intentar eliminar el rol del usuario",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = rolEliminado.Errores
+                    }
                 });
             }
 
@@ -192,7 +253,18 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
             var rolAgregado = await _servicioUsuario.AgregarRol(rol.idUsuario, rol.IdRol,rol.NombreRol);
@@ -202,8 +274,12 @@ namespace FinHealthAPI.Controllers
                 return NotFound(new ProblemDetails
                 {
                     Title = "Error al intentar agregar rol a usuario",
-                    Detail = rolAgregado.ObtenerErroresComoString(),
-                    Status = 404
+                    Detail = "Ah ocurrido un error al intentar agregar el rol al usuario",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = rolAgregado.Errores
+                    }
                 });
             }
 
@@ -218,9 +294,13 @@ namespace FinHealthAPI.Controllers
             
             if(resultado.TieneErrores) return NotFound(new ProblemDetails
             {
-                Title = "Error Login",
-                Detail = resultado.ObtenerErroresComoString(),
-                Status = 404
+                Title = "Error roles de usuario",
+                Detail = "Ah ocurrido un error al intentar obtener los roles del usuario",
+                Status = 404,
+                Instance = HttpContext.Request.Path,
+                Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
             });
 
             return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK

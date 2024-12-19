@@ -28,7 +28,16 @@ namespace FinHealthAPI.Controllers
         {
             var resultado = await _servicioNotificacion.ObtenerNotificacionesEmitidas(usuarioEmisorId);
 
-            if (resultado.TieneErrores) return NotFound(resultado.Errores);
+            if (resultado.TieneErrores) return NotFound(new ProblemDetails
+            {
+                Title = "Error al eliminar categoria",
+                Detail = resultado.ObtenerErroresComoString(),
+                Status = 404,
+                Instance = HttpContext.Request.Path,
+                Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+            });
 
             return Ok(resultado);
         }
@@ -38,7 +47,16 @@ namespace FinHealthAPI.Controllers
         {
             var resultado = await _servicioNotificacion.ObtenerNotificacionesRecibidas(usuarioReceptorId);
 
-            if (resultado.TieneErrores) return NotFound(resultado.Errores);
+            if (resultado.TieneErrores) return NotFound(new ProblemDetails
+            {
+                Title = "Error al eliminar categoria",
+                Detail = resultado.ObtenerErroresComoString(),
+                Status = 404,
+                Instance = HttpContext.Request.Path,
+                Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+            });
 
             return Ok(resultado);
         }
@@ -50,7 +68,16 @@ namespace FinHealthAPI.Controllers
 
             if (resultado.TieneErrores)
             {
-                return NotFound(resultado.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al eliminar categoria",
+                    Detail = resultado.ObtenerErroresComoString(),
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
             }
 
             return NoContent();
@@ -61,18 +88,38 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
-            var notificacionCreada = await _servicioNotificacion.EnviarNotificacion(notificacionDTO);
+            var resultado = await _servicioNotificacion.EnviarNotificacion(notificacionDTO);
             
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
-            if (notificacionCreada.TieneErrores)
+            if (resultado.TieneErrores)
             {
-                return Conflict(notificacionCreada.Errores);
+                return Conflict(new ProblemDetails
+                {
+                    Title = "Error al enviar notificacion",
+                    Detail = "Ah ocurrido un error al intentar enviar la notificacion",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
             }
 
-            return Ok(notificacionCreada.Valor) ;
+            return Ok(resultado.Valor) ;
         }
         // Obtener un usuario por su ID
         [HttpGet("buscar")]
@@ -81,17 +128,37 @@ namespace FinHealthAPI.Controllers
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
-            var notificacion = await _servicioNotificacion.BuscarNotificacion(notificacionId);
+            var resultado = await _servicioNotificacion.BuscarNotificacion(notificacionId);
 
-            if (notificacion.TieneErrores)
+            if (resultado.TieneErrores)
             {
-                return NotFound(notificacion.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al buscar la notificacion por id",
+                    Detail = "Ah ocurrido un error al intentar buscar la notificacion por id",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
             }
 
-            return Ok(notificacion);  // Devuelve el usuario con estado 200 OK
+            return Ok(resultado);  // Devuelve el usuario con estado 200 OK
         }
         // Actualizar un usuario
         [HttpDelete("eliminar")]
@@ -99,14 +166,34 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
-            var notificacionEliminada = await _servicioNotificacion.EliminarNotificacion(notificacionId);
+            var resultado = await _servicioNotificacion.EliminarNotificacion(notificacionId);
 
-            if (notificacionEliminada.TieneErrores)
+            if (resultado.TieneErrores)
             {
-                return NotFound(notificacionEliminada.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al eliminar la notificacion",
+                    Detail = "Ah ocurrido un error al intentar eliminar la notificacion",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
             }
 
             return NoContent(); 

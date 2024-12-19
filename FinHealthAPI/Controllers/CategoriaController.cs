@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Dominio;
 using Dominio.Familias;
 using Dominio.Gastos;
 using Microsoft.AspNetCore.Authorization;
@@ -31,7 +32,17 @@ namespace FinHealthAPI.Controllers
         {
             var resultado = await _servicioCategoria.ObtenerTodosAsync();
 
-            if (resultado.TieneErrores) return NotFound(resultado.Errores);
+            if (resultado.TieneErrores) return NotFound(
+                new ProblemDetails
+                {
+                    Title = "Error obtener categorias",
+                    Detail = "Ah ocurrido un error al intentar obtener todas las categorias",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                }
+                });
 
             return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
         }
@@ -44,7 +55,16 @@ namespace FinHealthAPI.Controllers
 
             if (resultado.TieneErrores)
             {
-                return NotFound(resultado.Errores);  // Devuelve 404 si no se encuentra la familia
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error obtener categoria por id",
+                    Detail = "Ah ocurrido un error al intentar al obtener la categoria por id",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                }
+                });  
             }
 
             return Ok(resultado.Valor);  // Devuelve el usuario con estado 200 OK
@@ -56,7 +76,18 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,  
+                    Title = "Error de validacion", 
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",  
+                    Instance = HttpContext.Request.Path, 
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
             //var resultadoCreacion = await _servicioCategoria.CrearAsync(familiaCreacionDTO);
@@ -76,7 +107,18 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
             //var resultadoActualizacion = await _servicioCategoria.ActualizarAsync(categoriaId, familiaActDTO);
@@ -93,11 +135,20 @@ namespace FinHealthAPI.Controllers
         [HttpDelete("eliminar/{categoriaId}")]
         public async Task<ActionResult> Eliminar(int categoriaId)
         {
-            var resultadoEliminacion = await _servicioCategoria.EliminarAsync(categoriaId);
+            var resultado = await _servicioCategoria.EliminarAsync(categoriaId);
 
-            if (resultadoEliminacion.TieneErrores)
+            if (resultado.TieneErrores)
             {
-                return NotFound(resultadoEliminacion.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al eliminar categoria",
+                    Detail = "Ah ocurrido un error al intentar eliminar la categoria",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
             }
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa

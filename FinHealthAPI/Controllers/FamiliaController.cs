@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Dominio;
 using Dominio.Familias;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Authorization;
@@ -32,23 +33,41 @@ namespace FinHealthAPI.Controllers
         {
             var resultado = await _servicioFamilia.ObtenerTodasLasFamilias();
 
-            if (resultado.TieneErrores) return NotFound(resultado.Errores);
+            if (resultado.TieneErrores) return NotFound(new ProblemDetails
+            {
+                Title = "Error al obtener todas las familias",
+                Detail = "Ah ocurrido un error al intentar obtener todas las familias",
+                Status = 404,
+                Instance = HttpContext.Request.Path,
+                Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+            });
 
             return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
         }
 
         // Obtener un usuario por su ID
         [HttpGet("obtener/{familiaId}")]
-        public async Task<ActionResult<FamiliaDTO>> ObtenerUsuarioPorId(int familiaId)
+        public async Task<ActionResult<FamiliaDTO>> ObtenerFamiliaPorId(int familiaId)
         {
-            var familia = await _servicioFamilia.ObtenerFamiliaPorId(familiaId);
+            var resultado = await _servicioFamilia.ObtenerFamiliaPorId(familiaId);
 
-            if (familia.TieneErrores)
+            if (resultado.TieneErrores)
             {
-                return NotFound(familia.Errores);  // Devuelve 404 si no se encuentra la familia
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al obtener la familia por id",
+                    Detail = "Ah ocurrido un error al intentar obtener la familia por id",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });  // Devuelve 404 si no se encuentra la familia
             }
 
-            return Ok(familia.Valor);  // Devuelve el usuario con estado 200 OK
+            return Ok(resultado.Valor);  // Devuelve el usuario con estado 200 OK
         }
 
         // Crear un nuevo usuario
@@ -57,18 +76,38 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
-            var familiaCreada = await _servicioFamilia.CrearFamilia(familiaCreacionDTO);
+            var resultado = await _servicioFamilia.CrearFamilia(familiaCreacionDTO);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
-            if (familiaCreada.TieneErrores)
+            if (resultado.TieneErrores)
             {
-                return Conflict(familiaCreada.Errores);
+                return Conflict(new ProblemDetails
+                {
+                    Title = "Error al crear la familia",
+                    Detail = "Ah ocurrido un error al intentar crear la familia",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
             }
 
-            return Ok(new { familiaId = familiaCreada.Valor.Id });
+            return Ok(new { familiaId = resultado.Valor.Id });
         }
 
         // Actualizar un usuario
@@ -77,28 +116,57 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
-            var familiaActualizada = await _servicioFamilia.ActualizarFamilia(familiaId, familiaActDTO);
+            var resultado = await _servicioFamilia.ActualizarFamilia(familiaId, familiaActDTO);
 
-            if (familiaActualizada.TieneErrores)
+            if (resultado.TieneErrores)
             {
-                return NotFound(familiaActualizada.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al actualiza la familia",
+                    Detail = "Ah ocurrido un error al intentar actualizar la familia",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
             }
 
-            return Ok(familiaActualizada.Valor);  // Devuelve el usuario actualizado con estado 200 OK
+            return Ok(resultado.Valor);  // Devuelve el usuario actualizado con estado 200 OK
         }
 
         // Eliminar un usuario
         [HttpDelete("eliminar/{familiaId}")]
         public async Task<ActionResult> EliminarUsuario(int familiaId)
         {
-            var familiaEliminada = await _servicioFamilia.EliminarFamilia(familiaId);
+            var resultado = await _servicioFamilia.EliminarFamilia(familiaId);
 
-            if (familiaEliminada.TieneErrores)
+            if (resultado.TieneErrores)
             {
-                return NotFound(familiaEliminada.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al eliminar familia",
+                    Detail = "Ah ocurrido un error al intentar eliminar la familia",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
             }
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa

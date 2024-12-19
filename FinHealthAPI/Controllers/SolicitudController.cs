@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Dominio;
 using Dominio.Familias;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Authorization;
@@ -33,24 +34,42 @@ namespace FinHealthAPI.Controllers
         {
             var resultado = await _servicioFamilia.ObtenerSolicitudesPorAdministrador(solicitudes.IdAdministrador,solicitudes.Estado);
 
-            if (resultado.TieneErrores) return NotFound(resultado.Errores);
+            if (resultado.TieneErrores) return NotFound(new ProblemDetails
+            {
+                Title = "Error solicitudes por administrador",
+                Detail = "Hubo un error al intentar obtener las solicitudes por administrador",
+                Status = 404,
+                Instance = HttpContext.Request.Path,
+                Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+            });
 
             return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
         }
 
         // Obtener un usuario por su ID
-        [HttpGet("obtener/{familiaId}")]
-        public async Task<ActionResult<FamiliaDTO>> ObtenerUsuarioPorId(int familiaId)
-        {
-            var familia = await _servicioFamilia.ObtenerFamiliaPorId(familiaId);
+        //[HttpGet("obtener/{solicitudId}")]
+        //public async Task<ActionResult<FamiliaDTO>> ObtenerSolicitudPorId(int solicitudId)
+        //{
+        //    var resultado = await _servicioFamilia.ObtenerFamiliaPorId(familiaId);
 
-            if (familia.TieneErrores)
-            {
-                return NotFound(familia.Errores);  // Devuelve 404 si no se encuentra la familia
-            }
+        //    if (resultado.TieneErrores)
+        //    {
+        //        return NotFound(new ProblemDetails
+        //        {
+        //            Title = "Error al obtener usuario por id",
+        //            Detail = "Hubo un error al obtener el usuario por id",
+        //            Status = 404,
+        //            Instance = HttpContext.Request.Path,
+        //            Extensions = {
+        //                ["errors"] = resultado.Errores
+        //            }
+        //        });  // Devuelve 404 si no se encuentra la familia
+        //    }
 
-            return Ok(familia.Valor);  // Devuelve el usuario con estado 200 OK
-        }
+        //    return Ok(resultado.Valor);  // Devuelve el usuario con estado 200 OK
+        //}
 
         // Crear un nuevo usuario
         [HttpPost("enviar")]
@@ -58,18 +77,38 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
-            var solicitudEnviada = await _servicioFamilia.EnviarSolicitudIngresoAFamilia(enviarSolicitudDTO);
+            var resultado = await _servicioFamilia.EnviarSolicitudIngresoAFamilia(enviarSolicitudDTO);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
-            if (solicitudEnviada.TieneErrores)
+            if (resultado.TieneErrores)
             {
-                return Conflict(solicitudEnviada.Errores);
+                return Conflict(new ProblemDetails
+                {
+                    Title = "Error al enviar la solicitud",
+                    Detail = "Ah ocurrido un error cuando se intento enviar la solicitud",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
             }
 
-            return Ok(new { solicitudId = solicitudEnviada.Valor.Id });
+            return Ok(new { solicitudId = resultado.Valor.Id });
         }
 
         // Crear un nuevo usuario
@@ -78,15 +117,35 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
-            var unionFamilia = await _servicioFamilia.AceptarSolicitudIngresoAFamilia(idSolicitud);
+            var resultado = await _servicioFamilia.AceptarSolicitudIngresoAFamilia(idSolicitud);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
-            if (unionFamilia.TieneErrores)
+            if (resultado.TieneErrores)
             {
-                return Conflict(unionFamilia.Errores);
+                return Conflict(new ProblemDetails
+                {
+                    Title = "Error al aceptar la solicitud",
+                    Detail = "Ah ocurrido un error cuando se intento aceptar la solicitud",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
             }
 
             return NoContent(); 
@@ -98,15 +157,35 @@ namespace FinHealthAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = ModelState.Keys.ToDictionary(
+                            key => key,
+                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                    }
+                });
             }
 
-            var unionFamilia = await _servicioFamilia.IngresoAFamiliaConCodigo(solicitud);
+            var resultado = await _servicioFamilia.IngresoAFamiliaConCodigo(solicitud);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
-            if (unionFamilia.TieneErrores)
+            if (resultado.TieneErrores)
             {
-                return Conflict(unionFamilia.Errores);
+                return Conflict(new ProblemDetails
+                {
+                    Title = "Error al unirse a la familia por medio del codigo",
+                    Detail = "Ah ocurrido un error al intentar unirse a la familia por medio del codigo",
+                    Status = 404,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
             }
 
             return NoContent();
