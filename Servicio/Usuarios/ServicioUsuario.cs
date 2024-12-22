@@ -99,6 +99,8 @@ namespace Servicio.Usuarios
 
         public async Task<Resultado<bool>> Eliminar(string id)
         {
+            var miembroFamilia = await _repoMiembrosFamilia.ObtenerPorUsuarioId(id);
+            if (miembroFamilia.EsCorrecto) await _repoMiembrosFamilia.EliminarAsync(miembroFamilia.Valor.Id);
            return await _repoUsuario.EliminarAsync(id);
         }
 

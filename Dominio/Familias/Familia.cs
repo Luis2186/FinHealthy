@@ -13,16 +13,16 @@ namespace Dominio.Familias
         public string? Descripcion { get; set; }
         public DateTime FechaDeCreacion { get; set; }
         [Required(ErrorMessage = "El administrador es un campo requerido, por favor ingreselo")]
-        public Usuario UsuarioAdministrador { get; set; }
-        public string UsuarioAdministradorId { get; set; }
+        public Usuario? UsuarioAdministrador { get; set; }
+        public string? UsuarioAdministradorId { get; set; }
         [Required(ErrorMessage = "El codigo de acceso es un campo requerido, por favor ingreselo")]
-        public string CodigoAccesoHash { get; private set; }
-        public List<MiembroFamilia> Miembros { get; set; }
+        public string? CodigoAccesoHash { get; private set; }
+        public List<MiembroFamilia> Miembros { get; set; } = new List<MiembroFamilia>();
         public bool Activo { get; set; }
 
         public Familia()
         {
-            
+           
         }
         public Familia(Usuario usuarioAdministrador, string apellido, string descripcion, string codigo)
         {

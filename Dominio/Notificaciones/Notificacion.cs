@@ -13,12 +13,12 @@ namespace Dominio.Notificaciones
         public int Id { get; set; }
 
         [Required(ErrorMessage ="El usuario que emite la notificacion es requerido")]
-        public Usuario UsuarioEmisor { get; set; }
+        public Usuario? UsuarioEmisor { get; set; }
         [Required(ErrorMessage = "El usuario que recibe la notificacion es requerido")]
-        public Usuario UsuarioReceptor { get; set; }
+        public Usuario? UsuarioReceptor { get; set; }
         [Required(ErrorMessage = "El mensaje de la notificacion no puede estar vacio")]
         [StringLength(100, ErrorMessage = "El mensaje de la notificacion no puede tener mas de 100 caracteres")]
-        public string Mensaje { get; set; } = string.Empty;
+        public string? Mensaje { get; set; } = string.Empty;
         public bool Leida { get; set; } = false;
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
         public DateTime FechaDeLectura { get; set; } = DateTime.UtcNow;

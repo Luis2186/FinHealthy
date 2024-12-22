@@ -24,5 +24,10 @@ namespace Dominio.Documentos
         public string? Etiqueta { get; set; }
         public string? Observaciones { get; set; }
         public bool Estado { get; set; }
+
+        public Documento()
+        {
+            
+        }
     }
 }

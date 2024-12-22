@@ -19,8 +19,8 @@ namespace Dominio
             {
                 var errores = resultados
                     .Select(r => new Error(
-                        codigo: r.MemberNames.FirstOrDefault() ?? "VALIDACION_ERROR",
-                        descripcion: r.ErrorMessage
+                        code: r.MemberNames.FirstOrDefault() ?? "VALIDACION_ERROR",
+                        description: r.ErrorMessage
                     ))
                     .ToList();
 

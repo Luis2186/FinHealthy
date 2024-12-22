@@ -15,7 +15,7 @@ namespace Dominio
         public static implicit operator Resultado<T>(T valor) => new Resultado<T>(valor);
         public bool EsCorrecto { get; }
         public bool TieneErrores => !EsCorrecto;
-        public readonly List<Error>  Errores { get; }
+        public readonly List<Error> Errores { get; }
 
 
         private Resultado(T value)
@@ -37,6 +37,23 @@ namespace Dominio
 
         public static Resultado<T> Failure(Error error) => new Resultado<T>(new List<Error> { error });
 
+        // Función para generar una cadena con los errores
+        // Método para recuperar los errores como una cadena de texto
+        public string ObtenerErroresComoString()
+        {
+            var sb = new StringBuilder();
 
+            foreach (var error in Errores)
+            {
+                sb.Append(error.description); // Añadir descripción del error
+                sb.Append(" | ");
+            }
+
+            // Eliminar el último separador
+            if (sb.Length > 0)
+                sb.Length -= 3;
+
+            return sb.ToString();
+        }
     }
 }

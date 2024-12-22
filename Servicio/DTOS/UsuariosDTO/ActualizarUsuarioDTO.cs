@@ -30,7 +30,7 @@ namespace Servicio.DTOS.UsuariosDTO
 
         [Required(ErrorMessage = "La fecha de nacimiento es obligatoria.")]
         [DataType(DataType.Date, ErrorMessage = "La fecha no tiene un formato válido.")]
-        [CustomValidation(typeof(ActualizarUsuarioDTO), nameof(ValidarEdadMinima))]
+        //[CustomValidation(typeof(ActualizarUsuarioDTO), nameof(ValidarEdadMinima))]
         public DateTime FechaDeNacimiento { get; set; }
         public bool Activo { get; set; }
         public string? Token { get; set; }

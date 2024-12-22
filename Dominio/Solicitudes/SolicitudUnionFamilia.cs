@@ -10,10 +10,10 @@ namespace Dominio.Solicitudes
 {
     public class SolicitudUnionFamilia : Solicitud
     {
-        public string UsuarioAdministradorGrupoId { get; set; }
+        public string? UsuarioAdministradorGrupoId { get; set; }
         public Usuario? UsuarioAdministradorGrupo { get; set; }
         public string? CodigoDeSeguridad { get; set; } //Si tiene el codigo de seguridad se une automaticamente
-        public ISolicitudUnionGrupoFamiliar EstadoSolicitudGrupo { get; set; }
+        public ISolicitudUnionGrupoFamiliar? EstadoSolicitudGrupo { get; set; }
 
         public SolicitudUnionFamilia()
         {

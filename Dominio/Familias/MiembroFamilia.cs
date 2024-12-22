@@ -11,9 +11,9 @@ namespace Dominio.Familias
     public class MiembroFamilia
     {
         public int Id { get; set; }
-        public string UsuarioId { get; set; }
+        public string? UsuarioId { get; set; }
         [Required (ErrorMessage ="El usuario es requerido, por favor asignelo")]
-        public Usuario Usuario { get; set; }
+        public Usuario? Usuario { get; set; }
         public DateTime? FechaDeUnion { get; set; }
         public int? GrupoFamiliarId { get; set; }
         public Familia? GrupoFamiliar { get; set; }

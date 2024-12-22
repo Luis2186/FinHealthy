@@ -10,7 +10,7 @@ namespace Dominio.Solicitudes
     public abstract class Solicitud
     {
         public int Id { get; set; }
-        public string UsuarioSolicitanteId { get; set; }
+        public string? UsuarioSolicitanteId { get; set; }
         public Usuario? UsuarioSolicitante { get; set; }
         public string? Estado { get; set; } // Ej.: Pendiente, Aprobada, Rechazada
         public DateTime FechaDeEnvio { get; set; }
