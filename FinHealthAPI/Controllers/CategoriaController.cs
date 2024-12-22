@@ -86,8 +86,8 @@ namespace FinHealthAPI.Controllers
                        ["errors"] = ModelState.Keys
                             .SelectMany(key => ModelState[key].Errors.Select(error => new
                             {
-                                Codigo = key, // Aquí puedes ajustar el código como desees
-                                Descripcion = error.ErrorMessage
+                                Code = key, 
+                                Description = error.ErrorMessage
                             }))
                     }
                 });
@@ -120,8 +120,8 @@ namespace FinHealthAPI.Controllers
                      ["errors"] = ModelState.Keys
                             .SelectMany(key => ModelState[key].Errors.Select(error => new
                             {
-                                Codigo = key, // Aquí puedes ajustar el código como desees
-                                Descripcion = error.ErrorMessage
+                                Code = key, // Aquí puedes ajustar el código como desees
+                                Description = error.ErrorMessage
                             }))
                     }
                 });
