@@ -94,9 +94,12 @@ namespace FinHealthAPI.Controllers
                     Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
                     Instance = HttpContext.Request.Path,
                     Extensions = {
-                        ["errors"] = ModelState.Keys.ToDictionary(
-                            key => key,
-                            key => ModelState[key].Errors.Select(e => e.ErrorMessage).ToArray())
+                        ["errors"] = ModelState.Keys
+                            .SelectMany(key => ModelState[key].Errors.Select(error => new
+                            {
+                                Codigo = key, // Aquí puedes ajustar el código como desees
+                                Descripcion = error.ErrorMessage
+                            }))
                     }
                 });
             }
