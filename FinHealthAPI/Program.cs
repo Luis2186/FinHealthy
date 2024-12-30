@@ -41,10 +41,25 @@ builder.Services
         o.RequireHttpsMetadata = false;
         o.TokenValidationParameters = new TokenValidationParameters()
         {
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:ClaveSecreta"])),
+            ValidateIssuer=true,
+            ValidateAudience=true,
+            ValidateLifetime =true,
+            ValidateIssuerSigningKey =true,
+
             ValidIssuer = builder.Configuration["Jwt:Editor"],
             ValidAudience = builder.Configuration["Jwt:Audiencia"],
-            ClockSkew = TimeSpan.Zero
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:ClaveSecreta"])),
+        };
+
+        o.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                ctx.Request.Cookies.TryGetValue("accessToken", out var accessToken);
+                if (!string.IsNullOrEmpty(accessToken))
+                    ctx.Token = accessToken;
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -54,8 +69,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin", builder =>
     {
         builder.WithOrigins("http://localhost:4321")  // Origen de tu frontend
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowCredentials()
+               .AllowAnyHeader()
+               .AllowAnyMethod();
     });
 });
 
@@ -125,10 +141,13 @@ QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 app.MapIdentityApi<Usuario>();
 
+app.UseMiddleware<TokenValidationMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
 
 app.MapControllers();
 

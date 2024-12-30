@@ -13,7 +13,7 @@ using Servicio.Usuarios;
 
 namespace FinHealthAPI.Controllers
 {
-    [Authorize(Roles = "Sys_Adm , Administrador")]
+    [Authorize(Roles = "Sys_Adm,Administrador")]
     [ApiController]
     [Route("/usuario")]
     public class UsuarioController : Controller
@@ -164,10 +164,20 @@ namespace FinHealthAPI.Controllers
                     }
                 });
             }
+            // Generar el token JWT
+            var token = usuario.Valor.Token;
 
-            //var token = _provedorJwt.Crear(usuario);
+            // Crear una cookie segura con HttpOnly y Secure activados (recomendado para producción)
+            Response.Cookies.Append("token", token, new CookieOptions
+            {
+                HttpOnly = true,  // No accesible desde JavaScript
+                Secure = true,    // Solo se enviará a través de HTTPS
+                SameSite = SameSiteMode.None, // Evitar que se envíe en solicitudes de terceros
+                Expires = DateTime.Now.AddHours(1), // Expira en 1 hora
+                Path= "/"
+            });
 
-            return Ok( new { id = usuario.Valor.Id , usuario.Valor.Token });  // Devuelve el usuario con estado 200 OK
+            return Ok( new { id = usuario.Valor.Id , mensaje = "Inicio de sesión exitoso" });  // Devuelve el usuario con estado 200 OK
         }
         // Actualizar un usuario
         [HttpPut("actualizar/{usuarioId}")]
