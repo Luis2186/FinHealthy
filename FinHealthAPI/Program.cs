@@ -55,7 +55,7 @@ builder.Services
         {
             OnMessageReceived = ctx =>
             {
-                ctx.Request.Cookies.TryGetValue("accessToken", out var accessToken);
+                ctx.Request.Cookies.TryGetValue("token", out var accessToken);
                 if (!string.IsNullOrEmpty(accessToken))
                     ctx.Token = accessToken;
                 return Task.CompletedTask;

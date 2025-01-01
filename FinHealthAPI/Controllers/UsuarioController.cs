@@ -179,6 +179,25 @@ namespace FinHealthAPI.Controllers
 
             return Ok( new { id = usuario.Valor.Id , mensaje = "Inicio de sesión exitoso" });  // Devuelve el usuario con estado 200 OK
         }
+
+        // Obtener un usuario por su ID
+        [HttpPost("logout")]
+        [AllowAnonymous]
+        public async Task<ActionResult<Usuario>> Logout()
+        {
+            Response.Cookies.Append("token", "", new CookieOptions
+            {
+                HttpOnly = true,   // No accesible desde JavaScript
+                Secure = true,     // Solo se enviará a través de HTTPS
+                SameSite = SameSiteMode.None, // Asegura que no se envíe en solicitudes de terceros
+                Expires = DateTime.Now.AddDays(-1), // Expira en 1 día para eliminarla
+                Path = "/"         // El dominio de la cookie debe coincidir con el path original
+            });
+
+            return Ok("Cookie eliminada correctamente");
+        }
+
+
         // Actualizar un usuario
         [HttpPut("actualizar/{usuarioId}")]
         public async Task<ActionResult<Usuario>> ActualizarUsuario(string usuarioId, [FromBody] ActualizarUsuarioDTO usuarioDto)

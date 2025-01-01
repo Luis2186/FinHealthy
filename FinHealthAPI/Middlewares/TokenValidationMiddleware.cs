@@ -33,7 +33,7 @@ namespace FinHealthAPI.Middlewares
             try
             {
                 var principal = ValidateToken(token);
-                context.Response.Cookies.Append("accessToken", token, new CookieOptions
+                context.Response.Cookies.Append("token", token, new CookieOptions
                 {
                     Expires = DateTimeOffset.UtcNow.AddMinutes(60),
                     HttpOnly = true,
