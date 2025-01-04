@@ -22,9 +22,12 @@ using Repositorio.Repositorios.Monedas;
 using Servicio.ServiciosExternos;
 using FinHealthAPI.ProcesosSegundoPlano;
 using Repositorio.Repositorios.Validacion;
-using Repositorio.Repositorios.R_Gastos.R_Categoria;
-using Servicio.S_Gastos.S_Categoria;
 using Servicio.S_Gastos;
+using Servicio.S_Categorias;
+using Repositorio.Repositorios.R_Categoria;
+using Servicio.S_Categorias.S_SubCategorias;
+using Repositorio.Repositorios.R_Categoria.R_SubCategoria;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -107,7 +110,8 @@ builder.Services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
 builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
 builder.Services.AddScoped<IServicioFamilia, ServicioFamilia>();
 builder.Services.AddScoped<IServicioMonedas, ServicioMonedas>();
-builder.Services.AddScoped<IServicioCategoria, ServicioCategoria>();
+builder.Services.AddScoped<IServicioCategoria,  ServicioCategoria>();
+builder.Services.AddScoped<IServicioSubCategoria, ServicioSubCategoria>();
 builder.Services.AddScoped<IServicioGasto, ServicioGasto>();
 
 builder.Services.AddScoped<IRepositorioMoneda, RepositorioMoneda>();
@@ -117,6 +121,7 @@ builder.Services.AddScoped<IRepositorioMiembroFamilia, RepositorioMiembroFamilia
 builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
 builder.Services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
+builder.Services.AddScoped<IRepositorioSubCategoria, RepositorioSubCategoria>();
 
 
 

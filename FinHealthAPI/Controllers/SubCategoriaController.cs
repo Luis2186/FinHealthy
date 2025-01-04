@@ -2,33 +2,32 @@
 using Dominio.Gastos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Servicio.DTOS.CategoriasDTO;
-using Servicio.DTOS.FamiliasDTO;
+using Servicio.DTOS.SubCategoriasDTO;
 using Servicio.S_Categorias;
-
+using Servicio.S_Categorias.S_SubCategorias;
 
 namespace FinHealthAPI.Controllers
 {
     [Authorize(Roles = "Sys_Adm , Administrador, Usuario")]
     [ApiController]
-    [Route("/categoria")]
-    public class CategoriaController : Controller
+    [Route("/subcategoria")]
+    public class SubCategoriaController : Controller
     {
-        private readonly IServicioCategoria _servicioCategoria;
+        private readonly IServicioSubCategoria _servicioSubCategoria;
         private readonly IMapper _mapper;
 
-        public CategoriaController(IServicioCategoria servicioCategoria, IMapper mapper)
+        public SubCategoriaController(IServicioSubCategoria servicioSubCategoria, IMapper mapper)
         {
-            _servicioCategoria = servicioCategoria;
+            _servicioSubCategoria = servicioSubCategoria;
             _mapper = mapper;
         }
 
 
         // Obtener todos los usuarios con paginación
         [HttpGet("todas")]
-        public async Task<ActionResult<CategoriaDTO>> ObtenerTodas()
+        public async Task<ActionResult<SubCategoriaDTO>> ObtenerTodas([FromBody] ObtenerSubCategoriasDTO categoriasDTO)
         {
-            var resultado = await _servicioCategoria.ObtenerTodasLasCategorias();
+            var resultado = await _servicioSubCategoria.ObtenerSubCategorias(categoriasDTO.FamiliaId, categoriasDTO.CategoriaId);
 
             if (resultado.TieneErrores) return NotFound(
                 new ProblemDetails
@@ -46,10 +45,10 @@ namespace FinHealthAPI.Controllers
         }
 
         // Obtener un usuario por su ID
-        [HttpGet("obtener/{categoriaId}")]
-        public async Task<ActionResult<CategoriaDTO>> ObtenerPorId(int categoriaId)
+        [HttpGet("obtener/{subCategoriaId}")]
+        public async Task<ActionResult<SubCategoriaDTO>> ObtenerPorId(int subCategoriaId)
         {
-            var resultado = await _servicioCategoria.ObtenerCategoriaPorId(categoriaId);
+            var resultado = await _servicioSubCategoria.ObtenerPorId(subCategoriaId);
 
             if (resultado.TieneErrores)
             {
@@ -62,7 +61,7 @@ namespace FinHealthAPI.Controllers
                     Extensions = {
                         ["errors"] = resultado.Errores
                 }
-                });  
+                });
             }
 
             return Ok(resultado.Valor);  // Devuelve el usuario con estado 200 OK
@@ -70,28 +69,28 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("crear")]
-        public async Task<ActionResult<CategoriaDTO>> Crear([FromBody] CategoriaDTO categoriaCreacionDTO)
+        public async Task<ActionResult<SubCategoriaDTO>> Crear([FromBody] SubCategoriaDTO subCategoriaCreacionDTO)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new ProblemDetails
                 {
-                    Status = 400,  
-                    Title = "Error de validacion", 
-                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",  
-                    Instance = HttpContext.Request.Path, 
+                    Status = 400,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
                     Extensions = {
                        ["errors"] = ModelState.Keys
                             .SelectMany(key => ModelState[key].Errors.Select(error => new
                             {
-                                Code = key, 
+                                Code = key,
                                 Description = error.ErrorMessage
                             }))
                     }
                 });
             }
 
-            var resultadoCreacion = await _servicioCategoria.CrearCategoria(categoriaCreacionDTO);
+            var resultadoCreacion = await _servicioSubCategoria.Crear(subCategoriaCreacionDTO);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultadoCreacion.TieneErrores)
@@ -105,7 +104,7 @@ namespace FinHealthAPI.Controllers
 
         // Actualizar un usuario
         [HttpPut("actualizar/{categoriaId}")]
-        public async Task<ActionResult<CategoriaDTO>> Actualizar(int categoriaId, [FromBody] CategoriaDTO categoriaActDTO)
+        public async Task<ActionResult<SubCategoriaDTO>> Actualizar(int categoriaId, [FromBody] SubCategoriaDTO subCategoriaActDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -126,7 +125,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultadoActualizacion = await _servicioCategoria.ActualizarCategoria(categoriaId, categoriaActDTO);
+            var resultadoActualizacion = await _servicioSubCategoria.Actualizar(categoriaId, subCategoriaActDTO);
 
             if (resultadoActualizacion.TieneErrores)
             {
@@ -137,10 +136,10 @@ namespace FinHealthAPI.Controllers
         }
 
         // Eliminar un usuario
-        [HttpDelete("eliminar/{categoriaId}")]
-        public async Task<ActionResult> Eliminar(int categoriaId)
+        [HttpDelete("eliminar/{subCategoriaId}")]
+        public async Task<ActionResult> Eliminar(int subCategoriaId)
         {
-            var resultado = await _servicioCategoria.EliminarCategoria(categoriaId);
+            var resultado = await _servicioSubCategoria.Eliminar(subCategoriaId);
 
             if (resultado.TieneErrores)
             {
@@ -157,15 +156,6 @@ namespace FinHealthAPI.Controllers
             }
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
-        }
-
-        // Obtener todos los usuarios con paginación
-        [HttpGet("prueba")]
-        public async Task<ActionResult<Categoria>> ObtenerPrueba()
-        {
-            var resultado = "Esto es una prueba de docker";
-
-            return Ok(resultado);  // Devuelve los datos con estado HTTP 200 OK
         }
 
 
