@@ -12,18 +12,18 @@ namespace Repositorio.Repositorios.Notificaciones
 {
     public class RepositorioNotificacion : IRepositorioNotificacion
     {
-        private readonly ApplicationDbContext dbContext;
+        private readonly ApplicationDbContext _dbContext;
 
         public RepositorioNotificacion(ApplicationDbContext dbContext)
         {
-            this.dbContext = dbContext;
+            this._dbContext = dbContext;
         }
 
         public async Task<Resultado<Notificacion>> BuscarNotificacion(int notificacionId)
         {
             try
             {
-                Notificacion notificacionActualizar = await dbContext.Notificaciones.FindAsync(notificacionId);
+                Notificacion notificacionActualizar = await _dbContext.Notificaciones.FindAsync(notificacionId);
 
                 if (notificacionActualizar == null) return Resultado<Notificacion>.Failure(ErroresNotificacion.NotificacionNoEncontrada);
 
@@ -47,9 +47,9 @@ namespace Repositorio.Repositorios.Notificaciones
 
                 bool notificacionDesactivada = notificacion.DesactivarNotificacion();
 
-                dbContext.Notificaciones.Update(notificacion);
+                _dbContext.Notificaciones.Update(notificacion);
 
-                int filasAfectadas = await dbContext.SaveChangesAsync();
+                int filasAfectadas = await _dbContext.SaveChangesAsync();
 
                 if (filasAfectadas == 1) return Resultado<bool>.Success(notificacionDesactivada);
 
@@ -65,8 +65,8 @@ namespace Repositorio.Repositorios.Notificaciones
         {
             try
             {
-                await dbContext.Notificaciones.AddAsync(notificacion);
-                int filasAfectadas = await dbContext.SaveChangesAsync();
+                await _dbContext.Notificaciones.AddAsync(notificacion);
+                int filasAfectadas = await _dbContext.SaveChangesAsync();
 
                 if (filasAfectadas == 1) return Resultado<bool>.Success(true);
                 
@@ -90,9 +90,9 @@ namespace Repositorio.Repositorios.Notificaciones
 
                 bool notificacionLeida = notificacion.NotificacionLeida();
 
-                dbContext.Notificaciones.Update(notificacion);
+                _dbContext.Notificaciones.Update(notificacion);
 
-                int filasAfectadas = await dbContext.SaveChangesAsync();
+                int filasAfectadas = await _dbContext.SaveChangesAsync();
 
                 if (filasAfectadas == 1) return Resultado<bool>.Success(notificacionLeida);
 
@@ -106,14 +106,14 @@ namespace Repositorio.Repositorios.Notificaciones
 
         public async Task<Resultado<IEnumerable<Notificacion>>> ObtenerNotificacionesEmitidas(string usuarioEmisorId)
         {
-            return dbContext.Notificaciones
+            return _dbContext.Notificaciones
                 .Include(noti => noti.UsuarioEmisor)
                 .Where(noti => noti.UsuarioEmisor.Id == usuarioEmisorId && noti.Activa == true).ToList();
         } 
 
         public async Task<Resultado<IEnumerable<Notificacion>>> ObtenerNotificacionesRecibidas(string usuarioReceptorId)
         {
-            return dbContext.Notificaciones
+            return _dbContext.Notificaciones
                 .Include(noti => noti.UsuarioReceptor)
                 .Where(noti => noti.UsuarioReceptor.Id == usuarioReceptorId && noti.Activa == true).ToList();
         }

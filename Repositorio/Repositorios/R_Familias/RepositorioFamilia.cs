@@ -9,10 +9,10 @@ namespace Repositorio.Repositorios.R_Familia
 {
     public class RepositorioFamilia : IRepositorioFamilia
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _dbContext;
         public RepositorioFamilia(ApplicationDbContext context)
         {
-            _context = context;
+            _dbContext = context;
         }
 
         public async Task<Resultado<Familia>> ActualizarAsync(Familia model)
@@ -27,8 +27,8 @@ namespace Repositorio.Repositorios.R_Familia
 
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
-                _context.Familias.Update(model);
-                var resultadoActualizado = await _context.SaveChangesAsync() == 1;
+                _dbContext.Familias.Update(model);
+                var resultadoActualizado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoActualizado) return Resultado<Familia>.Failure(ErroresCrud.ErrorDeActualizacion("Familia"));
 
@@ -48,8 +48,8 @@ namespace Repositorio.Repositorios.R_Familia
 
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
-                await _context.Familias.AddAsync(model);
-                var resultadoCreado = await _context.SaveChangesAsync() == 1;
+                await _dbContext.Familias.AddAsync(model);
+                var resultadoCreado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoCreado) return Resultado<Familia>.Failure(ErroresCrud.ErrorDeCreacion("Familia"));
 
@@ -69,8 +69,8 @@ namespace Repositorio.Repositorios.R_Familia
 
                 if (familia.TieneErrores) return Resultado<bool>.Failure(familia.Errores);
 
-                _context.Familias.Remove(familia.Valor);
-                var resultadoEliminado = await _context.SaveChangesAsync() == 1;
+                _dbContext.Familias.Remove(familia.Valor);
+                var resultadoEliminado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoEliminado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeEliminacion("Familia"));
 
@@ -106,7 +106,7 @@ namespace Repositorio.Repositorios.R_Familia
         {
             try
             {
-                var familia = _context.Familias
+                var familia = _dbContext.Familias
                     .Include(f => f.UsuarioAdministrador)
                     .Include(f => f.Miembros)
                     .ThenInclude(m => m.Usuario)
@@ -126,7 +126,7 @@ namespace Repositorio.Repositorios.R_Familia
         {
             try
             {
-                var familia = _context.Familias
+                var familia = _dbContext.Familias
                     .Include( f=> f.UsuarioAdministrador)
                     .Include(f => f.Miembros)
                     .ThenInclude(m => m.Usuario)
@@ -146,7 +146,7 @@ namespace Repositorio.Repositorios.R_Familia
         {
             try
             {
-                var familias = await _context.Familias
+                var familias = await _dbContext.Familias
                     .Include(f => f.UsuarioAdministrador)
                     .Include(f => f.Miembros)
                     .ThenInclude(m => m.Usuario)

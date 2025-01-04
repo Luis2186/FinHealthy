@@ -1,16 +1,19 @@
-﻿using System;
+﻿using Dominio.Familias;
+using Dominio.Gastos;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dominio.Gastos
+namespace Servicio.DTOS.SubCategoriasDTO
 {
-    public class Categoria
+    public class SubCategoriaDTO
     {
         public int Id { get; set; }
         public string? Nombre { get; set; }
         public string? Descripcion { get; set; }
-        public List<SubCategoria> SubCategorias { get; set; } = new List<SubCategoria>();
+        public int CategoriaId { get; set; }
+        public int FamiliaId { get; set; }
     }
 }

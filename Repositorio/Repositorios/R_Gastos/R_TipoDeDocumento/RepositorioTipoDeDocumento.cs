@@ -10,10 +10,11 @@ namespace Repositorio.Repositorios.R_Gastos.R_TipoDeCambios
 {
     public class RepositorioTipoDeDocumento :RepositorioCRUD<TipoDeDocumento>, IRepositorioCRUD<TipoDeDocumento>
     {
+        private readonly ApplicationDbContext _dbContext;
         public RepositorioTipoDeDocumento(ApplicationDbContext context, IValidacion<TipoDeDocumento> validacion)
             : base(context, validacion)
         {
-            
+            _dbContext = context;
         }
     }
 }

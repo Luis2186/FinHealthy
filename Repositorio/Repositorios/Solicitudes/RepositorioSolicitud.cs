@@ -13,11 +13,11 @@ namespace Repositorio.Repositorios.Solicitudes
 {
     public class RepositorioSolicitud : IRepositorioSolicitud
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _dbContext;
 
         public RepositorioSolicitud(ApplicationDbContext context)
         {
-            _context = context;
+            _dbContext = context;
         }
 
         public async Task<Resultado<bool>> AceptarSolicitud(int idSolicitud)
@@ -33,8 +33,8 @@ namespace Repositorio.Repositorios.Solicitudes
                 solicitud.EstadoSolicitudGrupo = new SUGF_Aceptada();
                 solicitud.Aceptar();
 
-                _context.SolcitudesUnionFamilia.Update(solicitud);
-                var resultadoActualizado = await _context.SaveChangesAsync() == 1;
+                _dbContext.SolcitudesUnionFamilia.Update(solicitud);
+                var resultadoActualizado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoActualizado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeActualizacion("Solicitud"));
 
@@ -58,8 +58,8 @@ namespace Repositorio.Repositorios.Solicitudes
 
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
-                _context.SolcitudesUnionFamilia.Update(model);
-                var resultadoActualizado = await _context.SaveChangesAsync() == 1;
+                _dbContext.SolcitudesUnionFamilia.Update(model);
+                var resultadoActualizado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoActualizado) return Resultado<SolicitudUnionFamilia>.Failure(ErroresCrud.ErrorDeActualizacion("Solicitud"));
 
@@ -79,8 +79,8 @@ namespace Repositorio.Repositorios.Solicitudes
 
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
-                await _context.SolcitudesUnionFamilia.AddAsync(model);
-                var resultadoCreado = await _context.SaveChangesAsync() == 1;
+                await _dbContext.SolcitudesUnionFamilia.AddAsync(model);
+                var resultadoCreado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoCreado) return Resultado<SolicitudUnionFamilia>.Failure(ErroresCrud.ErrorDeCreacion("Solicitud"));
 
@@ -100,8 +100,8 @@ namespace Repositorio.Repositorios.Solicitudes
 
                 if (solicitud.TieneErrores) return Resultado<bool>.Failure(solicitud.Errores);
 
-                _context.SolcitudesUnionFamilia.Remove(solicitud.Valor);
-                var resultadoEliminado = await _context.SaveChangesAsync() == 1;
+                _dbContext.SolcitudesUnionFamilia.Remove(solicitud.Valor);
+                var resultadoEliminado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoEliminado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeEliminacion("Solicitud"));
 
@@ -117,7 +117,7 @@ namespace Repositorio.Repositorios.Solicitudes
         {
             try
             {
-                var solicitud = _context.SolcitudesUnionFamilia
+                var solicitud = _dbContext.SolcitudesUnionFamilia
                     .FirstOrDefault(f => f.Id == id);
 
                 if (solicitud == null) return Resultado<SolicitudUnionFamilia>.Failure(ErroresCrud.ErrorBuscarPorId("Solicitud"));
@@ -134,7 +134,7 @@ namespace Repositorio.Repositorios.Solicitudes
         {
             try
             {
-                var solicitudesUnion = await _context.SolcitudesUnionFamilia
+                var solicitudesUnion = await _dbContext.SolcitudesUnionFamilia
                     .Where(s => s.UsuarioAdministradorGrupoId == idAdministrador && s.Estado== estado)
                     .ToListAsync();
 
@@ -150,7 +150,7 @@ namespace Repositorio.Repositorios.Solicitudes
         {
             try
             {
-                var solicitudesUnion = await _context.SolcitudesUnionFamilia
+                var solicitudesUnion = await _dbContext.SolcitudesUnionFamilia
                     .ToListAsync();
 
                 return Resultado<IEnumerable<SolicitudUnionFamilia>>.Success(solicitudesUnion);
@@ -174,8 +174,8 @@ namespace Repositorio.Repositorios.Solicitudes
                 solicitud.EstadoSolicitudGrupo = new SUGF_Rechazada();
                 solicitud.Rechazar();
 
-                _context.SolcitudesUnionFamilia.Update(solicitud);
-                var resultadoActualizado = await _context.SaveChangesAsync() == 1;
+                _dbContext.SolcitudesUnionFamilia.Update(solicitud);
+                var resultadoActualizado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoActualizado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeActualizacion("Solicitud"));
 

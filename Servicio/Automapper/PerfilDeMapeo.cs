@@ -1,11 +1,15 @@
 ﻿using AutoMapper;
 using Dominio.Familias;
+using Dominio.Gastos;
 using Dominio.Notificaciones;
 using Dominio.Solicitudes;
 using Dominio.Usuarios;
+using Microsoft.AspNetCore.SignalR;
+using Servicio.DTOS.CategoriasDTO;
 using Servicio.DTOS.FamiliasDTO;
 using Servicio.DTOS.MiembrosFamiliaDTO;
 using Servicio.DTOS.SolicitudesDTO;
+using Servicio.DTOS.SubCategoriasDTO;
 using Servicio.DTOS.UsuariosDTO;
 using Servicio.Notificaciones.NotificacionesDTO;
 using System;
@@ -25,6 +29,8 @@ namespace Servicio.Automapper
             MapearFamilias();
             MapearMiembros();
             MapearSolicitudes();
+            MapearCategorias();
+            MapearSubCategorias();
         }
 
         private int CalcularEdad(DateTime fechaNacimiento)
@@ -101,6 +107,19 @@ namespace Servicio.Automapper
         {
             CreateMap<SolicitudUnionFamilia, EnviarSolicitudDTO>().ReverseMap();
             CreateMap<SolicitudUnionFamilia, SolicitudDTO>().ReverseMap();
+        }
+
+        public void MapearCategorias()
+        {
+            CreateMap<Categoria, CategoriaDTO>().
+                ForMember(cat => cat.SubCategorias, opt => opt.MapFrom(src => src.SubCategorias)).ReverseMap();
+        }
+        public void MapearSubCategorias()
+        {
+            CreateMap<SubCategoria, SubCategoriaDTO>()
+                .ForMember(cat => cat.FamiliaId, opt => opt.MapFrom(src => src.Familia.Id))
+                .ForMember(cat => cat.CategoriaId, opt => opt.MapFrom(src => src.Categoria.Id))
+                .ReverseMap();
         }
     }
 }

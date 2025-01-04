@@ -29,6 +29,7 @@ namespace Repositorio
             ConfigurarBuilderGrupoFamiliar(builder);
             ConfigurarBuilderMiembroFamiliar(builder);
             ConfigurarBuilderCategoria(builder);
+            ConfigurarBuilderSubCategoria(builder);
             ConfigurarBuilderMetodoDePago(builder);
             ConfigurarBuilderMoneda(builder);
             ConfigurarBuilderTipoDeDocumento(builder);
@@ -215,7 +216,28 @@ namespace Repositorio
                 entity.HasIndex(c => c.Nombre).IsUnique();
             });
         }
+        protected private void ConfigurarBuilderSubCategoria(ModelBuilder builder)
+        {
+            builder.Entity<SubCategoria>(entity =>
+            {
+                // Clave primaria
+                entity.HasKey(c => c.Id);
 
+                // Relación entre Subcategoría y Familia (una subcategoría pertenece a una familia)
+                    entity
+                    .HasOne(s => s.Familia)
+                    .WithMany(f => f.SubCategorias)
+                    .HasForeignKey(s => s.FamiliaId);
+
+                // Relación entre Subcategoría y Categoría Principal (una subcategoría pertenece a una categoría principal)
+                entity
+                     .HasOne(s => s.Categoria)
+                    .WithMany(c => c.SubCategorias)
+                    .HasForeignKey(s => s.CategoriaId);
+
+                entity.HasIndex(s => s.Nombre).IsUnique();
+            });
+        }
         protected private void ConfigurarBuilderMoneda(ModelBuilder builder)
         {
             builder.Entity<Moneda>(entity =>
@@ -276,6 +298,7 @@ namespace Repositorio
         public DbSet<Familia> Familias { get; set; }
         public DbSet<MiembroFamilia> MiembrosFamiliares { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
+        public DbSet<SubCategoria> SubCategorias { get; set; }
         public DbSet<Moneda> Monedas { get; set; }
         public DbSet<TipoDeDocumento> TipoDeDocumentos { get; set; }
         public DbSet<MetodoDePago> MetodosDePago { get; set; }

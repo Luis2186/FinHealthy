@@ -1,5 +1,6 @@
 ﻿using Dominio.Abstracciones;
 using Dominio.Errores;
+using Dominio.Gastos;
 using Dominio.Usuarios;
 using System.ComponentModel.DataAnnotations;
 
@@ -19,6 +20,7 @@ namespace Dominio.Familias
         public string? CodigoAccesoHash { get; private set; }
         public List<MiembroFamilia> Miembros { get; set; } = new List<MiembroFamilia>();
         public bool Activo { get; set; }
+        public List<SubCategoria> SubCategorias { get; set; } = new List<SubCategoria>();
 
         public Familia()
         {

@@ -13,19 +13,19 @@ namespace Repositorio.Repositorios
 {
     public class RepositorioCRUD<T> : IRepositorioCRUD<T> where T : class
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _dbContext;
         private readonly IValidacion<T> _validacion;
 
         public RepositorioCRUD(ApplicationDbContext context, IValidacion<T> validacion)
         {
-            _context = context;
+            _dbContext = context;
             _validacion = validacion;
         }
         public async Task<Resultado<T>> ObtenerPorIdAsync(int id)
         {
             try
             {
-                var entidad = await _context.Set<T>().FindAsync(id);
+                var entidad = await _dbContext.Set<T>().FindAsync(id);
                 return entidad == null
                     ? Resultado<T>.Failure(ErroresCrud.ErrorDeCreacion(typeof(T).Name))
                     : Resultado<T>.Success(entidad);
@@ -40,7 +40,7 @@ namespace Repositorio.Repositorios
         {
             try
             {
-                var entidades = await _context.Set<T>().ToListAsync();
+                var entidades = await _dbContext.Set<T>().ToListAsync();
                 return Resultado<IEnumerable<T>>.Success(entidades);
             }
             catch (Exception ex)
@@ -57,8 +57,8 @@ namespace Repositorio.Repositorios
                 
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
-                await _context.Set<T>().AddAsync(model);
-                await _context.SaveChangesAsync();
+                await _dbContext.Set<T>().AddAsync(model);
+                await _dbContext.SaveChangesAsync();
                 return Resultado<T>.Success(model);
             }
             catch (Exception ex)
@@ -75,8 +75,8 @@ namespace Repositorio.Repositorios
 
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
-                _context.Set<T>().Update(model);
-                await _context.SaveChangesAsync();
+                _dbContext.Set<T>().Update(model);
+                await _dbContext.SaveChangesAsync();
                 return Resultado<T>.Success(model);
             }
             catch (Exception ex)
@@ -92,9 +92,9 @@ namespace Repositorio.Repositorios
                 var entidad = await ObtenerPorIdAsync(id);
                 if (entidad.TieneErrores) return Resultado<bool>.Failure(entidad.Errores);
 
-                _context.Set<T>().Remove(entidad.Valor);
+                _dbContext.Set<T>().Remove(entidad.Valor);
 
-                await _context.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
                 return Resultado<bool>.Success(true);
             }
             catch (Exception ex)

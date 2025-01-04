@@ -13,11 +13,11 @@ namespace Repositorio.Repositorios.Monedas
 {
     public class RepositorioMoneda : IRepositorioMoneda
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _dbContext;
 
         public RepositorioMoneda(ApplicationDbContext context)
         {
-            _context = context;
+            _dbContext = context;
         }
 
         public async Task<Resultado<Moneda>> ActualizarAsync(Moneda model)
@@ -32,8 +32,8 @@ namespace Repositorio.Repositorios.Monedas
 
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
-                _context.Monedas.Update(model);
-                var resultadoActualizado = await _context.SaveChangesAsync() == 1;
+                _dbContext.Monedas.Update(model);
+                var resultadoActualizado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoActualizado) return Resultado<Moneda>.Failure(ErroresCrud.ErrorDeActualizacion("Moneda"));
 
@@ -53,8 +53,8 @@ namespace Repositorio.Repositorios.Monedas
 
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
-                await _context.Monedas.AddAsync(model);
-                var resultadoCreado = await _context.SaveChangesAsync() == 1;
+                await _dbContext.Monedas.AddAsync(model);
+                var resultadoCreado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoCreado) return Resultado<Moneda>.Failure(ErroresCrud.ErrorDeCreacion("Moneda"));
 
@@ -74,8 +74,8 @@ namespace Repositorio.Repositorios.Monedas
 
                 if (moneda.TieneErrores) return Resultado<bool>.Failure(moneda.Errores);
 
-                _context.Monedas.Remove(moneda.Valor);
-                var resultadoEliminado = await _context.SaveChangesAsync() == 1;
+                _dbContext.Monedas.Remove(moneda.Valor);
+                var resultadoEliminado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoEliminado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeEliminacion("Moneda"));
 
@@ -96,7 +96,7 @@ namespace Repositorio.Repositorios.Monedas
         {
             try
             {
-                var moneda = _context.Monedas
+                var moneda = _dbContext.Monedas
                     .FirstOrDefault(f => f.Codigo == codigo);
 
                 if (moneda == null) return Resultado<Moneda>.Failure(ErroresCrud.ErrorBuscarPorId("Moneda"));
@@ -113,7 +113,7 @@ namespace Repositorio.Repositorios.Monedas
         {
             try
             {
-                var familias = await _context.Monedas
+                var familias = await _dbContext.Monedas
                     .ToListAsync();
 
                 return Resultado<IEnumerable<Moneda>>.Success(familias);

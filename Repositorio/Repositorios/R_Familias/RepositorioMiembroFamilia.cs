@@ -8,10 +8,10 @@ namespace Repositorio.Repositorios.R_Familia
 {
     public class RepositorioMiembroFamilia : IRepositorioMiembroFamilia
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _dbContext;
         public RepositorioMiembroFamilia(ApplicationDbContext context)
         {
-            _context = context;
+            _dbContext = context;
         }
 
         public async Task<Resultado<MiembroFamilia>> ActualizarAsync(MiembroFamilia model)
@@ -26,8 +26,8 @@ namespace Repositorio.Repositorios.R_Familia
 
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
                 
-                _context.MiembrosFamiliares.Update(model);
-                var resultadoActualizado = await _context.SaveChangesAsync() == 1;
+                _dbContext.MiembrosFamiliares.Update(model);
+                var resultadoActualizado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoActualizado) return Resultado<MiembroFamilia>.Failure(ErroresCrud.ErrorDeActualizacion("Miembro Familiar"));
                 
@@ -47,8 +47,8 @@ namespace Repositorio.Repositorios.R_Familia
 
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
-                await _context.MiembrosFamiliares.AddAsync(model);
-                var resultadoCreado = await _context.SaveChangesAsync() == 1;
+                await _dbContext.MiembrosFamiliares.AddAsync(model);
+                var resultadoCreado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoCreado) return Resultado<MiembroFamilia>.Failure(ErroresCrud.ErrorDeCreacion("Miembro Familiar"));
 
@@ -68,8 +68,8 @@ namespace Repositorio.Repositorios.R_Familia
 
                 if (buscarMiembro.TieneErrores) return Resultado<bool>.Failure(buscarMiembro.Errores);
 
-                _context.MiembrosFamiliares.Remove(buscarMiembro.Valor);
-                var resultadoEliminado = await _context.SaveChangesAsync() == 1;
+                _dbContext.MiembrosFamiliares.Remove(buscarMiembro.Valor);
+                var resultadoEliminado = await _dbContext.SaveChangesAsync() == 1;
 
                 if (!resultadoEliminado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeEliminacion("Miembro Familiar"));
 
@@ -85,7 +85,7 @@ namespace Repositorio.Repositorios.R_Familia
         {
             try
             {
-                var miembro = _context.MiembrosFamiliares.Find(id);
+                var miembro = _dbContext.MiembrosFamiliares.Find(id);
 
                 if (miembro == null) return Resultado<MiembroFamilia>.Failure(ErroresCrud.ErrorBuscarPorId("Miembro Familiar"));
 
@@ -101,7 +101,7 @@ namespace Repositorio.Repositorios.R_Familia
         {
             try
             {
-                var miembro = await _context.MiembrosFamiliares
+                var miembro = await _dbContext.MiembrosFamiliares
                     .Include(m => m.Usuario)
                     .FirstOrDefaultAsync(m => m.UsuarioId == id);
 
@@ -119,7 +119,7 @@ namespace Repositorio.Repositorios.R_Familia
         {
             try
             {
-                var miembros = await _context.MiembrosFamiliares
+                var miembros = await _dbContext.MiembrosFamiliares
                     .Include(m => m.Usuario)
                     .ToListAsync();
 
