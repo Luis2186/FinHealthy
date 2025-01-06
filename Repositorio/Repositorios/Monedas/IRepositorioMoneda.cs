@@ -10,6 +10,7 @@ namespace Repositorio.Repositorios.Monedas
 {
     public interface IRepositorioMoneda : IRepositorioCRUD<Moneda>
     {
+        public Task<Resultado<IEnumerable<Moneda>>> ObtenerTodosAsync();
         public Task<Resultado<Moneda>> ObtenerPorIdAsync(string codigo);
     }
 }

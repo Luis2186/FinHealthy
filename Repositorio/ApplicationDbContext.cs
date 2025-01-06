@@ -157,6 +157,12 @@ namespace Repositorio
                       .HasForeignKey<Familia>(g => g.UsuarioAdministradorId) // Clave foránea explícita
                       .OnDelete(DeleteBehavior.Restrict); // No permite eliminar al administrador si el grupo está activo
 
+                // Relación con UsuarioAdministrador (uno a uno)
+                entity.HasMany(g => g.SubCategorias) // Relación con Usuario
+                      .WithOne() // Relación uno a uno
+                      .HasForeignKey(g => g.FamiliaId) // Clave foránea explícita
+                      .OnDelete(DeleteBehavior.Restrict); 
+
                 // Configuración de propiedades adicionales
                 entity.Property(g => g.Apellido)
                       .HasMaxLength(100);
@@ -208,7 +214,13 @@ namespace Repositorio
             {
                 // Clave primaria
                 entity.HasKey(c => c.Id);
-            
+
+                // Relación con UsuarioAdministrador (uno a uno)
+                entity.HasMany(g => g.SubCategorias) // Relación con Usuario
+                      .WithOne() // Relación uno a uno
+                      .HasForeignKey(g => g.CategoriaId) // Clave foránea explícita
+                      .OnDelete(DeleteBehavior.Restrict);
+
                 // Configuración de propiedades
                 entity.Property(c => c.Nombre)
                 .IsRequired(true);
@@ -293,6 +305,7 @@ namespace Repositorio
         }
 
         // DbSet para las notificaciones
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Notificacion> Notificaciones { get; set; }
         public DbSet<SolicitudUnionFamilia> SolcitudesUnionFamilia { get; set; }
         public DbSet<Familia> Familias { get; set; }

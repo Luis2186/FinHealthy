@@ -81,7 +81,6 @@ namespace Servicio.S_Familias
 
                 if (familiaBuscada.TieneErrores) return Resultado<FamiliaDTO>.Failure(familiaBuscada.Errores);
 
-                // Mapeo de los datos del DTO al usuario existente
                 _mapper.Map(familiaActDTO, familiaBuscada.Valor); // Actualizar el usuario con el DTO
 
                 var resultado = await _repoFamilia.ActualizarAsync(familiaBuscada.Valor);

@@ -22,6 +22,24 @@ namespace Repositorio.Repositorios.R_Categoria.R_SubCategoria
             _dbContext = context;
         }
 
+        public async Task<Resultado<SubCategoria>> ObtenerPorIdAsync(int id)
+        {
+            try
+            {
+                var entidad = await _dbContext.SubCategorias
+                    .Include(sub => sub.Categoria)
+                    .Include(sub => sub.Familia)
+                    .FirstOrDefaultAsync(subC => subC.Id == id);
+                return entidad == null
+                    ? Resultado<SubCategoria>.Failure(ErroresCrud.ErrorDeCreacion(typeof(SubCategoria).Name))
+                    : Resultado<SubCategoria>.Success(entidad);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<SubCategoria>.Failure(ErroresCrud.ErrorDeExcepcion($"{typeof(SubCategoria).Name}.ObtenerPorIdAsync", ex.Message));
+            }
+        }
+
         public async Task<Resultado<IEnumerable<SubCategoria>>> ObtenerTodasPorFamiliaYCategoria(int familiaId, int categoriaId)
         {
             try

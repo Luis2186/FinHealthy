@@ -13,8 +13,9 @@ namespace Servicio.Authentication
             string claveSecreta = configuration["Jwt:ClaveSecreta"];
             string audiencia = configuration["Jwt:Audiencia"];
             string editor = configuration["Jwt:Editor"];
-            int minutosDeExpiracion = configuration.GetValue<int>("Jwt:ExpiracionMinutos");
-
+            int minutosDeExpiracion = configuration.GetValue<int>("Jwt:ExpiracionAccessToken");
+            int expiracionRefreshToken = configuration.GetValue<int>("Jwt:ExpiracionRefreshToken");
+             
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),

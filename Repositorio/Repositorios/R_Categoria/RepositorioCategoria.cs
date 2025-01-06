@@ -1,4 +1,8 @@
-﻿using Dominio.Gastos;
+﻿using Dominio;
+using Dominio.Errores;
+using Dominio.Gastos;
+using Dominio.Solicitudes;
+using Microsoft.EntityFrameworkCore;
 using Repositorio.Repositorios.Validacion;
 using System;
 using System.Collections.Generic;
@@ -17,6 +21,40 @@ namespace Repositorio.Repositorios.R_Categoria
             _dbContext = context;
         }
 
+        public async Task<Resultado<Categoria>> ObtenerPorIdAsync(int id)
+        {
+            try
+            {
+                var entidad = await _dbContext.Categorias
+                    .Include(cat=> cat.SubCategorias)
+                        .ThenInclude(sub => sub.Familia)
+                    .FirstOrDefaultAsync(cat => cat.Id == id );
 
+                return entidad == null
+                    ? Resultado<Categoria>.Failure(ErroresCrud.ErrorDeCreacion(typeof(Categoria).Name))
+                    : Resultado<Categoria>.Success(entidad);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<Categoria>.Failure(ErroresCrud.ErrorDeExcepcion($"{typeof(Categoria).Name}.ObtenerPorIdAsync", ex.Message));
+            }
+        }
+
+        public async Task<Resultado<IEnumerable<Categoria>>> ObtenerTodosAsync()
+        {
+            try
+            {
+                var categorias = _dbContext.Categorias
+                    .Include(cat => cat.SubCategorias)
+                        .ThenInclude(sub =>sub.Familia)
+                    .ToList();
+
+                return Resultado<IEnumerable<Categoria>>.Success(categorias);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<IEnumerable<Categoria>>.Failure(ErroresCrud.ErrorDeExcepcion("FIND_ALL", ex.Message));
+            }
+        }
     }
 }

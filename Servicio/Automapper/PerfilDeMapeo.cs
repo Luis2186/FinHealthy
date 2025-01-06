@@ -116,10 +116,17 @@ namespace Servicio.Automapper
         }
         public void MapearSubCategorias()
         {
+            CreateMap<SubCategoriaDTO, ActualizarCategoriaDTO>();
+
             CreateMap<SubCategoria, SubCategoriaDTO>()
                 .ForMember(cat => cat.FamiliaId, opt => opt.MapFrom(src => src.Familia.Id))
                 .ForMember(cat => cat.CategoriaId, opt => opt.MapFrom(src => src.Categoria.Id))
                 .ReverseMap();
+
+            CreateMap<SubCategoria, ActualizarCategoriaDTO>()
+            .ForMember(cat => cat.FamiliaId, opt => opt.MapFrom(src => src.Familia.Id))
+            .ForMember(cat => cat.CategoriaId, opt => opt.MapFrom(src => src.Categoria.Id))
+            .ReverseMap();
         }
     }
 }

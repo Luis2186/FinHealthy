@@ -2,6 +2,7 @@
 using Dominio;
 using Repositorio.Repositorios.R_Categoria;
 using Servicio.DTOS.CategoriasDTO;
+using Servicio.DTOS.SubCategoriasDTO;
 
 namespace Servicio.S_Categorias
 {
@@ -30,9 +31,15 @@ namespace Servicio.S_Categorias
             throw new NotImplementedException();
         }
 
-        public Task<Resultado<CategoriaDTO>> ObtenerCategoriaPorId(int id)
+        public async Task<Resultado<CategoriaDTO>> ObtenerCategoriaPorId(int id)
         {
-            throw new NotImplementedException();
+            var resultado = await _repoCategoria.ObtenerPorIdAsync(id);
+
+            if (resultado.TieneErrores) return Resultado<CategoriaDTO>.Failure(resultado.Errores);
+
+            var subCategoriaDTO = _mapper.Map<CategoriaDTO>(resultado.Valor);
+
+            return Resultado<CategoriaDTO>.Success(subCategoriaDTO);
         }
 
         public async Task<Resultado<IEnumerable<CategoriaDTO>>> ObtenerTodasLasCategorias()

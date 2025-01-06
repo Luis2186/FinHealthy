@@ -21,7 +21,7 @@ namespace Repositorio.Repositorios
             _dbContext = context;
             _validacion = validacion;
         }
-        public async Task<Resultado<T>> ObtenerPorIdAsync(int id)
+        private async Task<Resultado<T>> ObtenerPorIdAsync(int id)
         {
             try
             {
@@ -36,18 +36,18 @@ namespace Repositorio.Repositorios
             }
         }
 
-        public async Task<Resultado<IEnumerable<T>>> ObtenerTodosAsync()
-        {
-            try
-            {
-                var entidades = await _dbContext.Set<T>().ToListAsync();
-                return Resultado<IEnumerable<T>>.Success(entidades);
-            }
-            catch (Exception ex)
-            {
-                return Resultado<IEnumerable<T>>.Failure(ErroresCrud.ErrorDeExcepcion($"{typeof(T).Name}.ObtenerTodosAsync", ex.Message));
-            }
-        }
+        //public async Task<Resultado<IEnumerable<T>>> ObtenerTodosAsync()
+        //{
+        //    try
+        //    {
+        //        var entidades = await _dbContext.Set<T>().ToListAsync();
+        //        return Resultado<IEnumerable<T>>.Success(entidades);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Resultado<IEnumerable<T>>.Failure(ErroresCrud.ErrorDeExcepcion($"{typeof(T).Name}.ObtenerTodosAsync", ex.Message));
+        //    }
+        //}
 
         public async Task<Resultado<T>> CrearAsync(T model)
         {

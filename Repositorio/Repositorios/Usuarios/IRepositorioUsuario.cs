@@ -27,5 +27,7 @@ namespace Repositorio.Repositorios.Usuarios
         public Task<Resultado<IEnumerable<Claim>>> ObtenerTodosLosClaim(string usuarioId);
         public Task<Resultado<IEnumerable<string>>> ObtenerTodosLosRoles();
         public Task<Resultado<IEnumerable<string>>> ObtenerRolesPorUsuario(string usuarioId);
+        public Task<Resultado<Usuario>> ObtenerPorIdAsync(int id);
+        public Task<Resultado<IEnumerable<Usuario>>> ObtenerTodosAsync();
     }
 }
