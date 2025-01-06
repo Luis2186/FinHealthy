@@ -27,6 +27,7 @@ using Servicio.S_Categorias;
 using Repositorio.Repositorios.R_Categoria;
 using Servicio.S_Categorias.S_SubCategorias;
 using Repositorio.Repositorios.R_Categoria.R_SubCategoria;
+using Repositorio.Repositorios.Token;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -114,6 +115,7 @@ builder.Services.AddScoped<IServicioCategoria,  ServicioCategoria>();
 builder.Services.AddScoped<IServicioSubCategoria, ServicioSubCategoria>();
 builder.Services.AddScoped<IServicioGasto, ServicioGasto>();
 
+builder.Services.AddScoped<IRepositorioRefreshToken, RepositorioRefreshToken>();
 builder.Services.AddScoped<IRepositorioMoneda, RepositorioMoneda>();
 builder.Services.AddScoped<IRepositorioFamilia, RepositorioFamilia>();
 builder.Services.AddScoped<IRepositorioSolicitud, RepositorioSolicitud>();
@@ -125,7 +127,7 @@ builder.Services.AddScoped<IRepositorioSubCategoria, RepositorioSubCategoria>();
 
 
 
-builder.Services.AddSingleton<ProveedorToken>();
+builder.Services.AddScoped<ProveedorToken>();
 var app = builder.Build();
 
 await app.CrearRoles();

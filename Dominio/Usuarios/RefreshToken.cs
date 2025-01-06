@@ -16,5 +16,23 @@ namespace Dominio.Usuarios
         public bool Revocado { get; set; }
 
         public virtual Usuario? Usuario { get; set; }
+
+        public RefreshToken()
+        {
+
+        }
+
+        public RefreshToken(string Token, DateTime FechaExpiracion, string usuarioId)
+        {
+            this.FechaCreacion = DateTime.Now;
+            this.Revocado = false;
+            this.Token = Token;
+            this.FechaExpiracion = FechaExpiracion;
+            this.UsuarioId = usuarioId;
+        }
+
+
+
+
     }
 }

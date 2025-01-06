@@ -21,6 +21,8 @@ namespace Dominio.Usuarios
         public List<string> Roles { get; set; } = new List<string>();
         [NotMapped]
         public string? Token { get; set; }
+        [NotMapped]
+        public string? RefreshToken { get; set; }
         // Relación con las notificaciones recibidas
         public ICollection<Notificacion> Notificaciones { get; set; } = new List<Notificacion>();
     
@@ -30,9 +32,10 @@ namespace Dominio.Usuarios
             this.Roles = Roles;
         }
 
-        public void AsignarToken(string token)
+        public void AsignarToken(string token,string refreshToken)
         {
             this.Token = token; 
+            this.RefreshToken = refreshToken;
         }
 
     }

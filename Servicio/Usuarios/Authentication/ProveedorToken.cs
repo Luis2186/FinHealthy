@@ -1,15 +1,16 @@
 ﻿using Dominio.Usuarios;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using Repositorio.Repositorios.Token;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
 namespace Servicio.Authentication
 {
-    public sealed class ProveedorToken(IConfiguration configuration)
+    public sealed class ProveedorToken(IConfiguration configuration, IRepositorioRefreshToken _repoRefreshToken)
     {
-        public string Crear(Usuario usuario,List<string> roles) { 
+        public async Task<(string accessToken, string refreshToken)> Crear(Usuario usuario,List<string> roles) { 
             string claveSecreta = configuration["Jwt:ClaveSecreta"];
             string audiencia = configuration["Jwt:Audiencia"];
             string editor = configuration["Jwt:Editor"];
@@ -41,11 +42,17 @@ namespace Servicio.Authentication
                 Audience = audiencia,
             };
 
-            var manejador = new JsonWebTokenHandler();
+            var manejador = new JwtSecurityTokenHandler();
+            var token = manejador.CreateToken(descripcionToken);
+            string accessToken = manejador.WriteToken(token);
 
-            string token = manejador.CreateToken(descripcionToken);
+            string refreshToken = Guid.NewGuid().ToString();
+            var expiracion_RefreshToken = DateTime.UtcNow.AddMinutes(expiracionRefreshToken);
+            RefreshToken refresh_Token = new RefreshToken(refreshToken, expiracion_RefreshToken, usuario.Id);
 
-            return token;
+            var resultado = await _repoRefreshToken.CrearAsync(refresh_Token);
+
+            return (accessToken, refreshToken);
         }
     
     }

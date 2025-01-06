@@ -80,10 +80,10 @@ namespace Servicio.Usuarios
             var rolesUsuario = await ObtenerRolesPorUsuario(usuario.Id);
             var listaRolesUsuarios = rolesUsuario.Valor.ToList();
 
-            var token = _provedorJwt.Crear(usuario, listaRolesUsuarios);
+            var (accessToken, refreshToken) = await _provedorJwt.Crear(usuario, listaRolesUsuarios);
 
             usuario.AsignarRoles(listaRolesUsuarios);
-            usuario.AsignarToken(token);
+            usuario.AsignarToken(accessToken, refreshToken);
 
             var miembro = new MiembroFamilia();
             miembro = miembro.ConvertirUsuarioEnMiembro(usuarioCreado.Valor);
@@ -164,10 +164,10 @@ namespace Servicio.Usuarios
             
             var rolesUsuario = await ObtenerRolesPorUsuario(usuarioLogueado.Id);
             var listaRolesUsuario = rolesUsuario.Valor.ToList();
-            var token = _provedorJwt.Crear(usuarioLogueado, listaRolesUsuario);
+            var (accessToken, refreshToken) = await _provedorJwt.Crear(usuarioLogueado, listaRolesUsuario);
 
             usuarioLogueado.AsignarRoles(listaRolesUsuario);
-            usuarioLogueado.AsignarToken(token);
+            usuarioLogueado.AsignarToken(accessToken, refreshToken);
 
             return usuarioLogueado;
         }
