@@ -125,10 +125,10 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var (accessToken, refreshToken) = usuarioCreado.Valor;
+            var (accessToken, refreshToken, usuarioId) = usuarioCreado.Valor;
             AgregarTokensACookies(accessToken, refreshToken);
 
-            return Ok(new { mensaje = "Registro exitoso" }) ;
+            return Ok(new { mensaje = "Registro exitoso", id = usuarioId }) ;
         }
         // Obtener un usuario por su ID
         [HttpPost("login")]
@@ -172,10 +172,10 @@ namespace FinHealthAPI.Controllers
                 });
             }
             // Generar el token JWT
-            var (accessToken, refreshToken) = usuario.Valor;
+            var (accessToken, refreshToken, usuarioId) = usuario.Valor;
             AgregarTokensACookies(accessToken, refreshToken);
 
-            return Ok( new { mensaje = "Inicio de sesión exitoso" });  // Devuelve el usuario con estado 200 OK
+            return Ok( new { mensaje = "Inicio de sesión exitoso", id = usuarioId });  // Devuelve el usuario con estado 200 OK
         }
 
         // Obtener un usuario por su ID

@@ -56,7 +56,7 @@ namespace Servicio.Usuarios
             return await _repoUsuario.AgregarRol(usuarioId, idRol, nombreRol);
         }
 
-        public async Task<Resultado<(string AccessToken, string RefreshToken)>> Registrar(CrearUsuarioDTO usuarioDto)
+        public async Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> Registrar(CrearUsuarioDTO usuarioDto)
         {
             await _unitOfWork.IniciarTransaccionAsync();
 
@@ -64,17 +64,17 @@ namespace Servicio.Usuarios
 
             var usuarioCreado = await _repoUsuario.CrearAsync(usuario, usuarioDto.Password);
             
-            if (usuarioCreado.TieneErrores) return Resultado<(string AccessToken, string RefreshToken)>.Failure(usuarioCreado.Errores);
+            if (usuarioCreado.TieneErrores) return Resultado<(string,string,string)>.Failure(usuarioCreado.Errores);
 
             if (usuarioDto.Rol.Trim() != "")
             {
                 var rol = await _repoUsuario.BuscarRol("", usuarioDto.Rol.Trim());
 
-                if (rol.TieneErrores) return Resultado<(string AccessToken, string RefreshToken)>.Failure(rol.Errores);
+                if (rol.TieneErrores) return Resultado<(string,string,string)>.Failure(rol.Errores);
                 
                 var rolesAgregados = await _repoUsuario.AgregarRol(usuario.Id,rol.Valor.Id, rol.Valor.Name);
 
-                if(rolesAgregados.TieneErrores) return Resultado<(string AccessToken, string RefreshToken)>.Failure(rolesAgregados.Errores);
+                if(rolesAgregados.TieneErrores) return Resultado<(string,string,string)>.Failure(rolesAgregados.Errores);
             } 
 
             //var rolesUsuario = await ObtenerRolesPorUsuario(usuario.Id);
@@ -92,11 +92,11 @@ namespace Servicio.Usuarios
             if (crearMiembro.TieneErrores)
             {
                 _unitOfWork.RevertirTransaccionAsync();
-                return Resultado<(string AccessToken, string RefreshToken)>.Failure(crearMiembro.Errores);
+                return Resultado<(string , string ,string)>.Failure(crearMiembro.Errores);
             }
 
             await _unitOfWork.ConfirmarTransaccionAsync();
-            return Resultado<(string, string)>.Success((accessToken, refreshToken)); ;
+            return Resultado<(string, string,string)>.Success((accessToken, refreshToken,usuario.Id)); ;
         }
 
         public async Task<Resultado<bool>> Eliminar(string id)
@@ -150,15 +150,15 @@ namespace Servicio.Usuarios
             return await _repoUsuario.RemoverRol(usuarioId, idRol , nombreRol);
         }
 
-        public async Task<Resultado<(string AccessToken, string RefreshToken)>> Login(UsuarioLoginDTO usuario)
+        public async Task<Resultado<(string AccessToken, string RefreshToken,string usuarioId)>> Login(UsuarioLoginDTO usuario)
         {
             var usuarioBuscado = await _repoUsuario.ObtenerPorEmailAsync(usuario.Email);
 
-            if (usuarioBuscado.TieneErrores) return Resultado<(string, string)>.Failure(new Error("Usuario.Login", "El usuario y/o la contraseña son incorrectos."));
+            if (usuarioBuscado.TieneErrores) return Resultado<(string, string,string)>.Failure(new Error("Usuario.Login", "El usuario y/o la contraseña son incorrectos."));
 
             var usuarioLogueadoResultado = await _repoUsuario.Login(usuarioBuscado.Valor, usuario.Password);
 
-            if(usuarioLogueadoResultado.TieneErrores) return Resultado<(string, string)>.Failure(usuarioLogueadoResultado.Errores);
+            if(usuarioLogueadoResultado.TieneErrores) return Resultado<(string,string,string)>.Failure(usuarioLogueadoResultado.Errores);
 
             var usuarioLogueado = usuarioLogueadoResultado.Valor;
             
@@ -169,7 +169,7 @@ namespace Servicio.Usuarios
             //usuarioLogueado.AsignarRoles(listaRolesUsuario);
             usuarioLogueado.AsignarToken(accessToken, refreshToken);
 
-            return Resultado<(string, string)>.Success((accessToken, refreshToken));
+            return Resultado<(string, string,string)>.Success((accessToken, refreshToken, usuarioLogueado.Id));
         }
 
         public async Task<Resultado<bool>> Logout()
