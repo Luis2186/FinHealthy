@@ -2,15 +2,17 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Repositorio.Repositorios.Token;
+using Repositorio.Repositorios.Usuarios;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
 namespace Servicio.Authentication
 {
-    public sealed class ProveedorToken(IConfiguration configuration, IRepositorioRefreshToken _repoRefreshToken)
+    public sealed class ProveedorToken(IConfiguration configuration, IRepositorioRefreshToken _repoRefreshToken,
+        IRepositorioUsuario _repoUsuario)
     {
-        public async Task<(string accessToken, string refreshToken)> Crear(Usuario usuario,List<string> roles) { 
+        public async Task<(string accessToken, string refreshToken)> Crear(Usuario usuario) { 
             string claveSecreta = configuration["Jwt:ClaveSecreta"];
             string audiencia = configuration["Jwt:Audiencia"];
             string editor = configuration["Jwt:Editor"];
@@ -23,6 +25,10 @@ namespace Servicio.Authentication
                 new Claim(JwtRegisteredClaimNames.UniqueName, usuario.UserName.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, usuario.Email.ToString()),
              };
+
+            var resultadoRoles = await _repoUsuario.ObtenerRolesPorUsuario(usuario.Id);
+            var roles = resultadoRoles.Valor.ToList();
+            usuario.AsignarRoles(roles);
 
             // Agregar roles como claims
             foreach (var role in roles)

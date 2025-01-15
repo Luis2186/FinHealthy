@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,14 @@ namespace Dominio.Usuarios
         public DateTime FechaCreacion { get; set; }
         public DateTime FechaExpiracion { get; set; }
         public bool Revocado { get; set; }
+        [NotMapped]
+        public bool TokenExpirado
+        {
+            get
+            {
+                return FechaExpiracion <= DateTime.Now || Revocado;
+            }
+        } 
 
         public virtual Usuario? Usuario { get; set; }
 

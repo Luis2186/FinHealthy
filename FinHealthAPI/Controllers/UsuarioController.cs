@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using Dominio;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Authorization;
@@ -10,6 +11,7 @@ using Servicio.DTOS.UsuariosDTO;
 using Servicio.Pdf;
 using Servicio.ServiciosExternos;
 using Servicio.Usuarios;
+using System.Configuration;
 
 namespace FinHealthAPI.Controllers
 {
@@ -20,13 +22,15 @@ namespace FinHealthAPI.Controllers
     {
         private readonly IServicioUsuario _servicioUsuario;
         private readonly IServicioMonedas _servicioMoneda;
-   
+        private readonly IConfiguration _config;
         private readonly IMapper _mapper;
-        public UsuarioController(IServicioUsuario servicioUsuario, IMapper mapper, IServicioMonedas servicioMoneda)
+        public UsuarioController(IServicioUsuario servicioUsuario, IMapper mapper,
+            IServicioMonedas servicioMoneda, IConfiguration config)
         {
             _servicioUsuario = servicioUsuario;
             _servicioMoneda = servicioMoneda;
             _mapper = mapper;
+            _config = config;
         }
 
 
@@ -121,14 +125,17 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            return Ok(new { id = usuarioCreado.Valor.Id, usuarioCreado.Valor.Token }) ;
+            var (accessToken, refreshToken) = usuarioCreado.Valor;
+            AgregarTokensACookies(accessToken, refreshToken);
+
+            return Ok(new { mensaje = "Registro exitoso" }) ;
         }
         // Obtener un usuario por su ID
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult<Usuario>> Login([FromBody] UsuarioLoginDTO usuarioDto)
         {
-            await _servicioMoneda.ActualizarMonedasDesdeServicio();
+            //await _servicioMoneda.ActualizarMonedasDesdeServicio();
 
             if (!ModelState.IsValid)
             {
@@ -165,19 +172,10 @@ namespace FinHealthAPI.Controllers
                 });
             }
             // Generar el token JWT
-            var token = usuario.Valor.Token;
+            var (accessToken, refreshToken) = usuario.Valor;
+            AgregarTokensACookies(accessToken, refreshToken);
 
-            // Crear una cookie segura con HttpOnly y Secure activados (recomendado para producción)
-            Response.Cookies.Append("token", token, new CookieOptions
-            {
-                HttpOnly = true,  // No accesible desde JavaScript
-                Secure = true,    // Solo se enviará a través de HTTPS
-                SameSite = SameSiteMode.None, // Evitar que se envíe en solicitudes de terceros
-                Expires = DateTime.Now.AddHours(1), // Expira en 1 hora
-                Path= "/"
-            });
-
-            return Ok( new { id = usuario.Valor.Id , mensaje = "Inicio de sesión exitoso" });  // Devuelve el usuario con estado 200 OK
+            return Ok( new { mensaje = "Inicio de sesión exitoso" });  // Devuelve el usuario con estado 200 OK
         }
 
         // Obtener un usuario por su ID
@@ -347,6 +345,31 @@ namespace FinHealthAPI.Controllers
             return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
         }
 
+        private void AgregarTokensACookies(string accessToken, string refreshToken)
+        {
+            var expiracionToken = _config.GetValue<int>("Jwt:ExpiracionAccessToken"); 
+            var expiracionRefreshToken = _config.GetValue<int>("Jwt:ExpiracionRefreshToken");
+            var accessTokenCookieName = _config.GetValue<string>("Jwt:AccessTokenCookieName"); 
+            var refreshTokenCookieName = _config.GetValue<string>("Jwt:refreshTokenCookieName");
+
+            // Crear una cookie segura con HttpOnly y Secure activados, para tener mas seguridad.
+            Response.Cookies.Append(accessTokenCookieName, accessToken, new CookieOptions
+            {
+                HttpOnly = true,  // No accesible desde el cliente
+                Secure = true,    // Solo se enviará a través de HTTPS
+                SameSite = SameSiteMode.None, // Evitar que se envíe en solicitudes de terceros
+                Expires = DateTime.Now.AddMinutes(expiracionToken), 
+                Path = "/"
+            });
+
+            Response.Cookies.Append(refreshTokenCookieName, refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(expiracionRefreshToken)
+            });
+        }
 
     }
 }

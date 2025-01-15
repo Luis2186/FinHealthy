@@ -1,4 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using NuGet.Common;
+using Repositorio.Repositorios.Token;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -10,39 +12,36 @@ namespace FinHealthAPI.Middlewares
         private readonly RequestDelegate _next;
         private readonly ILogger<TokenValidationMiddleware> _logger;
         private readonly IConfiguration configuration;
+
         public TokenValidationMiddleware(RequestDelegate next,
-            ILogger<TokenValidationMiddleware> logger, IConfiguration _config)
+            ILogger<TokenValidationMiddleware> logger, IConfiguration _config )
         {
             _next = next;
             _logger = logger;
-            configuration = _config;
+            configuration = _config;         
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
             // Intentar obtener el token del header o cookies
-            var token = GetTokenFromRequest(context);
+            var (accessToken, refreshToken) = GetTokensFromRequest(context);
 
             // Si no hay token, simplemente continua con la solicitud
-            if (token == null)
+            if (string.IsNullOrEmpty(accessToken) && string.IsNullOrEmpty(refreshToken))
             {
                 await _next(context);
                 return;
             }
 
+            ClaimsPrincipal principal = null;
+
             try
             {
-                var principal = ValidateToken(token);
-                context.Response.Cookies.Append("token", token, new CookieOptions
+                // Intentar validar el accessToken
+                if (!string.IsNullOrEmpty(accessToken))
                 {
-                    Expires = DateTimeOffset.UtcNow.AddMinutes(60),
-                    HttpOnly = true,
-                    IsEssential = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None
-                });
-                // Si el token es válido, lo agregamos al contexto
-                context.Items["User"] = principal;
+                    principal = ValidateToken(accessToken);
+                }
             }
             catch (Exception ex)
             {
@@ -53,20 +52,24 @@ namespace FinHealthAPI.Middlewares
                 return;
             }
 
+            // Si el token es válido, lo agregamos al contexto
+            if (principal != null)
+            {
+                context.Items["User"] = principal;
+            }
             // Continuamos con el pipeline de la solicitud
             await _next(context);
         }
 
         // Método para extraer el token del header o cookies
-        private string GetTokenFromRequest(HttpContext context)
-        {
-            var token = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            if (string.IsNullOrEmpty(token))
-            {
-                token = context.Request.Cookies["token"];
-            }
-            return token;
-        }
+
+    private (string accessToken, string refreshToken) GetTokensFromRequest(HttpContext context)
+    {
+        string accessToken = context.Request.Cookies["access_token"];
+        string refreshToken = context.Request.Cookies["refresh_token"];
+
+        return (accessToken, refreshToken);
+    }
 
         // Método para validar el token JWT
         private ClaimsPrincipal ValidateToken(string token)
@@ -106,5 +109,48 @@ namespace FinHealthAPI.Middlewares
                 throw new UnauthorizedAccessException("Token inválido", ex);
             }
         }
+
+        // Método para renovar el accessToken usando el refreshToken
+        //private async Task<string> RenovarAccessToken(string refreshToken, HttpContext context)
+        //{
+        //    // Validar el refreshToken en la base de datos o caché
+        //    var refreshTokenValido = await _repositorioRefreshToken.ValidarRefreshTokenAsync(refreshToken);
+
+        //    if (!refreshTokenValido)
+        //    {
+        //        throw new SecurityTokenException("Refresh token inválido o expirado");
+        //    }
+
+        //    // Obtener el usuario asociado al refreshToken
+        //    var usuario = await _repositorioUsuario.ObtenerUsuarioPorRefreshTokenAsync(refreshToken);
+
+        //    if (usuario == null)
+        //    {
+        //        throw new SecurityTokenException("Usuario no encontrado para el refresh token");
+        //    }
+
+        //    // Generar un nuevo accessToken y opcionalmente un nuevo refreshToken
+        //    var (nuevoAccessToken, nuevoRefreshToken) = await _provedorJwt.Crear(usuario);
+
+        //    // Actualizar las cookies con los nuevos tokens
+        //    context.Response.Cookies.Append("access_token", nuevoAccessToken, new CookieOptions
+        //    {
+        //        HttpOnly = true,
+        //        Secure = true,
+        //        SameSite = SameSiteMode.None,
+        //        Expires = DateTime.UtcNow.AddMinutes(60)
+        //    });
+
+        //    context.Response.Cookies.Append("refresh_token", nuevoRefreshToken, new CookieOptions
+        //    {
+        //        HttpOnly = true,
+        //        Secure = true,
+        //        SameSite = SameSiteMode.None,
+        //        Expires = DateTime.UtcNow.AddDays(7) // Ejemplo: refresh tokens duran más tiempo
+        //    });
+
+        //    return nuevoAccessToken;
+        //}
+
     }
 }

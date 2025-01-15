@@ -28,6 +28,7 @@ using Repositorio.Repositorios.R_Categoria;
 using Servicio.S_Categorias.S_SubCategorias;
 using Repositorio.Repositorios.R_Categoria.R_SubCategoria;
 using Repositorio.Repositorios.Token;
+using System.Configuration;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -55,11 +56,13 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:ClaveSecreta"])),
         };
 
+        var accessTokenCookieName= builder.Configuration.GetValue<string>("Jwt:AccessTokenCookieName");
+
         o.Events = new JwtBearerEvents
         {
             OnMessageReceived = ctx =>
             {
-                ctx.Request.Cookies.TryGetValue("token", out var accessToken);
+                ctx.Request.Cookies.TryGetValue(accessTokenCookieName, out var accessToken);
                 if (!string.IsNullOrEmpty(accessToken))
                     ctx.Token = accessToken;
                 return Task.CompletedTask;
@@ -148,11 +151,12 @@ QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 app.MapIdentityApi<Usuario>();
 
-app.UseMiddleware<TokenValidationMiddleware>();
+
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseMiddleware<TokenValidationMiddleware>();
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 

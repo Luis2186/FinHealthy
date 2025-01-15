@@ -16,8 +16,8 @@ namespace Servicio.Usuarios
         public Task<Resultado<Usuario>> ObtenerPorId(string id);
         // Obtener todos los elementos con soporte de paginación y cancelación
         public Task<Resultado<IEnumerable<Usuario>>> ObtenerTodos();
-        public Task<Resultado<Usuario>> Registrar(CrearUsuarioDTO usuario);
-        public Task<Resultado<Usuario>> Login(UsuarioLoginDTO usuario);
+        public Task<Resultado<(string AccessToken, string RefreshToken)>> Registrar(CrearUsuarioDTO usuario);
+        public Task<Resultado<(string AccessToken, string RefreshToken)>> Login(UsuarioLoginDTO usuario);
         public Task<Resultado<bool>> Logout();
         public Task<Resultado<Usuario>> Actualizar(string id, ActualizarUsuarioDTO usuario);
         public Task<Resultado<bool>> Eliminar(string id);

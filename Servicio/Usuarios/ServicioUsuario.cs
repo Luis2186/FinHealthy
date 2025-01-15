@@ -56,7 +56,7 @@ namespace Servicio.Usuarios
             return await _repoUsuario.AgregarRol(usuarioId, idRol, nombreRol);
         }
 
-        public async Task<Resultado<Usuario>> Registrar(CrearUsuarioDTO usuarioDto)
+        public async Task<Resultado<(string AccessToken, string RefreshToken)>> Registrar(CrearUsuarioDTO usuarioDto)
         {
             await _unitOfWork.IniciarTransaccionAsync();
 
@@ -64,25 +64,25 @@ namespace Servicio.Usuarios
 
             var usuarioCreado = await _repoUsuario.CrearAsync(usuario, usuarioDto.Password);
             
-            if (usuarioCreado.TieneErrores) return Resultado<Usuario>.Failure(usuarioCreado.Errores);
+            if (usuarioCreado.TieneErrores) return Resultado<(string AccessToken, string RefreshToken)>.Failure(usuarioCreado.Errores);
 
             if (usuarioDto.Rol.Trim() != "")
             {
                 var rol = await _repoUsuario.BuscarRol("", usuarioDto.Rol.Trim());
 
-                if (rol.TieneErrores) return Resultado<Usuario>.Failure(rol.Errores);
+                if (rol.TieneErrores) return Resultado<(string AccessToken, string RefreshToken)>.Failure(rol.Errores);
                 
                 var rolesAgregados = await _repoUsuario.AgregarRol(usuario.Id,rol.Valor.Id, rol.Valor.Name);
 
-                if(rolesAgregados.TieneErrores) return Resultado<Usuario>.Failure(rolesAgregados.Errores);
+                if(rolesAgregados.TieneErrores) return Resultado<(string AccessToken, string RefreshToken)>.Failure(rolesAgregados.Errores);
             } 
 
-            var rolesUsuario = await ObtenerRolesPorUsuario(usuario.Id);
-            var listaRolesUsuarios = rolesUsuario.Valor.ToList();
+            //var rolesUsuario = await ObtenerRolesPorUsuario(usuario.Id);
+            //var listaRolesUsuarios = rolesUsuario.Valor.ToList();
 
-            var (accessToken, refreshToken) = await _provedorJwt.Crear(usuario, listaRolesUsuarios);
+            var (accessToken, refreshToken) = await _provedorJwt.Crear(usuario);
 
-            usuario.AsignarRoles(listaRolesUsuarios);
+            //usuario.AsignarRoles(listaRolesUsuarios);
             usuario.AsignarToken(accessToken, refreshToken);
 
             var miembro = new MiembroFamilia();
@@ -92,11 +92,11 @@ namespace Servicio.Usuarios
             if (crearMiembro.TieneErrores)
             {
                 _unitOfWork.RevertirTransaccionAsync();
-                return Resultado<Usuario>.Failure(crearMiembro.Errores);
+                return Resultado<(string AccessToken, string RefreshToken)>.Failure(crearMiembro.Errores);
             }
 
             await _unitOfWork.ConfirmarTransaccionAsync();
-            return usuarioCreado;
+            return Resultado<(string, string)>.Success((accessToken, refreshToken)); ;
         }
 
         public async Task<Resultado<bool>> Eliminar(string id)
@@ -150,26 +150,26 @@ namespace Servicio.Usuarios
             return await _repoUsuario.RemoverRol(usuarioId, idRol , nombreRol);
         }
 
-        public async Task<Resultado<Usuario>> Login(UsuarioLoginDTO usuario)
+        public async Task<Resultado<(string AccessToken, string RefreshToken)>> Login(UsuarioLoginDTO usuario)
         {
             var usuarioBuscado = await _repoUsuario.ObtenerPorEmailAsync(usuario.Email);
 
-            if (usuarioBuscado.TieneErrores) return Resultado<Usuario>.Failure(new Error("Usuario.Login", "El usuario y/o la contraseña son incorrectos."));
+            if (usuarioBuscado.TieneErrores) return Resultado<(string, string)>.Failure(new Error("Usuario.Login", "El usuario y/o la contraseña son incorrectos."));
 
             var usuarioLogueadoResultado = await _repoUsuario.Login(usuarioBuscado.Valor, usuario.Password);
 
-            if(usuarioLogueadoResultado.TieneErrores) return usuarioLogueadoResultado;
+            if(usuarioLogueadoResultado.TieneErrores) return Resultado<(string, string)>.Failure(usuarioLogueadoResultado.Errores);
 
             var usuarioLogueado = usuarioLogueadoResultado.Valor;
             
-            var rolesUsuario = await ObtenerRolesPorUsuario(usuarioLogueado.Id);
-            var listaRolesUsuario = rolesUsuario.Valor.ToList();
-            var (accessToken, refreshToken) = await _provedorJwt.Crear(usuarioLogueado, listaRolesUsuario);
+            //var rolesUsuario = await ObtenerRolesPorUsuario(usuarioLogueado.Id);
+            //var listaRolesUsuario = rolesUsuario.Valor.ToList();
+            var (accessToken, refreshToken) = await _provedorJwt.Crear(usuarioLogueado);
 
-            usuarioLogueado.AsignarRoles(listaRolesUsuario);
+            //usuarioLogueado.AsignarRoles(listaRolesUsuario);
             usuarioLogueado.AsignarToken(accessToken, refreshToken);
 
-            return usuarioLogueado;
+            return Resultado<(string, string)>.Success((accessToken, refreshToken));
         }
 
         public async Task<Resultado<bool>> Logout()
