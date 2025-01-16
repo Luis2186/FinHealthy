@@ -12,7 +12,7 @@ namespace Servicio.Authentication
     public sealed class ProveedorToken(IConfiguration configuration, IRepositorioRefreshToken _repoRefreshToken,
         IRepositorioUsuario _repoUsuario)
     {
-        public async Task<(string accessToken, string refreshToken)> Crear(Usuario usuario) { 
+        public async Task<(string accessToken, string refreshToken)> GenerarTokens(Usuario usuario,RefreshToken refreshTokenAnterior) { 
             string claveSecreta = configuration["Jwt:ClaveSecreta"];
             string audiencia = configuration["Jwt:Audiencia"];
             string editor = configuration["Jwt:Editor"];
@@ -52,14 +52,22 @@ namespace Servicio.Authentication
             var token = manejador.CreateToken(descripcionToken);
             string accessToken = manejador.WriteToken(token);
 
-            string refreshToken = Guid.NewGuid().ToString();
+            string refreshTokenStr = Guid.NewGuid().ToString();
             var expiracion_RefreshToken = DateTime.UtcNow.AddMinutes(expiracionRefreshToken);
-            RefreshToken refresh_Token = new RefreshToken(refreshToken, expiracion_RefreshToken, usuario.Id);
+            RefreshToken refreshTokenNuevo = new RefreshToken(refreshTokenStr, expiracion_RefreshToken, usuario.Id);
 
-            var resultado = await _repoRefreshToken.CrearAsync(refresh_Token);
+            if(refreshTokenAnterior == null)
+            {
+                var resultado = await _repoRefreshToken.CrearAsync(refreshTokenNuevo);
+            }else
+            {
+                var resultado = await _repoRefreshToken.RevocarYCrearNuevo(refreshTokenAnterior, refreshTokenNuevo);
+            }
 
-            return (accessToken, refreshToken);
+            return (accessToken, refreshTokenStr);
         }
-    
+
+ 
+
     }
 }

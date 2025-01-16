@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using QuestPDF.Fluent;
+using Servicio.Authentication;
 using Servicio.DTOS.UsuariosDTO;
 using Servicio.Pdf;
 using Servicio.ServiciosExternos;
@@ -343,6 +344,34 @@ namespace FinHealthAPI.Controllers
             });
 
             return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
+        }
+
+        [HttpPost("refresh-token")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+        {
+            var resultado = await _servicioUsuario.RefreshToken(refreshToken);
+
+            if (resultado.TieneErrores) return NotFound(new ProblemDetails
+            {
+                Title = "Error refresh token",
+                Detail = "Ah ocurrido un error al intentar actualizar el token",
+                Status = 404,
+                Instance = HttpContext.Request.Path,
+                Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+            });
+
+            var (nuevoAccessToken, nuevoRefreshToken, usuarioId) = resultado.Valor;
+
+            AgregarTokensACookies(nuevoAccessToken, nuevoRefreshToken);
+
+            return Ok(new
+            {
+                accessToken = nuevoAccessToken,
+                refreshToken = nuevoRefreshToken
+            });
         }
 
         private void AgregarTokensACookies(string accessToken, string refreshToken)

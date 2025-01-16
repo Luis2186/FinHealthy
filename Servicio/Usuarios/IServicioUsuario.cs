@@ -28,5 +28,6 @@ namespace Servicio.Usuarios
         public Task<Resultado<IEnumerable<Claim>>> ObtenerTodosLosClaim(string usuarioId);
         public Task<Resultado<IEnumerable<string>>> ObtenerTodosLosRoles();
         public Task<Resultado<IEnumerable<string>>> ObtenerRolesPorUsuario(string usuarioId);
+        public Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> RefreshToken(string refreshToken);
     }
 }

@@ -13,5 +13,10 @@ namespace Repositorio.Repositorios.Token
     {
         public Task<Resultado<RefreshToken>> ObtenerPorUsuarioIdAsync(string usuarioId);
         public Task<Resultado<IEnumerable<RefreshToken>>> ObtenerTodosAsync();
+        public Task<Resultado<RefreshToken>> ObtenerPorToken(string token);
+        public Task<Resultado<Usuario>> ObtenerUsuarioPorToken(string token);
+        public Task<Resultado<bool>> RevocarYCrearNuevo(RefreshToken refreshTokenAnterior, RefreshToken nuevoRefreshToken);
+        public Task<Resultado<bool>> Revocar(RefreshToken refreshToken);
+        public Task<Resultado<bool>> RevocarTokensAntiguos(string usuarioId, int cantidadSesionesActivas);
     }
 }

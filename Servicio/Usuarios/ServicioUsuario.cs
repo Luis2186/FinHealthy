@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Azure;
+using Azure.Core;
 using Dominio;
 using Dominio.Abstracciones;
 using Dominio.Familias;
@@ -7,6 +8,7 @@ using Dominio.Usuarios;
 using Microsoft.AspNetCore.Http;
 using Repositorio.Repositorios;
 using Repositorio.Repositorios.R_Familias;
+using Repositorio.Repositorios.Token;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.Authentication;
 using Servicio.DTOS.UsuariosDTO;
@@ -19,18 +21,21 @@ namespace Servicio.Usuarios
         private readonly IMapper _mapper;
         private readonly IRepositorioUsuario _repoUsuario;
         private readonly IRepositorioMiembroFamilia _repoMiembrosFamilia;
+        private readonly IRepositorioRefreshToken _repoRefreshToken;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ProveedorToken _provedorJwt;
 
         public ServicioUsuario(IRepositorioUsuario repositorioUsuario,
             IRepositorioMiembroFamilia repositorioMiembroFamilia,
-            IMapper mapper, IUnitOfWork unitOfWork, ProveedorToken provedorJwt)
+            IMapper mapper, IUnitOfWork unitOfWork, IRepositorioRefreshToken repoRefreshToken,
+            ProveedorToken provedorJwt)
         {
             _mapper = mapper;
             _repoUsuario = repositorioUsuario;
             _repoMiembrosFamilia = repositorioMiembroFamilia;
             _unitOfWork = unitOfWork;
             _provedorJwt = provedorJwt;
+            _repoRefreshToken = repoRefreshToken;
         }
         public async Task<Resultado<Usuario>> Actualizar(string id, ActualizarUsuarioDTO usuarioDto)
         {
@@ -66,7 +71,7 @@ namespace Servicio.Usuarios
             
             if (usuarioCreado.TieneErrores) return Resultado<(string,string,string)>.Failure(usuarioCreado.Errores);
 
-            if (usuarioDto.Rol.Trim() != "")
+            if (usuarioDto != null && usuarioDto.Rol != null && usuarioDto.Rol.Trim() != "")
             {
                 var rol = await _repoUsuario.BuscarRol("", usuarioDto.Rol.Trim());
 
@@ -80,7 +85,7 @@ namespace Servicio.Usuarios
             //var rolesUsuario = await ObtenerRolesPorUsuario(usuario.Id);
             //var listaRolesUsuarios = rolesUsuario.Valor.ToList();
 
-            var (accessToken, refreshToken) = await _provedorJwt.Crear(usuario);
+            var (accessToken, refreshToken) = await _provedorJwt.GenerarTokens(usuario,null!);
 
             //usuario.AsignarRoles(listaRolesUsuarios);
             usuario.AsignarToken(accessToken, refreshToken);
@@ -161,12 +166,14 @@ namespace Servicio.Usuarios
             if(usuarioLogueadoResultado.TieneErrores) return Resultado<(string,string,string)>.Failure(usuarioLogueadoResultado.Errores);
 
             var usuarioLogueado = usuarioLogueadoResultado.Valor;
+            if(usuarioLogueado == null ) return Resultado<(string, string, string)>.Failure(new Error("Usuario.Login", "Usuario inexistente"));
             
             //var rolesUsuario = await ObtenerRolesPorUsuario(usuarioLogueado.Id);
             //var listaRolesUsuario = rolesUsuario.Valor.ToList();
-            var (accessToken, refreshToken) = await _provedorJwt.Crear(usuarioLogueado);
+            var (accessToken, refreshToken) = await _provedorJwt.GenerarTokens(usuarioLogueado!,null!);
 
             //usuarioLogueado.AsignarRoles(listaRolesUsuario);
+
             usuarioLogueado.AsignarToken(accessToken, refreshToken);
 
             return Resultado<(string, string,string)>.Success((accessToken, refreshToken, usuarioLogueado.Id));
@@ -176,5 +183,28 @@ namespace Servicio.Usuarios
         {
             return false;
         }
+
+        public async Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> RefreshToken(string refreshToken)
+        {
+            var resultadoToken = await _repoRefreshToken.ObtenerPorToken(refreshToken);
+            var tokenAnterior = resultadoToken.Valor;
+
+            if (resultadoToken.TieneErrores || tokenAnterior!.TokenExpirado) return Resultado<(string, string, string)>.Failure(new Error("RefreshToken", "Refresh token inválido o expirado."));
+
+            var resultadoUsuario = await _repoUsuario.ObtenerPorIdAsync(tokenAnterior.UsuarioId);
+
+            if (resultadoUsuario.TieneErrores) return Resultado<(string, string, string)>.Failure(new Error("RefreshToken", "Usuario no encontrado."));
+
+            var usuarioLogueado = resultadoUsuario.Valor;
+            if (usuarioLogueado == null) return Resultado<(string, string, string)>.Failure(new Error("RefreshToken", "Usuario inexistente"));
+
+            var (nuevoAccessToken, nuevoRefreshToken) = await _provedorJwt.GenerarTokens(usuarioLogueado, tokenAnterior);
+
+            //await _repoRefreshToken.RevocarYCrearNuevo(tokenAnterior, nuevoRefreshToken);
+
+            return Resultado<(string, string, string)>.Success((nuevoAccessToken, nuevoRefreshToken, usuarioLogueado.Id));
+        }
+
+
     }
 }
