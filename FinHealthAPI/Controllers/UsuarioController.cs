@@ -13,6 +13,7 @@ using Servicio.Pdf;
 using Servicio.ServiciosExternos;
 using Servicio.Usuarios;
 using System.Configuration;
+using System.Net;
 
 namespace FinHealthAPI.Controllers
 {
@@ -25,6 +26,8 @@ namespace FinHealthAPI.Controllers
         private readonly IServicioMonedas _servicioMoneda;
         private readonly IConfiguration _config;
         private readonly IMapper _mapper;
+        private readonly string refreshTokenCookieName;
+        private readonly string accessTokenCookieName;
         public UsuarioController(IServicioUsuario servicioUsuario, IMapper mapper,
             IServicioMonedas servicioMoneda, IConfiguration config)
         {
@@ -32,6 +35,8 @@ namespace FinHealthAPI.Controllers
             _servicioMoneda = servicioMoneda;
             _mapper = mapper;
             _config = config;
+            refreshTokenCookieName = _config.GetValue<string>("Jwt:refreshTokenCookieName");
+            accessTokenCookieName  = _config.GetValue<string>("Jwt:AccessTokenCookieName");
         }
 
 
@@ -184,14 +189,17 @@ namespace FinHealthAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<Usuario>> Logout()
         {
-            Response.Cookies.Append("token", "", new CookieOptions
-            {
-                HttpOnly = true,   // No accesible desde JavaScript
-                Secure = true,     // Solo se enviará a través de HTTPS
-                SameSite = SameSiteMode.None, // Asegura que no se envíe en solicitudes de terceros
-                Expires = DateTime.Now.AddDays(-1), // Expira en 1 día para eliminarla
-                Path = "/"         // El dominio de la cookie debe coincidir con el path original
-            });
+            //var accessTokenCookieName = _config.GetValue<string>("Jwt:AccessTokenCookieName");
+            //var refreshTokenCookieName = _config.GetValue<string>("Jwt:refreshTokenCookieName");
+
+            if (refreshTokenCookieName != null && refreshTokenCookieName != "") {
+                Request.Cookies.TryGetValue(refreshTokenCookieName, out string refreshTokenCookie);
+
+                if (refreshTokenCookie != null && refreshTokenCookie != "") await _servicioUsuario.RevocarRefreshToken(refreshTokenCookie);
+
+            } 
+
+            LimpiarCookies();
 
             return Ok("Cookie eliminada correctamente");
         }
@@ -350,6 +358,16 @@ namespace FinHealthAPI.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
         {
+            if (string.IsNullOrWhiteSpace(refreshToken))
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Token inválido",
+                    Detail = "El token de refresco proporcionado no es válido.",
+                    Status = 400
+                });
+            }
+
             var resultado = await _servicioUsuario.RefreshToken(refreshToken);
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
@@ -364,7 +382,7 @@ namespace FinHealthAPI.Controllers
             });
 
             var (nuevoAccessToken, nuevoRefreshToken, usuarioId) = resultado.Valor;
-
+            LimpiarCookies();
             AgregarTokensACookies(nuevoAccessToken, nuevoRefreshToken);
 
             return Ok(new
@@ -378,9 +396,16 @@ namespace FinHealthAPI.Controllers
         {
             var expiracionToken = _config.GetValue<int>("Jwt:ExpiracionAccessToken"); 
             var expiracionRefreshToken = _config.GetValue<int>("Jwt:ExpiracionRefreshToken");
-            var accessTokenCookieName = _config.GetValue<string>("Jwt:AccessTokenCookieName"); 
-            var refreshTokenCookieName = _config.GetValue<string>("Jwt:refreshTokenCookieName");
-
+            //var accessTokenCookieName = _config.GetValue<string>("Jwt:AccessTokenCookieName"); 
+            //var refreshTokenCookieName = _config.GetValue<string>("Jwt:refreshTokenCookieName");
+            
+            Response.Cookies.Append(refreshTokenCookieName, refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddMinutes(expiracionRefreshToken)
+            });
             // Crear una cookie segura con HttpOnly y Secure activados, para tener mas seguridad.
             Response.Cookies.Append(accessTokenCookieName, accessToken, new CookieOptions
             {
@@ -391,12 +416,27 @@ namespace FinHealthAPI.Controllers
                 Path = "/"
             });
 
-            Response.Cookies.Append(refreshTokenCookieName, refreshToken, new CookieOptions
+  
+        }
+
+        private void LimpiarCookies()
+        {
+            Response.Cookies.Append(accessTokenCookieName, "", new CookieOptions
             {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddDays(expiracionRefreshToken)
+                HttpOnly = true,   // No accesible desde JavaScript
+                Secure = true,     // Solo se enviará a través de HTTPS
+                SameSite = SameSiteMode.None, // Asegura que no se envíe en solicitudes de terceros
+                Expires = DateTime.Now.AddDays(-1), // Expira en 1 día para eliminarla
+                Path = "/"         // El dominio de la cookie debe coincidir con el path original
+            });
+
+            Response.Cookies.Append(refreshTokenCookieName, "", new CookieOptions
+            {
+                HttpOnly = true,   // No accesible desde JavaScript
+                Secure = true,     // Solo se enviará a través de HTTPS
+                SameSite = SameSiteMode.None, // Asegura que no se envíe en solicitudes de terceros
+                Expires = DateTime.Now.AddDays(-1), // Expira en 1 día para eliminarla
+                Path = "/"         // El dominio de la cookie debe coincidir con el path original
             });
         }
 

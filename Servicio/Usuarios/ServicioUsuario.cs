@@ -205,6 +205,17 @@ namespace Servicio.Usuarios
             return Resultado<(string, string, string)>.Success((nuevoAccessToken, nuevoRefreshToken, usuarioLogueado.Id));
         }
 
+        public async Task<Resultado<bool>> RevocarRefreshToken(string refreshToken)
+        {
+            var resultadoRefreshToken = await _repoRefreshToken.ObtenerPorToken(refreshToken);
+            
+            if (resultadoRefreshToken.TieneErrores) return Resultado<bool>.Failure(new Error("RevocarRefreshToken", "Token invalido o expirado"));
 
+            var resultadoTokenRevocado = await _repoRefreshToken.Revocar(resultadoRefreshToken.Valor);
+
+            if (resultadoTokenRevocado.TieneErrores) return Resultado<bool>.Failure(resultadoTokenRevocado.Errores);
+
+            return resultadoTokenRevocado.Valor;
+        }
     }
 }

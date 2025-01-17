@@ -75,7 +75,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", builder =>
     {
-        builder.WithOrigins("http://localhost:4321")  // Origen de tu frontend
+        builder.WithOrigins("http://localhost:4321", "https://localhost:4321")  // Origen de tu frontend
                .AllowCredentials()
                .AllowAnyHeader()
                .AllowAnyMethod();

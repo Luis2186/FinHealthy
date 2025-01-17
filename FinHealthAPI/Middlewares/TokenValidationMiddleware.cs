@@ -1,7 +1,9 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Azure;
+using Microsoft.IdentityModel.Tokens;
 using NuGet.Common;
 using Repositorio.Repositorios.Token;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text;
 
@@ -28,9 +30,7 @@ namespace FinHealthAPI.Middlewares
         {
             // Intentar obtener el token del header o cookies
             var (accessToken, refreshToken) = GetTokensFromRequest(context);
-
-            var refreshTokenValido = ValidateRefreshToken(refreshToken);
-
+                    
             // Si no hay token, simplemente continua con la solicitud
             if (string.IsNullOrEmpty(accessToken) && string.IsNullOrEmpty(refreshToken))
             {
@@ -45,6 +45,7 @@ namespace FinHealthAPI.Middlewares
             
             try
             {
+                var refreshTokenValido = await ValidateRefreshToken(refreshToken);
                 // Intentar validar el accessToken
                 if (!string.IsNullOrEmpty(accessToken))
                 {
@@ -52,13 +53,36 @@ namespace FinHealthAPI.Middlewares
                     var usuarioId = principal.Claims.FirstOrDefault().Value;
                     var resultado = await refreshTokenRepo.RevocarTokensAntiguos(usuarioId,1);
                 }
+
             }
             catch (Exception ex)
             {
+
+                context.Response.Cookies.Append("access_token", "", new CookieOptions
+                {
+                    HttpOnly = true,   // No accesible desde JavaScript
+                    Secure = true,     // Solo se enviará a través de HTTPS
+                    SameSite = SameSiteMode.None, // Asegura que no se envíe en solicitudes de terceros
+                    Expires = DateTime.Now.AddDays(-1), // Expira en 1 día para eliminarla
+                    Path = "/"         // El dominio de la cookie debe coincidir con el path original
+                });
+
+                context.Response.Cookies.Append("refresh_token", "", new CookieOptions
+                {
+                    HttpOnly = true,   // No accesible desde JavaScript
+                    Secure = true,     // Solo se enviará a través de HTTPS
+                    SameSite = SameSiteMode.None, // Asegura que no se envíe en solicitudes de terceros
+                    Expires = DateTime.Now.AddDays(-1), // Expira en 1 día para eliminarla
+                    Path = "/"         // El dominio de la cookie debe coincidir con el path original
+                });
+
                 // Si la validación falla, respondemos con Unauthorized
                 _logger.LogError("Token no válido: " + ex.Message);
                 context.Response.StatusCode = 401; // Unauthorized
                 await context.Response.WriteAsync("Unauthorized: Invalid token");
+
+        
+
                 return;
             }
 
@@ -133,7 +157,7 @@ namespace FinHealthAPI.Middlewares
 
                 var resultado = await refreshTokenRepo.ObtenerPorToken(refreshToken);
               
-                if (resultado.TieneErrores) return false;
+                if (resultado.TieneErrores) throw new UnauthorizedAccessException("Refresh Token inválido o inexistente"); ;
 
                 var token = resultado.Valor;
                 var refreshTokenValido = true;
