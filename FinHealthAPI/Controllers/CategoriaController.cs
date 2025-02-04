@@ -3,7 +3,6 @@ using Dominio.Gastos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Servicio.DTOS.CategoriasDTO;
-using Servicio.DTOS.FamiliasDTO;
 using Servicio.S_Categorias;
 
 

@@ -1,42 +1,42 @@
 ﻿using AutoMapper;
 using Dominio;
-using Dominio.Familias;
+using Dominio.Grupos;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Servicio.DTOS.FamiliasDTO;
+using Servicio.DTOS.GrupoDTO;
 using Servicio.DTOS.UsuariosDTO;
 using Servicio.Notificaciones.NotificacionesDTO;
 using Servicio.Pdf;
-using Servicio.S_Familias;
+using Servicio.S_Grupos;
 
 namespace FinHealthAPI.Controllers
 {
     [Authorize(Roles = "Sys_Adm , Administrador, Usuario")]
     [ApiController]
-    [Route("/familia")]
-    public class FamiliaController : Controller
+    [Route("/grupo")]
+    public class GrupoController : Controller
     {
-        private readonly IServicioFamilia _servicioFamilia;
+        private readonly IServicioGrupos _servicioGastos;
         private readonly IMapper _mapper;
 
-        public FamiliaController(IServicioFamilia servicioFamilia, IMapper mapper)
+        public GrupoController(IServicioGrupos servicioGastos, IMapper mapper)
         {
-            _servicioFamilia = servicioFamilia;
+            _servicioGastos = servicioGastos;
             _mapper = mapper;
         }
 
 
         // Obtener todos los usuarios con paginación
         [HttpGet("todas")]
-        public async Task<ActionResult<Familia>> ObtenerFamilias()
+        public async Task<ActionResult<Grupo>> ObtenerGrupos()
         {
-            var resultado = await _servicioFamilia.ObtenerTodasLasFamilias();
+            var resultado = await _servicioGastos.ObtenerTodosLosGrupos();
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
-                Title = "Error al obtener todas las familias",
-                Detail = "Ah ocurrido un error al intentar obtener todas las familias",
+                Title = "Error al obtener todos los grupos",
+                Detail = "Ah ocurrido un error al intentar obtener todos los grupos",
                 Status = 404,
                 Instance = HttpContext.Request.Path,
                 Extensions = {
@@ -48,23 +48,23 @@ namespace FinHealthAPI.Controllers
         }
 
         // Obtener un usuario por su ID
-        [HttpGet("obtener/{familiaId}")]
-        public async Task<ActionResult<FamiliaDTO>> ObtenerFamiliaPorId(int familiaId)
+        [HttpGet("obtener/{grupoId}")]
+        public async Task<ActionResult<GrupoDTO>> ObtenerFamiliaPorId(int grupoId)
         {
-            var resultado = await _servicioFamilia.ObtenerFamiliaPorId(familiaId);
+            var resultado = await _servicioGastos.ObtenerGrupoPorId(grupoId);
 
             if (resultado.TieneErrores)
             {
                 return NotFound(new ProblemDetails
                 {
-                    Title = "Error al obtener la familia por id",
-                    Detail = "Ah ocurrido un error al intentar obtener la familia por id",
+                    Title = "Error al obtener el grupo por id",
+                    Detail = "Ah ocurrido un error al intentar obtener el grupo por id",
                     Status = 404,
                     Instance = HttpContext.Request.Path,
                     Extensions = {
                         ["errors"] = resultado.Errores
                     }
-                });  // Devuelve 404 si no se encuentra la familia
+                });  // Devuelve 404 si no se encuentra la grupo
             }
 
             return Ok(resultado.Valor);  // Devuelve el usuario con estado 200 OK
@@ -72,7 +72,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("crear")]
-        public async Task<ActionResult<FamiliaDTO>> CrearFamilia([FromBody] CrearFamiliaDTO familiaCreacionDTO)
+        public async Task<ActionResult<GrupoDTO>> CrearFamilia([FromBody] CrearGrupoDTO grupoCreacionDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -93,15 +93,15 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioFamilia.CrearFamilia(familiaCreacionDTO);
+            var resultado = await _servicioGastos.CrearGrupo(grupoCreacionDTO);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
             {
                 return Conflict(new ProblemDetails
                 {
-                    Title = "Error al crear la familia",
-                    Detail = "Ah ocurrido un error al intentar crear la familia",
+                    Title = "Error al crear el grupo",
+                    Detail = "Ah ocurrido un error al intentar crear el grupo",
                     Status = 404,
                     Instance = HttpContext.Request.Path,
                     Extensions = {
@@ -110,12 +110,12 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            return Ok(new { familiaId = resultado.Valor.Id });
+            return Ok(new { grupoId = resultado.Valor.Id });
         }
 
         // Actualizar un usuario
-        [HttpPut("actualizar/{familiaId}")]
-        public async Task<ActionResult<FamiliaDTO>> ActualizarFamilia(int familiaId, [FromBody] ActualizarFamiliaDTO familiaActDTO)
+        [HttpPut("actualizar/{grupoId}")]
+        public async Task<ActionResult<GrupoDTO>> ActualizarFamilia(int grupoId, [FromBody] ActualizarGrupoDTO grupoActDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -136,14 +136,14 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioFamilia.ActualizarFamilia(familiaId, familiaActDTO);
+            var resultado = await _servicioGastos.ActualizarGrupo(grupoId, grupoActDTO);
 
             if (resultado.TieneErrores)
             {
                 return NotFound(new ProblemDetails
                 {
-                    Title = "Error al actualiza la familia",
-                    Detail = "Ah ocurrido un error al intentar actualizar la familia",
+                    Title = "Error al actualizar el grupo",
+                    Detail = "Ah ocurrido un error al intentar actualizar el grupo",
                     Status = 404,
                     Instance = HttpContext.Request.Path,
                     Extensions = {
@@ -156,17 +156,17 @@ namespace FinHealthAPI.Controllers
         }
 
         // Eliminar un usuario
-        [HttpDelete("eliminar/{familiaId}")]
-        public async Task<ActionResult> EliminarUsuario(int familiaId)
+        [HttpDelete("eliminar/{grupoId}")]
+        public async Task<ActionResult> EliminarFamilia(int grupoId)
         {
-            var resultado = await _servicioFamilia.EliminarFamilia(familiaId);
+            var resultado = await _servicioGastos.EliminarGrupo(grupoId);
 
             if (resultado.TieneErrores)
             {
                 return NotFound(new ProblemDetails
                 {
-                    Title = "Error al eliminar familia",
-                    Detail = "Ah ocurrido un error al intentar eliminar la familia",
+                    Title = "Error al eliminar grupo",
+                    Detail = "Ah ocurrido un error al intentar eliminar el grupo",
                     Status = 404,
                     Instance = HttpContext.Request.Path,
                     Extensions = {

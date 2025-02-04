@@ -13,9 +13,6 @@ using Servicio.Authentication;
 using FinHealthAPI.Middlewares;
 using Servicio.Notificaciones;
 using Repositorio.Repositorios.Notificaciones;
-using Repositorio.Repositorios.R_Familias;
-using Repositorio.Repositorios.R_Familia;
-using Servicio.S_Familias;
 using Repositorio.Repositorios;
 using Repositorio.Repositorios.Solicitudes;
 using Repositorio.Repositorios.Monedas;
@@ -28,7 +25,8 @@ using Repositorio.Repositorios.R_Categoria;
 using Servicio.S_Categorias.S_SubCategorias;
 using Repositorio.Repositorios.R_Categoria.R_SubCategoria;
 using Repositorio.Repositorios.Token;
-using System.Configuration;
+using Repositorio.Repositorios.R_Grupo;
+using Servicio.S_Grupos;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -112,7 +110,7 @@ builder.Services.AddScoped(typeof(IRepositorioCRUD<>), typeof(RepositorioCRUD<>)
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IServicioNotificacion, ServicioNotificacion>();
 builder.Services.AddScoped<IServicioUsuario, ServicioUsuario>();
-builder.Services.AddScoped<IServicioFamilia, ServicioFamilia>();
+builder.Services.AddScoped<IServicioGrupos, ServicioGrupos>();
 builder.Services.AddScoped<IServicioMonedas, ServicioMonedas>();
 builder.Services.AddScoped<IServicioCategoria,  ServicioCategoria>();
 builder.Services.AddScoped<IServicioSubCategoria, ServicioSubCategoria>();
@@ -120,9 +118,9 @@ builder.Services.AddScoped<IServicioGasto, ServicioGasto>();
 
 builder.Services.AddScoped<IRepositorioRefreshToken, RepositorioRefreshToken>();
 builder.Services.AddScoped<IRepositorioMoneda, RepositorioMoneda>();
-builder.Services.AddScoped<IRepositorioFamilia, RepositorioFamilia>();
+builder.Services.AddScoped<IRepositorioGrupo, RepositorioGrupo>();
 builder.Services.AddScoped<IRepositorioSolicitud, RepositorioSolicitud>();
-builder.Services.AddScoped<IRepositorioMiembroFamilia, RepositorioMiembroFamilia>();
+//builder.Services.AddScoped<IRepositorioMiembroFamilia, RepositorioMiembroFamilia>();
 builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
 builder.Services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();

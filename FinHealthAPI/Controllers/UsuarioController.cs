@@ -271,10 +271,10 @@ namespace FinHealthAPI.Controllers
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
         }
-        [HttpDelete("eliminarRol")]
-        public async Task<ActionResult> EliminarRolAUsuario([FromBody] UsuarioRolDTO rol)
+        [HttpDelete("eliminarRol/{idUsuario}/{idRol}/{nombreRol}")]
+        public async Task<ActionResult> EliminarRolAUsuario(string idUsuario,string nombreRol, string idRol)
         {
-            var rolEliminado = await _servicioUsuario.RemoverRol(rol.idUsuario, rol.IdRol,rol.NombreRol);
+            var rolEliminado = await _servicioUsuario.RemoverRol(idUsuario, idRol, nombreRol);
 
             if (rolEliminado.TieneErrores)
             {
@@ -341,6 +341,26 @@ namespace FinHealthAPI.Controllers
             var resultado = await _servicioUsuario.ObtenerRolesPorUsuario(usuarioId);
             
             if(resultado.TieneErrores) return NotFound(new ProblemDetails
+            {
+                Title = "Error roles de usuario",
+                Detail = "Ah ocurrido un error al intentar obtener los roles del usuario",
+                Status = 404,
+                Instance = HttpContext.Request.Path,
+                Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+            });
+
+            return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
+        }
+
+        // Obtener todos los usuarios con paginación
+        [HttpGet("obtenerRoles")]
+        public async Task<ActionResult<Usuario>> ObtenerRoles()
+        {
+            var resultado = await _servicioUsuario.ObtenerTodosLosRoles();
+
+            if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
                 Title = "Error roles de usuario",
                 Detail = "Ah ocurrido un error al intentar obtener los roles del usuario",

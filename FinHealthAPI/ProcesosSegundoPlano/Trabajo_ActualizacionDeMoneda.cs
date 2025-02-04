@@ -1,6 +1,5 @@
 ﻿using Quartz;
 using Repositorio.Repositorios.Monedas;
-using Repositorio.Repositorios.R_Familias;
 using Servicio.ServiciosExternos;
 
 namespace FinHealthAPI.ProcesosSegundoPlano

@@ -1,15 +1,14 @@
 ﻿using AutoMapper;
 using Dominio;
-using Dominio.Familias;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Servicio.DTOS.FamiliasDTO;
+using Servicio.DTOS.GrupoDTO;
 using Servicio.DTOS.SolicitudesDTO;
 using Servicio.DTOS.UsuariosDTO;
 using Servicio.Notificaciones.NotificacionesDTO;
 using Servicio.Pdf;
-using Servicio.S_Familias;
+using Servicio.S_Grupos;
 
 namespace FinHealthAPI.Controllers
 {
@@ -18,10 +17,10 @@ namespace FinHealthAPI.Controllers
     [Route("/solicitud")]
     public class SolicitudController : Controller
     {
-        private readonly IServicioFamilia _servicioFamilia;
+        private readonly IServicioGrupos _servicioFamilia;
         private readonly IMapper _mapper;
 
-        public SolicitudController(IServicioFamilia servicioFamilia, IMapper mapper)
+        public SolicitudController(IServicioGrupos servicioFamilia, IMapper mapper)
         {
             _servicioFamilia = servicioFamilia;
             _mapper = mapper;
@@ -73,7 +72,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("enviar")]
-        public async Task<ActionResult<FamiliaDTO>> EnviarSolicitud([FromBody] EnviarSolicitudDTO enviarSolicitudDTO)
+        public async Task<ActionResult<GrupoDTO>> EnviarSolicitud([FromBody] EnviarSolicitudDTO enviarSolicitudDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -94,7 +93,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioFamilia.EnviarSolicitudIngresoAFamilia(enviarSolicitudDTO);
+            var resultado = await _servicioFamilia.EnviarSolicitudIngresoAGrupo(enviarSolicitudDTO);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
@@ -137,7 +136,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioFamilia.AceptarSolicitudIngresoAFamilia(idSolicitud);
+            var resultado = await _servicioFamilia.AceptarSolicitudIngresoAGrupo(idSolicitud);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
@@ -159,7 +158,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("porCodigo")]
-        public async Task<ActionResult<bool>> UnirseConCodigoAFamilia(UnirseAFamiliaDTO solicitud)
+        public async Task<ActionResult<bool>> UnirseConCodigoAFamilia([FromBody] UnirseAGrupoDTO solicitud)
         {
             if (!ModelState.IsValid)
             {
@@ -180,7 +179,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioFamilia.IngresoAFamiliaConCodigo(solicitud);
+            var resultado = await _servicioFamilia.IngresoAGrupoConCodigo(solicitud);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)

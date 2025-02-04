@@ -24,10 +24,10 @@ namespace FinHealthAPI.Controllers
 
 
         // Obtener todos los usuarios con paginación
-        [HttpGet("todas")]
-        public async Task<ActionResult<SubCategoriaDTO>> ObtenerTodas([FromBody] ObtenerSubCategoriasDTO categoriasDTO)
+        [HttpGet("todas/{familiaId}/{categoriaId}")]
+        public async Task<ActionResult<SubCategoriaDTO>> ObtenerTodas(int familiaId, int categoriaId)
         {
-            var resultado = await _servicioSubCategoria.ObtenerSubCategorias(categoriasDTO.FamiliaId, categoriasDTO.CategoriaId);
+            var resultado = await _servicioSubCategoria.ObtenerSubCategorias(familiaId, categoriaId);
 
             if (resultado.TieneErrores) return NotFound(
                 new ProblemDetails
