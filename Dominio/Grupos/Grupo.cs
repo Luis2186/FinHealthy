@@ -4,13 +4,13 @@ using Dominio.Gastos;
 using Dominio.Usuarios;
 using System.ComponentModel.DataAnnotations;
 
-namespace Dominio.Familias
+namespace Dominio.Grupos
 {
-    public class Familia
+    public class Grupo
     {
         public int Id { get; set; }
-        [Required(ErrorMessage = "El apellido de la familia es un campo requerido, por favor ingreselo")]
-        public string? Apellido { get; set; }
+        [Required(ErrorMessage = "El nombre del grupo es un campo requerido, por favor ingreselo")]
+        public string? Nombre { get; set; }
         public string? Descripcion { get; set; }
         public DateTime FechaDeCreacion { get; set; }
         [Required(ErrorMessage = "El administrador es un campo requerido, por favor ingreselo")]
@@ -18,23 +18,24 @@ namespace Dominio.Familias
         public string? UsuarioAdministradorId { get; set; }
         [Required(ErrorMessage = "El codigo de acceso es un campo requerido, por favor ingreselo")]
         public string? CodigoAccesoHash { get; private set; }
-        public List<MiembroFamilia> Miembros { get; set; } = new List<MiembroFamilia>();
+        public List<Usuario> MiembrosGrupoGasto { get; set; } = new List<Usuario>();
         public bool Activo { get; set; }
         public List<SubCategoria> SubCategorias { get; set; } = new List<SubCategoria>();
 
-        public Familia()
+        public Grupo()
         {
            
         }
-        public Familia(Usuario usuarioAdministrador, string apellido, string descripcion, string codigo)
+        public Grupo(Usuario usuarioAdministrador, string nombre, string descripcion, string codigo)
         {
             this.UsuarioAdministrador = usuarioAdministrador;
             this.UsuarioAdministradorId = usuarioAdministrador.Id;
-            this.Apellido = apellido;
+            this.Nombre = nombre;
             this.Descripcion = descripcion;
             this.FechaDeCreacion = DateTime.Now;
-            this.Miembros = new List<MiembroFamilia>() { new MiembroFamilia(usuarioAdministrador,this) };
+            this.MiembrosGrupoGasto = new List<Usuario>() { usuarioAdministrador };
             this.Activo = true;
+            EstablecerCodigo(codigo);
         }
 
         // Método para establecer el código
@@ -43,7 +44,7 @@ namespace Dominio.Familias
             try
             {
                 if (string.IsNullOrWhiteSpace(codigo))
-                    return Resultado<bool>.Failure(ErroresFamilia.Error_Codigo_Vacio("EstablecerCodigo"));
+                    return Resultado<bool>.Failure(ErroresGrupo.Codigo_Vacio("EstablecerCodigo"));
 
                 CodigoAccesoHash = BCrypt.Net.BCrypt.HashPassword(codigo);
 
@@ -61,11 +62,11 @@ namespace Dominio.Familias
             try
             {
                 if (string.IsNullOrWhiteSpace(codigo))
-                    return Resultado<bool>.Failure(ErroresFamilia.Error_Codigo_Vacio("VerificarCodigo"));
+                    return Resultado<bool>.Failure(ErroresGrupo.Codigo_Vacio("VerificarCodigo"));
 
                 var verificado = BCrypt.Net.BCrypt.Verify(codigo, CodigoAccesoHash);
 
-                if (!verificado) return Resultado<bool>.Failure(ErroresFamilia.Error_Codigo_Verificacion("VerificarCodigo"));
+                if (!verificado) return Resultado<bool>.Failure(ErroresGrupo.Codigo_Verificacion("VerificarCodigo"));
                 
                 return Resultado<bool>.Success(verificado);
             }
@@ -75,15 +76,15 @@ namespace Dominio.Familias
             }
         }
 
-        public Resultado<bool> AgregarMiembroAFamilia(MiembroFamilia miembro)
+        public Resultado<bool> AgregarMiembroAFamilia(Usuario miembro)
         {
-            if (!Miembros.Contains(miembro))
+            if (!MiembrosGrupoGasto.Contains(miembro))
             {
-                Miembros.Add(miembro);
+                MiembrosGrupoGasto.Add(miembro);
             }
             else
             {
-                return Resultado<bool>.Failure(ErroresFamilia.Error_Miembro_Existente("AgregarMiembroAFamilia"));
+                return Resultado<bool>.Failure(ErroresGrupo.Miembro_Existente("AgregarMiembroAFamilia"));
             }
             return Resultado<bool>.Success(true);   
         }

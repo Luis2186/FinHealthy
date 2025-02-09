@@ -26,7 +26,9 @@ namespace Repositorio.Repositorios.Token
             try
             {
                 var entidad = await _dbContext.RefreshTokens
-                    .FirstOrDefaultAsync(doc => doc.Token == token);
+                    .FirstOrDefaultAsync(doc => doc.Token == token &&
+                                         doc.FechaExpiracion > DateTime.UtcNow &&
+                                        !doc.Revocado);
 
                 return entidad == null
                     ? Resultado<RefreshToken>.Failure(ErroresCrud.ErrorDeCreacion(typeof(RefreshToken).Name))

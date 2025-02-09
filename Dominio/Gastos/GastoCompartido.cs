@@ -1,4 +1,4 @@
-﻿using Dominio.Familias;
+﻿using Dominio.Usuarios;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,15 +12,15 @@ namespace Dominio.Gastos
     {
         public int GastoId { get; set; }
         public Gasto Gasto { get; set; }
-        public int MiembroId { get; set; }
-        public MiembroFamilia Miembro { get; set; }
+        public string MiembroId { get; set; }
+        public Usuario Miembro { get; set; }
         public double Porcentaje { get; set; }
         public double MontoAsignado { get; set; } 
 
         public GastoCompartido()
         {
             Gasto = new Gasto();
-            Miembro = new MiembroFamilia();
+            Miembro = new Usuario();
         }
     }
 }

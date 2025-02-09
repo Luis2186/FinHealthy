@@ -28,7 +28,7 @@ namespace Repositorio.Repositorios.R_Categoria.R_SubCategoria
             {
                 var entidad = await _dbContext.SubCategorias
                     .Include(sub => sub.Categoria)
-                    .Include(sub => sub.Familia)
+                    .Include(sub => sub.GrupoGasto)
                     .FirstOrDefaultAsync(subC => subC.Id == id);
                 return entidad == null
                     ? Resultado<SubCategoria>.Failure(ErroresCrud.ErrorDeCreacion(typeof(SubCategoria).Name))
@@ -40,14 +40,14 @@ namespace Repositorio.Repositorios.R_Categoria.R_SubCategoria
             }
         }
 
-        public async Task<Resultado<IEnumerable<SubCategoria>>> ObtenerTodasPorFamiliaYCategoria(int familiaId, int categoriaId)
+        public async Task<Resultado<IEnumerable<SubCategoria>>> ObtenerTodasPorFamiliaYCategoria(int grupoGastoId, int categoriaId)
         {
             try
             {
                 var subcategorias = _dbContext.SubCategorias
-                    .Include(cat => cat.Familia)
+                    .Include(cat => cat.GrupoGasto)
                     .Include(cat => cat.Categoria)
-                    .Where(cat => cat.FamiliaId == familiaId && cat.CategoriaId == categoriaId).ToList();
+                    .Where(cat => cat.GrupoGastoId == grupoGastoId && cat.CategoriaId == categoriaId).ToList();
                 return Resultado<IEnumerable<SubCategoria>>.Success(subcategorias);
             }
             catch (Exception ex)

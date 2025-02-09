@@ -1,4 +1,5 @@
-﻿using Dominio.Notificaciones;
+﻿using Dominio.Grupos;
+using Dominio.Notificaciones;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -24,10 +25,21 @@ namespace Dominio.Usuarios
         [NotMapped]
         public string? RefreshToken { get; set; }
         // Relación con las notificaciones recibidas
-        public ICollection<Notificacion> Notificaciones { get; set; } = new List<Notificacion>();
-    
+        public DateTime? FechaDeUnion { get; set; }
+        public int? GrupoDeGastosId { get; set; }
+        public Grupo? GrupoDeGastos { get; set; }
 
-    public void AsignarRoles(List<string> Roles)
+        public ICollection<Notificacion> Notificaciones { get; set; } = new List<Notificacion>();
+        
+
+        public Usuario UnirseAGrupo(Grupo grupoGastos)
+        {
+            this.GrupoDeGastos = grupoGastos;
+            this.FechaDeUnion = DateTime.Now;
+            return this;
+        }
+
+        public void AsignarRoles(List<string> Roles)
         {
             this.Roles = Roles;
         }
@@ -37,6 +49,7 @@ namespace Dominio.Usuarios
             this.Token = token; 
             this.RefreshToken = refreshToken;
         }
+
 
     }
 }

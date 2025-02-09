@@ -1,5 +1,4 @@
-﻿using Dominio.Familias;
-using Dominio.Gastos;
+﻿using Dominio.Gastos;
 using System;
 using System.Collections.Generic;
 using System.Linq;

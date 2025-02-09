@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repositorio;
 
@@ -11,9 +12,11 @@ using Repositorio;
 namespace Repositorio.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250204223557_deleteMiembroFamilia")]
+    partial class deleteMiembroFamilia
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,6 +63,11 @@ namespace Repositorio.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("CodigoAccesoHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -73,18 +81,13 @@ namespace Repositorio.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<string>("UsuarioAdministradorId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Nombre")
+                    b.HasIndex("Apellido")
                         .IsUnique();
 
                     b.HasIndex("UsuarioAdministradorId")
@@ -181,7 +184,7 @@ namespace Repositorio.Migrations
                     b.Property<string>("Descripcion")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("GrupoGastoId")
+                    b.Property<int>("FamiliaId")
                         .HasColumnType("int");
 
                     b.Property<string>("Nombre")
@@ -191,7 +194,7 @@ namespace Repositorio.Migrations
 
                     b.HasIndex("CategoriaId");
 
-                    b.HasIndex("GrupoGastoId");
+                    b.HasIndex("FamiliaId");
 
                     b.HasIndex("Nombre")
                         .IsUnique()
@@ -584,15 +587,15 @@ namespace Repositorio.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Dominio.Familias.Grupo", "GrupoGasto")
+                    b.HasOne("Dominio.Familias.Grupo", "Familia")
                         .WithMany("SubCategorias")
-                        .HasForeignKey("GrupoGastoId")
+                        .HasForeignKey("FamiliaId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Categoria");
 
-                    b.Navigation("GrupoGasto");
+                    b.Navigation("Familia");
                 });
 
             modelBuilder.Entity("Dominio.Notificaciones.Notificacion", b =>

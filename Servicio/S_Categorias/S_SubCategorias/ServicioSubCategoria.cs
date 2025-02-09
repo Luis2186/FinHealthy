@@ -3,7 +3,7 @@ using Dominio;
 using Dominio.Gastos;
 using Repositorio.Repositorios.R_Categoria;
 using Repositorio.Repositorios.R_Categoria.R_SubCategoria;
-using Repositorio.Repositorios.R_Familias;
+using Repositorio.Repositorios.R_Grupo;
 using Servicio.DTOS.CategoriasDTO;
 using Servicio.DTOS.SubCategoriasDTO;
 using System;
@@ -18,10 +18,10 @@ namespace Servicio.S_Categorias.S_SubCategorias
     {
         private readonly IRepositorioSubCategoria _repoSubCategoria;
         private readonly IRepositorioCategoria _repoCategoria;
-        private readonly IRepositorioFamilia _repoFamilia;
+        private readonly IRepositorioGrupo _repoFamilia;
         private readonly IMapper _mapper;
         public ServicioSubCategoria(IRepositorioSubCategoria repoSubCategoria, IMapper mapper,
-            IRepositorioCategoria repoCategoria, IRepositorioFamilia repoFamilia)
+            IRepositorioCategoria repoCategoria, IRepositorioGrupo repoFamilia)
         {
             _repoSubCategoria = repoSubCategoria;
             _mapper = mapper;
@@ -54,13 +54,13 @@ namespace Servicio.S_Categorias.S_SubCategorias
 
             var subCategoria = _mapper.Map<SubCategoria>(model);
 
-            var resultadoFamilia = await _repoFamilia.ObtenerPorIdAsync(subCategoria.FamiliaId);
+            var resultadoFamilia = await _repoFamilia.ObtenerPorIdAsync(subCategoria.GrupoGastoId);
             var resultadoCategoria = await _repoCategoria.ObtenerPorIdAsync(subCategoria.CategoriaId);
 
             if (resultadoFamilia.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultadoFamilia.Errores);
             if (resultadoCategoria.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultadoCategoria.Errores);
             
-            subCategoria.Familia = resultadoFamilia.Valor;
+            subCategoria.GrupoGasto = resultadoFamilia.Valor;
             subCategoria.Categoria = resultadoCategoria.Valor;
 
             var resultado = await _repoSubCategoria.CrearAsync(subCategoria);

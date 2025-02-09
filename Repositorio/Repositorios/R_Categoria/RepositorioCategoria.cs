@@ -27,7 +27,7 @@ namespace Repositorio.Repositorios.R_Categoria
             {
                 var entidad = await _dbContext.Categorias
                     .Include(cat=> cat.SubCategorias)
-                        .ThenInclude(sub => sub.Familia)
+                        .ThenInclude(sub => sub.GrupoGasto)
                     .FirstOrDefaultAsync(cat => cat.Id == id );
 
                 return entidad == null
@@ -45,8 +45,6 @@ namespace Repositorio.Repositorios.R_Categoria
             try
             {
                 var categorias = _dbContext.Categorias
-                    .Include(cat => cat.SubCategorias)
-                        .ThenInclude(sub =>sub.Familia)
                     .ToList();
 
                 return Resultado<IEnumerable<Categoria>>.Success(categorias);

@@ -51,7 +51,7 @@ namespace Repositorio.Repositorios.Notificaciones
 
                 int filasAfectadas = await _dbContext.SaveChangesAsync();
 
-                if (filasAfectadas == 1) return Resultado<bool>.Success(notificacionDesactivada);
+                if (filasAfectadas >= 1) return Resultado<bool>.Success(notificacionDesactivada);
 
                 return Resultado<bool>.Failure(ErroresNotificacion.NotificacionNoSePudoEliminar);
             }
@@ -68,7 +68,7 @@ namespace Repositorio.Repositorios.Notificaciones
                 await _dbContext.Notificaciones.AddAsync(notificacion);
                 int filasAfectadas = await _dbContext.SaveChangesAsync();
 
-                if (filasAfectadas == 1) return Resultado<bool>.Success(true);
+                if (filasAfectadas >= 1) return Resultado<bool>.Success(true);
                 
                 return Resultado<bool>.Failure(ErroresNotificacion.ErrorEnvio);
             }
@@ -94,7 +94,7 @@ namespace Repositorio.Repositorios.Notificaciones
 
                 int filasAfectadas = await _dbContext.SaveChangesAsync();
 
-                if (filasAfectadas == 1) return Resultado<bool>.Success(notificacionLeida);
+                if (filasAfectadas >= 1) return Resultado<bool>.Success(notificacionLeida);
 
                 return Resultado<bool>.Failure(ErroresNotificacion.NotificacionNoSePudoLeer);
             }

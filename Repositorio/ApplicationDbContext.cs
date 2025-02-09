@@ -1,6 +1,6 @@
 ﻿using Dominio.Documentos;
-using Dominio.Familias;
 using Dominio.Gastos;
+using Dominio.Grupos;
 using Dominio.Notificaciones;
 using Dominio.Solicitudes;
 using Dominio.Usuarios;
@@ -146,7 +146,7 @@ namespace Repositorio
 
         protected private void ConfigurarBuilderGrupoFamiliar(ModelBuilder builder)
         {
-            builder.Entity<Familia>(entity =>
+            builder.Entity<Grupo>(entity =>
             {
                 // Configuración de clave primaria
                 entity.HasKey(g => g.Id);
@@ -154,23 +154,23 @@ namespace Repositorio
                 // Relación con UsuarioAdministrador (uno a uno)
                 entity.HasOne(g => g.UsuarioAdministrador) // Relación con Usuario
                       .WithOne() // Relación uno a uno
-                      .HasForeignKey<Familia>(g => g.UsuarioAdministradorId) // Clave foránea explícita
+                      .HasForeignKey<Grupo>(g => g.UsuarioAdministradorId) // Clave foránea explícita
                       .OnDelete(DeleteBehavior.Restrict); // No permite eliminar al administrador si el grupo está activo
 
                 // Relación con UsuarioAdministrador (uno a uno)
                 entity.HasMany(g => g.SubCategorias) // Relación con Usuario
                       .WithOne() // Relación uno a uno
-                      .HasForeignKey(g => g.FamiliaId) // Clave foránea explícita
+                      .HasForeignKey(g => g.GrupoGastoId) // Clave foránea explícita
                       .OnDelete(DeleteBehavior.Restrict); 
 
                 // Configuración de propiedades adicionales
-                entity.Property(g => g.Apellido)
+                entity.Property(g => g.Nombre)
                       .HasMaxLength(100);
 
                 entity.Property(g => g.Descripcion)
                       .HasMaxLength(250);
 
-                entity.HasIndex(user => user.Apellido).IsUnique();
+                entity.HasIndex(user => user.Nombre).IsUnique();
 
                 entity.Property(g => g.FechaDeCreacion)
                       .HasDefaultValueSql("GETUTCDATE()");
@@ -180,22 +180,15 @@ namespace Repositorio
 
         protected private void ConfigurarBuilderMiembroFamiliar(ModelBuilder builder)
         {
-            builder.Entity<MiembroFamilia>(entity =>
+            builder.Entity<Usuario>(entity =>
             {
                 // Clave primaria
                 entity.HasKey(m => m.Id);
 
-                // Relación con Usuario
-                entity.HasOne(m => m.Usuario)
-                      .WithMany() // Un Usuario puede estar asociado a varios MiembroFamilia
-                      .HasForeignKey(m => m.UsuarioId)
-                      .OnDelete(DeleteBehavior.Restrict)
-                      .IsRequired(); // Evita eliminar Usuario si tiene miembros asociados
-
                 // Relación con GrupoFamiliar
-                entity.HasOne(m => m.GrupoFamiliar)
-                      .WithMany(g => g.Miembros) // Un GrupoFamiliar tiene múltiples MiembroFamilia
-                      .HasForeignKey(m => m.GrupoFamiliarId)
+                entity.HasOne(m => m.GrupoDeGastos)
+                      .WithMany(g => g.MiembrosGrupoGasto) // Un GrupoFamiliar tiene múltiples MiembroFamilia
+                      .HasForeignKey(m => m.GrupoDeGastosId)
                       .OnDelete(DeleteBehavior.Cascade)
                       .IsRequired(false);
 
@@ -207,6 +200,36 @@ namespace Repositorio
                       .IsRequired();
             });
         }
+
+        //protected private void ConfigurarBuilderMiembroFamiliar(ModelBuilder builder)
+        //{
+        //    builder.Entity<MiembroFamilia>(entity =>
+        //    {
+        //        // Clave primaria
+        //        entity.HasKey(m => m.Id);
+
+        //        // Relación con Usuario
+        //        entity.HasOne(m => m.Usuario)
+        //              .WithMany() // Un Usuario puede estar asociado a varios MiembroFamilia
+        //              .HasForeignKey(m => m.UsuarioId)
+        //              .OnDelete(DeleteBehavior.Restrict)
+        //              .IsRequired(); // Evita eliminar Usuario si tiene miembros asociados
+
+        //        // Relación con GrupoFamiliar
+        //        entity.HasOne(m => m.GrupoGasto)
+        //              .WithMany(g => g.MiembrosGrupoGasto) // Un GrupoFamiliar tiene múltiples MiembroFamilia
+        //              .HasForeignKey(m => m.GrupoGastoId)
+        //              .OnDelete(DeleteBehavior.Cascade)
+        //              .IsRequired(false);
+
+        //        // Configuración de propiedades
+        //        entity.Property(m => m.FechaDeUnion)
+        //        .IsRequired(false);
+
+        //        entity.Property(m => m.Activo)
+        //              .IsRequired();
+        //    });
+        //}
 
         protected private void ConfigurarBuilderCategoria(ModelBuilder builder)
         {
@@ -237,9 +260,9 @@ namespace Repositorio
 
                 // Relación entre Subcategoría y Familia (una subcategoría pertenece a una familia)
                     entity
-                    .HasOne(s => s.Familia)
+                    .HasOne(s => s.GrupoGasto)
                     .WithMany(f => f.SubCategorias)
-                    .HasForeignKey(s => s.FamiliaId);
+                    .HasForeignKey(s => s.GrupoGastoId);
 
                 // Relación entre Subcategoría y Categoría Principal (una subcategoría pertenece a una categoría principal)
                 entity
@@ -308,8 +331,8 @@ namespace Repositorio
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Notificacion> Notificaciones { get; set; }
         public DbSet<SolicitudUnionFamilia> SolcitudesUnionFamilia { get; set; }
-        public DbSet<Familia> Familias { get; set; }
-        public DbSet<MiembroFamilia> MiembrosFamiliares { get; set; }
+        public DbSet<Grupo> GruposDeGasto { get; set; }
+        //public DbSet<MiembroFamilia> MiembrosFamiliares { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<SubCategoria> SubCategorias { get; set; }
         public DbSet<Moneda> Monedas { get; set; }

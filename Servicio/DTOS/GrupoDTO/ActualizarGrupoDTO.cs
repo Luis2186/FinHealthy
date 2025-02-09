@@ -5,14 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Servicio.DTOS.FamiliasDTO
+namespace Servicio.DTOS.GrupoDTO
 {
-    public class ActualizarFamiliaDTO
+    public class ActualizarGrupoDTO
     {
-        [Required(ErrorMessage = "El apellido de la familia es un campo requerido, por favor ingreselo")]
-        public string? Apellido { get; set; }
+        [Required(ErrorMessage = "El nombre del grupo es un campo requerido, por favor ingreselo")]
+        public string? Nombre { get; set; }
         public string? Descripcion { get; set; }
         public bool Activo { get; set; }
         //public List<MiembroFamilia> Miembros { get; set; }
+
+  
     }
 }

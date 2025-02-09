@@ -3,11 +3,11 @@ using Azure;
 using Azure.Core;
 using Dominio;
 using Dominio.Abstracciones;
-using Dominio.Familias;
+using Dominio.Grupos;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Http;
 using Repositorio.Repositorios;
-using Repositorio.Repositorios.R_Familias;
+using Repositorio.Repositorios.R_Grupo;
 using Repositorio.Repositorios.Token;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.Authentication;
@@ -20,22 +20,23 @@ namespace Servicio.Usuarios
     {
         private readonly IMapper _mapper;
         private readonly IRepositorioUsuario _repoUsuario;
-        private readonly IRepositorioMiembroFamilia _repoMiembrosFamilia;
+        private readonly IRepositorioGrupo _repoGrupo;
         private readonly IRepositorioRefreshToken _repoRefreshToken;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ProveedorToken _provedorJwt;
 
         public ServicioUsuario(IRepositorioUsuario repositorioUsuario,
-            IRepositorioMiembroFamilia repositorioMiembroFamilia,
+            //IRepositorioMiembroFamilia repositorioMiembroFamilia,
             IMapper mapper, IUnitOfWork unitOfWork, IRepositorioRefreshToken repoRefreshToken,
-            ProveedorToken provedorJwt)
+            IRepositorioGrupo repoGrupo, ProveedorToken provedorJwt)
         {
             _mapper = mapper;
             _repoUsuario = repositorioUsuario;
-            _repoMiembrosFamilia = repositorioMiembroFamilia;
+            //_repoMiembrosFamilia = repositorioMiembroFamilia;
             _unitOfWork = unitOfWork;
             _provedorJwt = provedorJwt;
             _repoRefreshToken = repoRefreshToken;
+            _repoGrupo = repoGrupo;
         }
         public async Task<Resultado<Usuario>> Actualizar(string id, ActualizarUsuarioDTO usuarioDto)
         {
@@ -61,17 +62,32 @@ namespace Servicio.Usuarios
             return await _repoUsuario.AgregarRol(usuarioId, idRol, nombreRol);
         }
 
-        public async Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> Registrar(CrearUsuarioDTO usuarioDto)
+        public async Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>>
+            Registrar(CrearUsuarioDTO usuarioDto)
         {
+            if(usuarioDto == null) return Resultado<(string, string, string)>.Failure(ErroresUsuario.Datos_Invalidos("Registrar"));
+
             await _unitOfWork.IniciarTransaccionAsync();
 
             Usuario usuario = _mapper.Map<Usuario>(usuarioDto);
 
             var usuarioCreado = await _repoUsuario.CrearAsync(usuario, usuarioDto.Password);
+
+            if (usuarioDto.CrearGrupo)
+            {
+                if(usuarioDto.Grupo == null) return Resultado<(string, string, string)>.Failure(ErroresGrupo.Datos_Invalidos("Registrar"));
+
+                var grupoNuevo = new Grupo(usuario, usuarioDto.Grupo.Nombre ?? "", usuarioDto.Grupo.Descripcion ?? "",
+                    usuarioDto.Grupo.CodigoAcceso ?? "");
+
+                usuario.GrupoDeGastos = grupoNuevo;
+
+                await _repoGrupo.CrearAsync(grupoNuevo);
+            }
             
             if (usuarioCreado.TieneErrores) return Resultado<(string,string,string)>.Failure(usuarioCreado.Errores);
 
-            if (usuarioDto != null && usuarioDto.Rol != null && usuarioDto.Rol.Trim() != "")
+            if (usuarioDto.Rol != null && usuarioDto.Rol.Trim() != "")
             {
                 var rol = await _repoUsuario.BuscarRol("", usuarioDto.Rol.Trim());
 
@@ -80,25 +96,11 @@ namespace Servicio.Usuarios
                 var rolesAgregados = await _repoUsuario.AgregarRol(usuario.Id,rol.Valor.Id, rol.Valor.Name);
 
                 if(rolesAgregados.TieneErrores) return Resultado<(string,string,string)>.Failure(rolesAgregados.Errores);
-            } 
-
-            //var rolesUsuario = await ObtenerRolesPorUsuario(usuario.Id);
-            //var listaRolesUsuarios = rolesUsuario.Valor.ToList();
+            }
 
             var (accessToken, refreshToken) = await _provedorJwt.GenerarTokens(usuario,null!);
 
-            //usuario.AsignarRoles(listaRolesUsuarios);
             usuario.AsignarToken(accessToken, refreshToken);
-
-            var miembro = new MiembroFamilia();
-            miembro = miembro.ConvertirUsuarioEnMiembro(usuarioCreado.Valor);
-            var crearMiembro = await _repoMiembrosFamilia.CrearAsync(miembro);
-
-            if (crearMiembro.TieneErrores)
-            {
-                _unitOfWork.RevertirTransaccionAsync();
-                return Resultado<(string , string ,string)>.Failure(crearMiembro.Errores);
-            }
 
             await _unitOfWork.ConfirmarTransaccionAsync();
             return Resultado<(string, string,string)>.Success((accessToken, refreshToken,usuario.Id)); ;
@@ -106,8 +108,6 @@ namespace Servicio.Usuarios
 
         public async Task<Resultado<bool>> Eliminar(string id)
         {
-            var miembroFamilia = await _repoMiembrosFamilia.ObtenerPorUsuarioId(id);
-            if (miembroFamilia.EsCorrecto) await _repoMiembrosFamilia.EliminarAsync(miembroFamilia.Valor.Id);
            return await _repoUsuario.EliminarAsync(id);
         }
 
@@ -120,7 +120,7 @@ namespace Servicio.Usuarios
         {
             return await _repoUsuario.ObtenerRolesPorUsuario(usuarioId);
         }
-
+    
         public async Task<Resultado<IEnumerable<Usuario>>> ObtenerTodos()
         {
             var usuarios = await _repoUsuario.ObtenerTodosAsync();
@@ -159,20 +159,17 @@ namespace Servicio.Usuarios
         {
             var usuarioBuscado = await _repoUsuario.ObtenerPorEmailAsync(usuario.Email);
 
-            if (usuarioBuscado.TieneErrores) return Resultado<(string, string,string)>.Failure(new Error("Usuario.Login", "El usuario y/o la contraseña son incorrectos."));
+            if (usuarioBuscado.TieneErrores || usuarioBuscado.Valor == null) return Resultado<(string, string, string)>.Failure(ErroresUsuario.Login("Login"));
 
-            var usuarioLogueadoResultado = await _repoUsuario.Login(usuarioBuscado.Valor, usuario.Password);
+            var usuarioLogueadoResultado = await _repoUsuario.Login(usuarioBuscado.Valor, usuario.Password ?? "");
 
             if(usuarioLogueadoResultado.TieneErrores) return Resultado<(string,string,string)>.Failure(usuarioLogueadoResultado.Errores);
 
             var usuarioLogueado = usuarioLogueadoResultado.Valor;
-            if(usuarioLogueado == null ) return Resultado<(string, string, string)>.Failure(new Error("Usuario.Login", "Usuario inexistente"));
             
-            //var rolesUsuario = await ObtenerRolesPorUsuario(usuarioLogueado.Id);
-            //var listaRolesUsuario = rolesUsuario.Valor.ToList();
-            var (accessToken, refreshToken) = await _provedorJwt.GenerarTokens(usuarioLogueado!,null!);
+            if(usuarioLogueado == null ) return Resultado<(string, string, string)>.Failure(ErroresUsuario.UsuarioInexistente("Login"));
 
-            //usuarioLogueado.AsignarRoles(listaRolesUsuario);
+            var (accessToken, refreshToken) = await _provedorJwt.GenerarTokens(usuarioLogueado!,null!);
 
             usuarioLogueado.AsignarToken(accessToken, refreshToken);
 
@@ -189,14 +186,14 @@ namespace Servicio.Usuarios
             var resultadoToken = await _repoRefreshToken.ObtenerPorToken(refreshToken);
             var tokenAnterior = resultadoToken.Valor;
 
-            if (resultadoToken.TieneErrores || tokenAnterior!.TokenExpirado) return Resultado<(string, string, string)>.Failure(new Error("RefreshToken", "Refresh token inválido o expirado."));
+            if (resultadoToken.TieneErrores || tokenAnterior!.TokenExpirado) return Resultado<(string, string, string)>.Failure(ErroresToken.Invalido("RefreshToken"));
 
-            var resultadoUsuario = await _repoUsuario.ObtenerPorIdAsync(tokenAnterior.UsuarioId);
+            var resultadoUsuario = await _repoUsuario.ObtenerPorIdAsync(tokenAnterior.UsuarioId ?? "" );
 
-            if (resultadoUsuario.TieneErrores) return Resultado<(string, string, string)>.Failure(new Error("RefreshToken", "Usuario no encontrado."));
+            if (resultadoUsuario.TieneErrores) return Resultado<(string, string, string)>.Failure(resultadoUsuario.Errores);
 
             var usuarioLogueado = resultadoUsuario.Valor;
-            if (usuarioLogueado == null) return Resultado<(string, string, string)>.Failure(new Error("RefreshToken", "Usuario inexistente"));
+            if (usuarioLogueado == null) return Resultado<(string, string, string)>.Failure(ErroresUsuario.UsuarioInexistente("RefreshToken"));
 
             var (nuevoAccessToken, nuevoRefreshToken) = await _provedorJwt.GenerarTokens(usuarioLogueado, tokenAnterior);
 
@@ -209,7 +206,7 @@ namespace Servicio.Usuarios
         {
             var resultadoRefreshToken = await _repoRefreshToken.ObtenerPorToken(refreshToken);
             
-            if (resultadoRefreshToken.TieneErrores) return Resultado<bool>.Failure(new Error("RevocarRefreshToken", "Token invalido o expirado"));
+            if (resultadoRefreshToken.TieneErrores || resultadoRefreshToken.Valor == null) return Resultado<bool>.Failure(ErroresToken.Invalido("RevocarRefreshToken"));
 
             var resultadoTokenRevocado = await _repoRefreshToken.Revocar(resultadoRefreshToken.Valor);
 

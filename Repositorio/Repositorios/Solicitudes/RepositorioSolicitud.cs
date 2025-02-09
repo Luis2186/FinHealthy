@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dominio.Errores;
-using Dominio.Familias;
 
 namespace Repositorio.Repositorios.Solicitudes
 {
@@ -34,7 +33,7 @@ namespace Repositorio.Repositorios.Solicitudes
                 solicitud.Aceptar();
 
                 _dbContext.SolcitudesUnionFamilia.Update(solicitud);
-                var resultadoActualizado = await _dbContext.SaveChangesAsync() == 1;
+                var resultadoActualizado = await _dbContext.SaveChangesAsync() >= 1;
 
                 if (!resultadoActualizado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeActualizacion("Solicitud"));
 
@@ -59,7 +58,7 @@ namespace Repositorio.Repositorios.Solicitudes
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
                 _dbContext.SolcitudesUnionFamilia.Update(model);
-                var resultadoActualizado = await _dbContext.SaveChangesAsync() == 1;
+                var resultadoActualizado = await _dbContext.SaveChangesAsync() >= 1;
 
                 if (!resultadoActualizado) return Resultado<SolicitudUnionFamilia>.Failure(ErroresCrud.ErrorDeActualizacion("Solicitud"));
 
@@ -80,7 +79,7 @@ namespace Repositorio.Repositorios.Solicitudes
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
                 await _dbContext.SolcitudesUnionFamilia.AddAsync(model);
-                var resultadoCreado = await _dbContext.SaveChangesAsync() == 1;
+                var resultadoCreado = await _dbContext.SaveChangesAsync() >= 1;
 
                 if (!resultadoCreado) return Resultado<SolicitudUnionFamilia>.Failure(ErroresCrud.ErrorDeCreacion("Solicitud"));
 
@@ -101,7 +100,7 @@ namespace Repositorio.Repositorios.Solicitudes
                 if (solicitud.TieneErrores) return Resultado<bool>.Failure(solicitud.Errores);
 
                 _dbContext.SolcitudesUnionFamilia.Remove(solicitud.Valor);
-                var resultadoEliminado = await _dbContext.SaveChangesAsync() == 1;
+                var resultadoEliminado = await _dbContext.SaveChangesAsync() >= 1;
 
                 if (!resultadoEliminado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeEliminacion("Solicitud"));
 
@@ -175,7 +174,7 @@ namespace Repositorio.Repositorios.Solicitudes
                 solicitud.Rechazar();
 
                 _dbContext.SolcitudesUnionFamilia.Update(solicitud);
-                var resultadoActualizado = await _dbContext.SaveChangesAsync() == 1;
+                var resultadoActualizado = await _dbContext.SaveChangesAsync() >= 1;
 
                 if (!resultadoActualizado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeActualizacion("Solicitud"));
 

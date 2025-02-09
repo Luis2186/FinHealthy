@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Servicio.DTOS.GrupoDTO;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -20,10 +21,15 @@ namespace Servicio.DTOS.UsuariosDTO
         [DataType(DataType.Password)]
         public string? ConfirmacionPassword { get; set; }
         public string? Rol { get; set; }
+        public bool CrearGrupo { get; set; }
+        public CrearGrupoDTO? Grupo { get; set; }
 
         public CrearUsuarioDTO()
         {
             FechaDeRegistro = DateTime.Now;
+            CrearGrupo = false;
         }
+
+     
     }
 }

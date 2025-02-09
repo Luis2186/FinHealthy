@@ -12,8 +12,8 @@ namespace Servicio.DTOS.UsuariosDTO
         [Required(ErrorMessage = "El Id del usuario es obligatorio.")]
         [StringLength(100, ErrorMessage = "El ID del usuario no puede tener más de 100 caracteres.")]
         public string? idUsuario { get; set; } = string.Empty;
-        [StringLength(50, ErrorMessage = "El nombre del rol no puede tener más de 50 caracteres.")]
         public string? IdRol { get; set; } = string.Empty;
+        [StringLength(50, ErrorMessage = "El nombre del rol no puede tener más de 50 caracteres.")]
         public string? NombreRol { get; set; } = string.Empty;
 
 

@@ -1,6 +1,5 @@
 ﻿using Dominio;
 using Dominio.Errores;
-using Dominio.Familias;
 using Dominio.Gastos;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -33,7 +32,7 @@ namespace Repositorio.Repositorios.Monedas
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
                 _dbContext.Monedas.Update(model);
-                var resultadoActualizado = await _dbContext.SaveChangesAsync() == 1;
+                var resultadoActualizado = await _dbContext.SaveChangesAsync() >= 1;
 
                 if (!resultadoActualizado) return Resultado<Moneda>.Failure(ErroresCrud.ErrorDeActualizacion("Moneda"));
 
@@ -54,7 +53,7 @@ namespace Repositorio.Repositorios.Monedas
                 if (resultadoValidacion.TieneErrores) return resultadoValidacion;
 
                 await _dbContext.Monedas.AddAsync(model);
-                var resultadoCreado = await _dbContext.SaveChangesAsync() == 1;
+                var resultadoCreado = await _dbContext.SaveChangesAsync() >= 1;
 
                 if (!resultadoCreado) return Resultado<Moneda>.Failure(ErroresCrud.ErrorDeCreacion("Moneda"));
 
@@ -75,7 +74,7 @@ namespace Repositorio.Repositorios.Monedas
                 if (moneda.TieneErrores) return Resultado<bool>.Failure(moneda.Errores);
 
                 _dbContext.Monedas.Remove(moneda.Valor);
-                var resultadoEliminado = await _dbContext.SaveChangesAsync() == 1;
+                var resultadoEliminado = await _dbContext.SaveChangesAsync() >= 1;
 
                 if (!resultadoEliminado) return Resultado<bool>.Failure(ErroresCrud.ErrorDeEliminacion("Moneda"));
 

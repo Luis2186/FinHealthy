@@ -1,13 +1,12 @@
 ﻿using AutoMapper;
-using Dominio.Familias;
 using Dominio.Gastos;
+using Dominio.Grupos;
 using Dominio.Notificaciones;
 using Dominio.Solicitudes;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.SignalR;
 using Servicio.DTOS.CategoriasDTO;
-using Servicio.DTOS.FamiliasDTO;
-using Servicio.DTOS.MiembrosFamiliaDTO;
+using Servicio.DTOS.GrupoDTO;
 using Servicio.DTOS.SolicitudesDTO;
 using Servicio.DTOS.SubCategoriasDTO;
 using Servicio.DTOS.UsuariosDTO;
@@ -26,8 +25,8 @@ namespace Servicio.Automapper
 
             MapearUsuarios();
             MapearNotificaciones();
-            MapearFamilias();
-            MapearMiembros();
+            MapearGrupos();
+            //MapearMiembros();
             MapearSolicitudes();
             MapearCategorias();
             MapearSubCategorias();
@@ -84,24 +83,25 @@ namespace Servicio.Automapper
             CreateMap<Notificacion, NotificacionDTO>();
             CreateMap<NotificacionDTO, Notificacion>();
         }
-        public void MapearFamilias()
+        public void MapearGrupos()
         {
-            CreateMap<Familia, CrearFamiliaDTO>().ReverseMap();
-            CreateMap<Familia, ActualizarFamiliaDTO>().ReverseMap();
+            CreateMap<Grupo, CrearGrupoDTO>().ReverseMap();
+
+            CreateMap<Grupo, ActualizarGrupoDTO>().ReverseMap();
             
-            CreateMap<Familia, FamiliaDTO>()
-                .ForMember(dest => dest.Miembros, opt => opt.MapFrom(src => src.Miembros))
+            CreateMap<Grupo, GrupoDTO>()
+                .ForMember(dest => dest.Miembros, opt => opt.MapFrom(src => src.MiembrosGrupoGasto))
                 .ReverseMap();
         }
 
-        public void MapearMiembros()
-        {
-            CreateMap<MiembroFamilia, CrearMiembroFamiliaDTO>().ReverseMap();
-            CreateMap<MiembroFamilia, ActualizarMiembroFamiliaDTO>().ReverseMap();
-            CreateMap<MiembroFamilia, MiembroFamiliaDTO>()
-                .ForMember(dest => dest.Usuario, opt => opt.MapFrom(src => src.Usuario))
-                .ReverseMap();
-        }
+        //public void MapearMiembros()
+        //{
+        //    CreateMap<MiembroFamilia, CrearMiembroFamiliaDTO>().ReverseMap();
+        //    CreateMap<MiembroFamilia, ActualizarMiembroFamiliaDTO>().ReverseMap();
+        //    CreateMap<MiembroFamilia, MiembroFamiliaDTO>()
+        //        .ForMember(dest => dest.Usuario, opt => opt.MapFrom(src => src.Usuario))
+        //        .ReverseMap();
+        //}
 
         public void MapearSolicitudes()
         {
@@ -119,12 +119,12 @@ namespace Servicio.Automapper
             CreateMap<SubCategoriaDTO, ActualizarCategoriaDTO>();
 
             CreateMap<SubCategoria, SubCategoriaDTO>()
-                .ForMember(cat => cat.FamiliaId, opt => opt.MapFrom(src => src.Familia.Id))
+                .ForMember(cat => cat.FamiliaId, opt => opt.MapFrom(src => src.GrupoGasto.Id))
                 .ForMember(cat => cat.CategoriaId, opt => opt.MapFrom(src => src.Categoria.Id))
                 .ReverseMap();
 
             CreateMap<SubCategoria, ActualizarCategoriaDTO>()
-            .ForMember(cat => cat.FamiliaId, opt => opt.MapFrom(src => src.Familia.Id))
+            .ForMember(cat => cat.FamiliaId, opt => opt.MapFrom(src => src.GrupoGasto.Id))
             .ForMember(cat => cat.CategoriaId, opt => opt.MapFrom(src => src.Categoria.Id))
             .ReverseMap();
         }

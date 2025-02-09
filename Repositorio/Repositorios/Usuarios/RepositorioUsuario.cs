@@ -121,7 +121,7 @@ namespace Repositorio.Repositorios.Usuarios
 
                 if (rolBuscado == null) rolBuscado = await _roleManager.FindByNameAsync(rolNombre);
 
-                if (rolBuscado == null) return Resultado<IdentityRole>.Failure(ErroresUsuario.RolNoEncontrado);
+                if (rolBuscado == null) return Resultado<IdentityRole>.Failure(ErroresUsuario.RolNoEncontrado("BuscarRol"));
                 
                 return Resultado<IdentityRole>.Success(rolBuscado);
             }
@@ -146,7 +146,7 @@ namespace Repositorio.Repositorios.Usuarios
             {
                 var usuarioBuscado= await ObtenerPorEmailAsync(model.Email);
 
-                if (usuarioBuscado.EsCorrecto) return Resultado<Usuario>.Failure(ErroresUsuario.EmailExistente);
+                if (usuarioBuscado.EsCorrecto) return Resultado<Usuario>.Failure(ErroresUsuario.EmailExistente("CrearAsync"));
 
                 var usuarioCreado = await _userManager.CreateAsync(model, password);
                
@@ -171,7 +171,7 @@ namespace Repositorio.Repositorios.Usuarios
         {
             var usuario = await _userManager.FindByIdAsync(id);
 
-            if (usuario == null) return Resultado<bool>.Failure(ErroresUsuario.IdInexistente);
+            if (usuario == null) return Resultado<bool>.Failure(ErroresUsuario.IdInexistente("EliminarAsync"));
 
             try
             {
@@ -210,7 +210,7 @@ namespace Repositorio.Repositorios.Usuarios
                     return Resultado<Usuario>.Success(usuario);
                 }
 
-                return Resultado<Usuario>.Failure(ErroresUsuario.CredencialesInvalidas);
+                return Resultado<Usuario>.Failure(ErroresUsuario.CredencialesInvalidas("Login"));
 
             }
             catch (Exception ex)
@@ -227,7 +227,7 @@ namespace Repositorio.Repositorios.Usuarios
 
                 if (usuarioBuscado == null)
                 {
-                    return Resultado<Usuario>.Failure(ErroresUsuario.EmailInexistente);
+                    return Resultado<Usuario>.Failure(ErroresUsuario.EmailInexistente("ObtenerPorEmailAsync"));
                 }
 
                 return Resultado<Usuario>.Success(usuarioBuscado);
@@ -246,8 +246,12 @@ namespace Repositorio.Repositorios.Usuarios
 
                 if (usuarioBuscado == null)
                 {
-                    return Resultado<Usuario>.Failure(ErroresUsuario.IdInexistente);
+                    return Resultado<Usuario>.Failure(ErroresUsuario.IdInexistente("ObtenerPorIdAsync"));
                 }
+
+                // Obtener los roles del usuario
+                var roles = await _userManager.GetRolesAsync(usuarioBuscado);
+                usuarioBuscado.Roles = roles.ToList();
 
                 return Resultado<Usuario>.Success(usuarioBuscado);
             }
@@ -286,9 +290,9 @@ namespace Repositorio.Repositorios.Usuarios
         {
             try
             {
-                var usuarios = _userManager.Users
+                var usuarios = await _userManager.Users
                     .Where(user => user.UserName.ToLower() != "sys_adm")
-                    .ToList();
+                    .ToListAsync();
 
                 return Resultado<IEnumerable<Usuario>>.Success(usuarios);
             }
@@ -308,7 +312,7 @@ namespace Repositorio.Repositorios.Usuarios
             {
                 var claims = await _userManager.GetClaimsAsync(usuarioBuscado.Valor);
 
-                if (!claims.Any()) return Resultado<IEnumerable<Claim>>.Failure(ErroresUsuario.UsuarioSinClaims);
+                if (!claims.Any()) return Resultado<IEnumerable<Claim>>.Failure(ErroresUsuario.UsuarioSinClaims("ObtenerTodosLosClaim"));
                 
                 return Resultado<IEnumerable<Claim>>.Success(claims);
             }
@@ -326,7 +330,7 @@ namespace Repositorio.Repositorios.Usuarios
                     .Select(r => r.Name)
                     .ToListAsync();
 
-                if (!roles.Any()) return Resultado<IEnumerable<string>>.Failure(ErroresUsuario.UsuarioSinRoles);
+                if (!roles.Any()) return Resultado<IEnumerable<string>>.Failure(ErroresUsuario.UsuarioSinRoles("ObtenerTodosLosRoles"));
 
                 return Resultado<IEnumerable<string>>.Success(roles);
             }
