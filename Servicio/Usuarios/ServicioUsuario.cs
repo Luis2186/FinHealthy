@@ -26,13 +26,11 @@ namespace Servicio.Usuarios
         private readonly ProveedorToken _provedorJwt;
 
         public ServicioUsuario(IRepositorioUsuario repositorioUsuario,
-            //IRepositorioMiembroFamilia repositorioMiembroFamilia,
             IMapper mapper, IUnitOfWork unitOfWork, IRepositorioRefreshToken repoRefreshToken,
             IRepositorioGrupo repoGrupo, ProveedorToken provedorJwt)
         {
             _mapper = mapper;
             _repoUsuario = repositorioUsuario;
-            //_repoMiembrosFamilia = repositorioMiembroFamilia;
             _unitOfWork = unitOfWork;
             _provedorJwt = provedorJwt;
             _repoRefreshToken = repoRefreshToken;

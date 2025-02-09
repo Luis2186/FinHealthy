@@ -41,7 +41,7 @@ namespace Repositorio.Repositorios.Notificaciones
             {
                 var notificacionActualizar = await BuscarNotificacion(notificacionId);
 
-                if (notificacionActualizar.TieneErrores) return Resultado<bool>.Failure(notificacionActualizar.Errores);
+                if (notificacionActualizar.TieneErrores || notificacionActualizar.Valor == null) return Resultado<bool>.Failure(notificacionActualizar.Errores);
 
                 var notificacion = notificacionActualizar.Valor;
 

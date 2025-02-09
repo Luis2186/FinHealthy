@@ -13,8 +13,8 @@ namespace Servicio.S_Grupos
     {
         public Task<Resultado<GrupoDTO>> ObtenerGrupoPorId(int id);
         public Task<Resultado<IEnumerable<GrupoDTO>>> ObtenerTodosLosGrupos();
-        public Task<Resultado<GrupoDTO>> CrearGrupo(CrearGrupoDTO familiaCreacionDTO);
-        public Task<Resultado<GrupoDTO>> ActualizarGrupo(int familiaId,ActualizarGrupoDTO familiaActualizacionDTO);
+        public Task<Resultado<GrupoDTO>> CrearGrupo(CrearGrupoDTO grupoCreacionDTO);
+        public Task<Resultado<GrupoDTO>> ActualizarGrupo(int grupoId,ActualizarGrupoDTO grupoActualizacionDTO);
         public Task<Resultado<bool>> EliminarGrupo(int id);
         public Task<Resultado<bool>> AceptarSolicitudIngresoAGrupo(int idSolicitud);
         public Task<Resultado<bool>> RechazarSolicitudIngresoAGrupo(int idSolicitud);

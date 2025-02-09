@@ -17,12 +17,12 @@ namespace FinHealthAPI.Controllers
     [Route("/solicitud")]
     public class SolicitudController : Controller
     {
-        private readonly IServicioGrupos _servicioFamilia;
+        private readonly IServicioGrupos _servicioGrupo;
         private readonly IMapper _mapper;
 
-        public SolicitudController(IServicioGrupos servicioFamilia, IMapper mapper)
+        public SolicitudController(IServicioGrupos servicioGrupo, IMapper mapper)
         {
-            _servicioFamilia = servicioFamilia;
+            _servicioGrupo = servicioGrupo;
             _mapper = mapper;
         }
 
@@ -31,7 +31,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("porAdmin")]
         public async Task<ActionResult<SolicitudDTO>> ObtenerSolicitudesPorAdministrador([FromBody] PaginacionSolicitudDTO solicitudes)
         {
-            var resultado = await _servicioFamilia.ObtenerSolicitudesPorAdministrador(solicitudes.IdAdministrador,solicitudes.Estado);
+            var resultado = await _servicioGrupo.ObtenerSolicitudesPorAdministrador(solicitudes.IdAdministrador,solicitudes.Estado);
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -49,9 +49,9 @@ namespace FinHealthAPI.Controllers
 
         // Obtener un usuario por su ID
         //[HttpGet("obtener/{solicitudId}")]
-        //public async Task<ActionResult<FamiliaDTO>> ObtenerSolicitudPorId(int solicitudId)
+        //public async Task<ActionResult<GrupoDTO>> ObtenerSolicitudPorId(int solicitudId)
         //{
-        //    var resultado = await _servicioFamilia.ObtenerFamiliaPorId(familiaId);
+        //    var resultado = await _servicioGrupo.ObtenerGrupoPorId(grupoId);
 
         //    if (resultado.TieneErrores)
         //    {
@@ -64,7 +64,7 @@ namespace FinHealthAPI.Controllers
         //            Extensions = {
         //                ["errors"] = resultado.Errores
         //            }
-        //        });  // Devuelve 404 si no se encuentra la familia
+        //        });  // Devuelve 404 si no se encuentra la grupo
         //    }
 
         //    return Ok(resultado.Valor);  // Devuelve el usuario con estado 200 OK
@@ -93,7 +93,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioFamilia.EnviarSolicitudIngresoAGrupo(enviarSolicitudDTO);
+            var resultado = await _servicioGrupo.EnviarSolicitudIngresoAGrupo(enviarSolicitudDTO);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
@@ -115,7 +115,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("aceptar/{idSolicitud}")]
-        public async Task<ActionResult<bool>> AceptarSolicitudDeUnionFamilia(int idSolicitud)
+        public async Task<ActionResult<bool>> AceptarSolicitudDeUnionGrupo(int idSolicitud)
         {
             if (!ModelState.IsValid)
             {
@@ -136,7 +136,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioFamilia.AceptarSolicitudIngresoAGrupo(idSolicitud);
+            var resultado = await _servicioGrupo.AceptarSolicitudIngresoAGrupo(idSolicitud);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
@@ -158,7 +158,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("porCodigo")]
-        public async Task<ActionResult<bool>> UnirseConCodigoAFamilia([FromBody] UnirseAGrupoDTO solicitud)
+        public async Task<ActionResult<bool>> UnirseConCodigoAGrupo([FromBody] UnirseAGrupoDTO solicitud)
         {
             if (!ModelState.IsValid)
             {
@@ -179,15 +179,15 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioFamilia.IngresoAGrupoConCodigo(solicitud);
+            var resultado = await _servicioGrupo.IngresoAGrupoConCodigo(solicitud);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
             {
                 return Conflict(new ProblemDetails
                 {
-                    Title = "Error al unirse a la familia por medio del codigo",
-                    Detail = "Ah ocurrido un error al intentar unirse a la familia por medio del codigo",
+                    Title = "Error al unirse al grupo por medio del codigo",
+                    Detail = "Ah ocurrido un error al intentar unirse al grupo por medio del codigo",
                     Status = 404,
                     Instance = HttpContext.Request.Path,
                     Extensions = {

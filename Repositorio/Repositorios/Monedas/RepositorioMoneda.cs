@@ -112,10 +112,10 @@ namespace Repositorio.Repositorios.Monedas
         {
             try
             {
-                var familias = await _dbContext.Monedas
+                var monedas = await _dbContext.Monedas
                     .ToListAsync();
 
-                return Resultado<IEnumerable<Moneda>>.Success(familias);
+                return Resultado<IEnumerable<Moneda>>.Success(monedas);
             }
             catch (Exception ex)
             {

@@ -10,7 +10,6 @@ using Repositorio.Repositorios.Solicitudes;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.DTOS.GrupoDTO;
 using Servicio.DTOS.SolicitudesDTO;
-using System.Transactions;
 
 namespace Servicio.S_Grupos
 {
@@ -18,18 +17,15 @@ namespace Servicio.S_Grupos
     {
         private readonly IRepositorioUsuario _repoUsuarios;
         private readonly IRepositorioGrupo _repoGrupo;
-        //private readonly IRepositorioMiembroFamilia _repoMiembroFamilia;
         private readonly IRepositorioSolicitud _repositorioSolicitud;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public ServicioGrupos(IRepositorioGrupo repoGrupoFamilia,
-                               //IRepositorioMiembroFamilia repoMiembroFamilia,
+        public ServicioGrupos(IRepositorioGrupo repoGrupo,
                                IRepositorioUsuario repositorioUsuario,
                                IRepositorioSolicitud repositorioSolicitud,
                                IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _repoGrupo = repoGrupoFamilia;
-            //_repoMiembroFamilia = repoMiembroFamilia;
+            _repoGrupo = repoGrupo;
             _repoUsuarios = repositorioUsuario;
             _repositorioSolicitud = repositorioSolicitud;
             _unitOfWork = unitOfWork;
@@ -44,19 +40,19 @@ namespace Servicio.S_Grupos
 
                 if (solicitudBuscada.TieneErrores) return Resultado<bool>.Failure(solicitudBuscada.Errores);
 
-                SolicitudUnionFamilia solicitudParaAceptar = solicitudBuscada.Valor;
+                SolicitudUnionGrupo solicitudParaAceptar = solicitudBuscada.Valor;
 
                 if (solicitudParaAceptar.Estado != "Pendiente") return Resultado<bool>.Failure(ErroresSolicitud.Estado_No_Es_Pendiente);
 
-                var familiaAdmin = await _repoGrupo.ObtenerGrupoPorIdAdministrador(solicitudParaAceptar.UsuarioAdministradorGrupoId);
+                var grupoAdmin = await _repoGrupo.ObtenerGrupoPorIdAdministrador(solicitudParaAceptar.UsuarioAdministradorGrupoId);
                 
-                if(familiaAdmin.TieneErrores) return Resultado<bool>.Failure(familiaAdmin.Errores);
+                if(grupoAdmin.TieneErrores) return Resultado<bool>.Failure(grupoAdmin.Errores);
 
                 var solicitudAceptada =await _repositorioSolicitud.AceptarSolicitud(idSolicitud);
 
                 if (solicitudAceptada.TieneErrores) return Resultado<bool>.Failure(solicitudAceptada.Errores);
 
-                var usuarioIngresado =await IngresarAFamilia(familiaAdmin.Valor.Id, solicitudParaAceptar.UsuarioSolicitanteId);
+                var usuarioIngresado =await IngresarAGrupo(grupoAdmin.Valor.Id, solicitudParaAceptar.UsuarioSolicitanteId);
 
                 if(usuarioIngresado.EsCorrecto)
                 {              
@@ -67,58 +63,68 @@ namespace Servicio.S_Grupos
             }
             catch (Exception ex)
             {
-                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.AceptarSolicitudIngresoAFamilia", ex.Message));
+                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.AceptarSolicitudIngresoAGrupo", ex.Message));
             }
         }
 
-        public async Task<Resultado<GrupoDTO>> ActualizarGrupo(int familiaId,ActualizarGrupoDTO familiaActDTO)
+        public async Task<Resultado<GrupoDTO>> ActualizarGrupo(int grupoId,ActualizarGrupoDTO grupoActDTO)
         {
             try
             {
-                var familiaBuscada = await _repoGrupo.ObtenerPorIdAsync(familiaId);
+                var grupoBuscado = await _repoGrupo.ObtenerPorIdAsync(grupoId);
 
-                if (familiaBuscada.TieneErrores) return Resultado<GrupoDTO>.Failure(familiaBuscada.Errores);
+                if (grupoBuscado.TieneErrores) return Resultado<GrupoDTO>.Failure(grupoBuscado.Errores);
 
-                _mapper.Map(familiaActDTO, familiaBuscada.Valor); // Actualizar el usuario con el DTO
+                _mapper.Map(grupoActDTO, grupoBuscado.Valor); // Actualizar el usuario con el DTO
 
-                var resultado = await _repoGrupo.ActualizarAsync(familiaBuscada.Valor);
+                var resultado = await _repoGrupo.ActualizarAsync(grupoBuscado.Valor);
 
                 if (resultado.TieneErrores) return Resultado<GrupoDTO>.Failure(resultado.Errores);
 
-                var familiaDTO = _mapper.Map<GrupoDTO>(resultado.Valor);
+                var grupoDTO = _mapper.Map<GrupoDTO>(resultado.Valor);
 
-                return Resultado<GrupoDTO>.Success(familiaDTO);
+                return Resultado<GrupoDTO>.Success(grupoDTO);
             }
             catch (Exception ex)
             {
-                return Resultado<GrupoDTO>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.ActualizarFamilia", ex.Message));
+                return Resultado<GrupoDTO>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.ActualizarGrupo", ex.Message));
             }
         }
 
-        public async Task<Resultado<GrupoDTO>> CrearGrupo(CrearGrupoDTO familiaCreacionDTO)
+        public async Task<Resultado<GrupoDTO>> CrearGrupo(CrearGrupoDTO grupoCreacionDTO)
         {
             try
             {
-                var usuarioAdmin =await _repoUsuarios.ObtenerPorIdAsync(familiaCreacionDTO.UsuarioAdministradorId);
+                await _unitOfWork.IniciarTransaccionAsync();
 
-                if (usuarioAdmin.TieneErrores) return Resultado<GrupoDTO>.Failure(usuarioAdmin.Errores);
+                var usuarioAdmin =await _repoUsuarios.ObtenerPorIdAsync(grupoCreacionDTO.UsuarioAdministradorId);
 
-                var familia = _mapper.Map<Grupo>(familiaCreacionDTO);
+                if (usuarioAdmin.TieneErrores || usuarioAdmin.Valor == null) return Resultado<GrupoDTO>.Failure(usuarioAdmin.Errores);
 
-                familia.UsuarioAdministrador = usuarioAdmin.Valor;
-                familia.EstablecerCodigo(familiaCreacionDTO.CodigoAcceso);
+                var usuarioAdm = usuarioAdmin.Valor;
 
-                var resultado = await _repoGrupo.CrearAsync(familia);
+                var grupo = _mapper.Map<Grupo>(grupoCreacionDTO);
+
+                usuarioAdm.UnirseAGrupo(grupo);
+
+                grupo.UsuarioAdministrador = usuarioAdm;
+                grupo.EstablecerCodigo(grupoCreacionDTO.CodigoAcceso);
+
+                var resultado = await _repoGrupo.CrearAsync(grupo);
+
+                await _repoUsuarios.ActualizarAsync(usuarioAdm);
 
                 if (resultado.TieneErrores) return Resultado<GrupoDTO>.Failure(resultado.Errores);
 
-                var familiaDTO = _mapper.Map<GrupoDTO>(resultado.Valor);
+                var grupoDTO = _mapper.Map<GrupoDTO>(resultado.Valor);
 
-                return Resultado<GrupoDTO>.Success(familiaDTO);
+                await _unitOfWork.ConfirmarTransaccionAsync();
+                return Resultado<GrupoDTO>.Success(grupoDTO);
             }
             catch (Exception ex)
             {
-                return Resultado<GrupoDTO>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.CrearFamilia", ex.Message));
+                await _unitOfWork.RevertirTransaccionAsync();
+                return Resultado<GrupoDTO>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.CrearGrupo", ex.Message));
             }
         }
 
@@ -134,7 +140,7 @@ namespace Servicio.S_Grupos
             }
             catch (Exception ex)
             {
-                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.EliminarFamilia", ex.Message));
+                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.EliminarGrupo", ex.Message));
             }
         }
 
@@ -142,7 +148,7 @@ namespace Servicio.S_Grupos
         {
             try
             {
-                SolicitudUnionFamilia solicitudUnion = _mapper.Map<SolicitudUnionFamilia>(solicitud);
+                SolicitudUnionGrupo solicitudUnion = _mapper.Map<SolicitudUnionGrupo>(solicitud);
 
                 var resultado_usuarioSolicitante = await _repoUsuarios.ObtenerPorIdAsync(solicitud.UsuarioSolicitanteId);
                 var resultado_usuarioAdmin = await _repoUsuarios.ObtenerPorIdAsync(solicitud.UsuarioAdministradorGrupoId);
@@ -150,7 +156,7 @@ namespace Servicio.S_Grupos
                 if (resultado_usuarioSolicitante.TieneErrores) return Resultado<SolicitudDTO>.Failure(new Error("El usuario solicitante no existe"));
                 if (resultado_usuarioAdmin.TieneErrores) return Resultado<SolicitudDTO>.Failure(new Error("El usuario administrador no existe"));
 
-                solicitudUnion.EnviarSolicitudParaUnirseAFamilia(resultado_usuarioSolicitante.Valor, resultado_usuarioAdmin.Valor);
+                solicitudUnion.EnviarSolicitudParaUnirseAGrupo(resultado_usuarioSolicitante.Valor, resultado_usuarioAdmin.Valor);
                 
                 var solicitudEnviada = await _repositorioSolicitud.CrearAsync(solicitudUnion);
 
@@ -163,11 +169,11 @@ namespace Servicio.S_Grupos
             }
             catch (Exception ex)
             {
-                return Resultado<SolicitudDTO>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.EnviarSolicitudIngresoAFamilia", ex.Message));
+                return Resultado<SolicitudDTO>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.EnviarSolicitudIngresoAGrupo", ex.Message));
             }
         }
 
-        private async Task<Resultado<bool>> IngresarAFamilia(int familiaId, string usuarioSolicitante)
+        private async Task<Resultado<bool>> IngresarAGrupo(int grupoId, string usuarioSolicitante)
         {
             try
             {
@@ -179,26 +185,26 @@ namespace Servicio.S_Grupos
 
                 var usuario = resultadoUsuario.Valor;
 
-                var familiaBuscada = await _repoGrupo.ObtenerPorIdAsync(familiaId);
+                var grupoBuscado = await _repoGrupo.ObtenerPorIdAsync(grupoId);
 
-                if (familiaBuscada.TieneErrores) return Resultado<bool>.Failure(familiaBuscada.Errores);
+                if (grupoBuscado.TieneErrores) return Resultado<bool>.Failure(grupoBuscado.Errores);
 
-                Grupo grupo = familiaBuscada.Valor;
+                Grupo grupo = grupoBuscado.Valor;
 
                 usuario.UnirseAGrupo(grupo);
                 
                 var resultadoActualizacionMiembro = await _repoUsuarios.ActualizarAsync(usuario);
 
-                grupo.AgregarMiembroAFamilia(usuario);
-                var resultadoActualizacionFamilia = await _repoGrupo.ActualizarAsync(grupo);
+                grupo.AgregarMiembro(usuario);
+                var resultadoActualizacionGrupo = await _repoGrupo.ActualizarAsync(grupo);
 
-                if (resultadoActualizacionFamilia.EsCorrecto && resultadoActualizacionMiembro.EsCorrecto)
+                if (resultadoActualizacionGrupo.EsCorrecto && resultadoActualizacionMiembro.EsCorrecto)
                 {
                     //await _unitOfWork.ConfirmarTransaccionAsync();
                     return Resultado<bool>.Success(true);
                 }
 
-                var errores = resultadoActualizacionFamilia.Errores.Concat(resultadoActualizacionMiembro.Errores);
+                var errores = resultadoActualizacionGrupo.Errores.Concat(resultadoActualizacionMiembro.Errores);
                 //await _unitOfWork.RevertirTransaccionAsync();
                 return Resultado<bool>.Failure(errores.ToList());
             }
@@ -216,13 +222,13 @@ namespace Servicio.S_Grupos
 
                 if (resultado.TieneErrores) return Resultado<GrupoDTO>.Failure(resultado.Errores);
 
-                var familiaDTO = _mapper.Map<GrupoDTO>(resultado.Valor);
+                var grupoDTO = _mapper.Map<GrupoDTO>(resultado.Valor);
 
-                return Resultado<GrupoDTO>.Success(familiaDTO);
+                return Resultado<GrupoDTO>.Success(grupoDTO);
             }
             catch (Exception ex)
             {
-                return Resultado<GrupoDTO>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.ObtenerFamiliaPorId", ex.Message));
+                return Resultado<GrupoDTO>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.ObtenerGrupoPorId", ex.Message));
             }
         }
 
@@ -234,13 +240,13 @@ namespace Servicio.S_Grupos
 
                 if (resultado.TieneErrores) return Resultado<IEnumerable<GrupoDTO>>.Failure(resultado.Errores);
 
-                var familiasDTO = _mapper.Map<IEnumerable<GrupoDTO>>(resultado.Valor);
+                var gruposDTO = _mapper.Map<IEnumerable<GrupoDTO>>(resultado.Valor);
 
-                return Resultado<IEnumerable<GrupoDTO>>.Success(familiasDTO);
+                return Resultado<IEnumerable<GrupoDTO>>.Success(gruposDTO);
             }
             catch (Exception ex)
             {
-                return Resultado<IEnumerable<GrupoDTO>>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.ObtenerTodasLasFamilias", ex.Message));
+                return Resultado<IEnumerable<GrupoDTO>>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.ObtenerTodasLasGrupos", ex.Message));
             }
         }
 
@@ -253,7 +259,7 @@ namespace Servicio.S_Grupos
 
                 if (solicitudBuscada.TieneErrores) return Resultado<bool>.Failure(solicitudBuscada.Errores);
 
-                SolicitudUnionFamilia solicitudParaRechazar = solicitudBuscada.Valor;
+                SolicitudUnionGrupo solicitudParaRechazar = solicitudBuscada.Valor;
 
                 if (solicitudParaRechazar.Estado != "Pendiente") return Resultado<bool>.Failure(ErroresSolicitud.Estado_No_Es_Pendiente);
 
@@ -266,7 +272,7 @@ namespace Servicio.S_Grupos
             }
             catch (Exception ex)
             {
-                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.RechazarSolicitudIngresoAFamilia", ex.Message));
+                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.RechazarSolicitudIngresoAGrupo", ex.Message));
             }
         }
 
@@ -284,7 +290,7 @@ namespace Servicio.S_Grupos
             }
             catch (Exception ex)
             {
-                return Resultado<IEnumerable<SolicitudDTO>>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.ObtenerTodasLasFamilias", ex.Message));
+                return Resultado<IEnumerable<SolicitudDTO>>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.ObtenerTodasLasGrupos", ex.Message));
             }
         }
 
@@ -292,19 +298,19 @@ namespace Servicio.S_Grupos
         {
             try
             {
-                var familia = await _repoGrupo.ObtenerPorIdAsync(acceso.GrupoGastoId);
+                var grupo = await _repoGrupo.ObtenerPorIdAsync(acceso.GrupoGastoId);
 
-                if (familia.TieneErrores) return Resultado<bool>.Failure(familia.Errores);
+                if (grupo.TieneErrores) return Resultado<bool>.Failure(grupo.Errores);
 
-                var miembroEsIntegrante = await _repoGrupo.MiembroExisteEnElGrupo(familia.Valor.Id, acceso.UsuarioId);
+                var miembroEsIntegrante = await _repoGrupo.MiembroExisteEnElGrupo(grupo.Valor.Id, acceso.UsuarioId);
 
                 if (miembroEsIntegrante.TieneErrores) return Resultado<bool>.Failure(miembroEsIntegrante.Errores);
 
-                var codigoVerificado = familia.Valor.VerificarCodigo(acceso.Codigo);
+                var codigoVerificado = grupo.Valor.VerificarCodigo(acceso.Codigo);
 
                 if(codigoVerificado.TieneErrores) return Resultado<bool>.Failure(codigoVerificado.Errores);
 
-                var usuarioIngresado = await IngresarAFamilia(familia.Valor.Id, acceso.UsuarioId);
+                var usuarioIngresado = await IngresarAGrupo(grupo.Valor.Id, acceso.UsuarioId);
 
                 if (usuarioIngresado.EsCorrecto)
                 {
@@ -315,7 +321,7 @@ namespace Servicio.S_Grupos
             }
             catch (Exception ex)
             {
-                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.IngresoAFamiliaConCodigo", ex.Message));
+                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.IngresoAGrupoConCodigo", ex.Message));
             }
         }
     }

@@ -6,7 +6,6 @@ using Dominio.Solicitudes;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 
 
 namespace Repositorio
@@ -25,9 +24,8 @@ namespace Repositorio
             base.OnModelCreating(builder);
             ConfigurarBuilderUsuario(builder);
             ConfigurarBuilderNotificacion(builder);
-            ConfigurarBuilderSolicitudesGrupoFamiliar(builder);
-            ConfigurarBuilderGrupoFamiliar(builder);
-            ConfigurarBuilderMiembroFamiliar(builder);
+            ConfigurarBuilderSolicitudesGrupo(builder);
+            ConfigurarBuilderGrupo(builder);
             ConfigurarBuilderCategoria(builder);
             ConfigurarBuilderSubCategoria(builder);
             ConfigurarBuilderMetodoDePago(builder);
@@ -35,16 +33,6 @@ namespace Repositorio
             ConfigurarBuilderTipoDeDocumento(builder);
 
             builder.HasDefaultSchema("identity");
-        }
-
-        protected private void ConfigurarBuilderUsuario(ModelBuilder builder)
-        {
-            builder.Entity<Usuario>().Property(user => user.Nombre).HasMaxLength(60).IsRequired();
-            builder.Entity<Usuario>().Property(user => user.Apellido).HasMaxLength(60).IsRequired();
-            builder.Entity<Usuario>().Property(user => user.FechaDeNacimiento).IsRequired();
-            builder.Entity<Usuario>().Property(user => user.FechaDeRegistro).IsRequired();
-            builder.Entity<Usuario>().Property(user => user.Activo).HasDefaultValue(true);
-            builder.Entity<Usuario>().HasIndex(user => user.Email).IsUnique();
         }
 
         protected private void ConfigurarBuilderNotificacion(ModelBuilder builder)
@@ -88,10 +76,10 @@ namespace Repositorio
             });
         }
 
-        protected private void ConfigurarBuilderSolicitudesGrupoFamiliar(ModelBuilder builder)
+        protected private void ConfigurarBuilderSolicitudesGrupo(ModelBuilder builder)
         {
             // Configuración de la tabla Notificaciones
-            builder.Entity<SolicitudUnionFamilia>(entity =>
+            builder.Entity<SolicitudUnionGrupo>(entity =>
             {
                 // Configuración de clave primaria
                 entity.HasKey(n => n.Id);
@@ -133,18 +121,18 @@ namespace Repositorio
             });
         }
 
-        private ISolicitudUnionGrupoFamiliar CrearEstado(string estado)
+        private ISolicitudUnionGrupo CrearEstado(string estado)
         {
             return estado switch
             {
-                "SUGF_Pendiente" => new SUGF_Pendiente(),
-                "SUGF_Aceptada" => new SUGF_Aceptada(),
-                "SUGF_Rechazada" => new SUGF_Rechazada(),
+                "SUGF_Pendiente" => new SUG_Pendiente(),
+                "SUGF_Aceptada" => new SUG_Aceptada(),
+                "SUGF_Rechazada" => new SUG_Rechazada(),
                 _ => throw new ArgumentException("Estado desconocido")
             };
         }
 
-        protected private void ConfigurarBuilderGrupoFamiliar(ModelBuilder builder)
+        protected private void ConfigurarBuilderGrupo(ModelBuilder builder)
         {
             builder.Entity<Grupo>(entity =>
             {
@@ -178,16 +166,23 @@ namespace Repositorio
         
         }
 
-        protected private void ConfigurarBuilderMiembroFamiliar(ModelBuilder builder)
+        protected private void ConfigurarBuilderUsuario(ModelBuilder builder)
         {
+            builder.Entity<Usuario>().Property(user => user.Nombre).HasMaxLength(60).IsRequired();
+            builder.Entity<Usuario>().Property(user => user.Apellido).HasMaxLength(60).IsRequired();
+            builder.Entity<Usuario>().Property(user => user.FechaDeNacimiento).IsRequired();
+            builder.Entity<Usuario>().Property(user => user.FechaDeRegistro).IsRequired();
+            builder.Entity<Usuario>().Property(user => user.Activo).HasDefaultValue(true);
+            builder.Entity<Usuario>().HasIndex(user => user.Email).IsUnique();
+
             builder.Entity<Usuario>(entity =>
             {
                 // Clave primaria
                 entity.HasKey(m => m.Id);
 
-                // Relación con GrupoFamiliar
+                // Relación con Grupo
                 entity.HasOne(m => m.GrupoDeGastos)
-                      .WithMany(g => g.MiembrosGrupoGasto) // Un GrupoFamiliar tiene múltiples MiembroFamilia
+                      .WithMany(g => g.MiembrosGrupoGasto) // Un Grupo tiene múltiples usuarios
                       .HasForeignKey(m => m.GrupoDeGastosId)
                       .OnDelete(DeleteBehavior.Cascade)
                       .IsRequired(false);
@@ -200,36 +195,6 @@ namespace Repositorio
                       .IsRequired();
             });
         }
-
-        //protected private void ConfigurarBuilderMiembroFamiliar(ModelBuilder builder)
-        //{
-        //    builder.Entity<MiembroFamilia>(entity =>
-        //    {
-        //        // Clave primaria
-        //        entity.HasKey(m => m.Id);
-
-        //        // Relación con Usuario
-        //        entity.HasOne(m => m.Usuario)
-        //              .WithMany() // Un Usuario puede estar asociado a varios MiembroFamilia
-        //              .HasForeignKey(m => m.UsuarioId)
-        //              .OnDelete(DeleteBehavior.Restrict)
-        //              .IsRequired(); // Evita eliminar Usuario si tiene miembros asociados
-
-        //        // Relación con GrupoFamiliar
-        //        entity.HasOne(m => m.GrupoGasto)
-        //              .WithMany(g => g.MiembrosGrupoGasto) // Un GrupoFamiliar tiene múltiples MiembroFamilia
-        //              .HasForeignKey(m => m.GrupoGastoId)
-        //              .OnDelete(DeleteBehavior.Cascade)
-        //              .IsRequired(false);
-
-        //        // Configuración de propiedades
-        //        entity.Property(m => m.FechaDeUnion)
-        //        .IsRequired(false);
-
-        //        entity.Property(m => m.Activo)
-        //              .IsRequired();
-        //    });
-        //}
 
         protected private void ConfigurarBuilderCategoria(ModelBuilder builder)
         {
@@ -258,7 +223,7 @@ namespace Repositorio
                 // Clave primaria
                 entity.HasKey(c => c.Id);
 
-                // Relación entre Subcategoría y Familia (una subcategoría pertenece a una familia)
+                // Relación entre Subcategoría y Grupo (una subcategoría pertenece a un grupo)
                     entity
                     .HasOne(s => s.GrupoGasto)
                     .WithMany(f => f.SubCategorias)
@@ -330,9 +295,8 @@ namespace Repositorio
         // DbSet para las notificaciones
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Notificacion> Notificaciones { get; set; }
-        public DbSet<SolicitudUnionFamilia> SolcitudesUnionFamilia { get; set; }
+        public DbSet<SolicitudUnionGrupo> SolcitudesUnionGrupo { get; set; }
         public DbSet<Grupo> GruposDeGasto { get; set; }
-        //public DbSet<MiembroFamilia> MiembrosFamiliares { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<SubCategoria> SubCategorias { get; set; }
         public DbSet<Moneda> Monedas { get; set; }

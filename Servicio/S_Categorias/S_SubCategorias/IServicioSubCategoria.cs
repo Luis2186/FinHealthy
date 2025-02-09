@@ -10,6 +10,6 @@ namespace Servicio.S_Categorias.S_SubCategorias
 {
     public interface IServicioSubCategoria : IServiciosCRUD<SubCategoriaDTO>
     {
-        public Task<Resultado<IEnumerable<SubCategoriaDTO>>> ObtenerSubCategorias(int familiaId,int categoriaId);
+        public Task<Resultado<IEnumerable<SubCategoriaDTO>>> ObtenerSubCategorias(int grupoId,int categoriaId);
     }
 }

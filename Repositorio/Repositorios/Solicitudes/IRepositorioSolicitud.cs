@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace Repositorio.Repositorios.Solicitudes
 {
-    public interface IRepositorioSolicitud : IRepositorioCRUD<SolicitudUnionFamilia>
+    public interface IRepositorioSolicitud : IRepositorioCRUD<SolicitudUnionGrupo>
     {
-        public Task<Resultado<SolicitudUnionFamilia>> ObtenerPorIdAsync(int id);
-        public Task<Resultado<IEnumerable<SolicitudUnionFamilia>>> ObtenerTodosAsync();
+        public Task<Resultado<SolicitudUnionGrupo>> ObtenerPorIdAsync(int id);
+        public Task<Resultado<IEnumerable<SolicitudUnionGrupo>>> ObtenerTodosAsync();
         public Task<Resultado<bool>> AceptarSolicitud(int idSolicitud);
         public Task<Resultado<bool>> RechazarSolicitud(int idSolicitud);
-        public Task<Resultado<IEnumerable<SolicitudUnionFamilia>>> ObtenerTodasPorAdministrador(string idAdministrador,string estado);
+        public Task<Resultado<IEnumerable<SolicitudUnionGrupo>>> ObtenerTodasPorAdministrador(string idAdministrador,string estado);
     }
 }

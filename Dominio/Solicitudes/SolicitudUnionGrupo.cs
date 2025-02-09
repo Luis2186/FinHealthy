@@ -8,35 +8,35 @@ using System.Threading.Tasks;
 
 namespace Dominio.Solicitudes
 {
-    public class SolicitudUnionFamilia : Solicitud
+    public class SolicitudUnionGrupo : Solicitud
     {
         public string? UsuarioAdministradorGrupoId { get; set; }
         public Usuario? UsuarioAdministradorGrupo { get; set; }
         public string? CodigoDeSeguridad { get; set; } //Si tiene el codigo de seguridad se une automaticamente
-        public ISolicitudUnionGrupoFamiliar? EstadoSolicitudGrupo { get; set; }
+        public ISolicitudUnionGrupo? EstadoSolicitudGrupo { get; set; }
 
-        public SolicitudUnionFamilia()
+        public SolicitudUnionGrupo()
         {
             
         }
 
-        public SolicitudUnionFamilia(Usuario usuarioSolicitante, Usuario _usuarioAdministradorGrupo)
+        public SolicitudUnionGrupo(Usuario usuarioSolicitante, Usuario _usuarioAdministradorGrupo)
              : base(usuarioSolicitante)
         {
             this.UsuarioSolicitante = usuarioSolicitante;
             this.UsuarioAdministradorGrupo = _usuarioAdministradorGrupo;
-            this.EstadoSolicitudGrupo = new SUGF_Pendiente();
+            this.EstadoSolicitudGrupo = new SUG_Pendiente();
             this.Estado = "Pendiente";
             this.FechaDeEnvio = DateTime.Now;
             this.Activa = true;
         }
 
 
-        public void EnviarSolicitudParaUnirseAFamilia(Usuario usuarioSolicitante, Usuario usuarioDestino)
+        public void EnviarSolicitudParaUnirseAGrupo(Usuario usuarioSolicitante, Usuario usuarioDestino)
         {
             AsignarUsuarioSolcitante(usuarioSolicitante);
             AsignarUsuarioDestino(usuarioDestino);
-            this.EstadoSolicitudGrupo = new SUGF_Pendiente();
+            this.EstadoSolicitudGrupo = new SUG_Pendiente();
             this.Estado = "Pendiente";
             this.FechaDeEnvio = DateTime.Now;
             this.Activa = true;

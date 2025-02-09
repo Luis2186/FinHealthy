@@ -94,19 +94,10 @@ namespace Servicio.Automapper
                 .ReverseMap();
         }
 
-        //public void MapearMiembros()
-        //{
-        //    CreateMap<MiembroFamilia, CrearMiembroFamiliaDTO>().ReverseMap();
-        //    CreateMap<MiembroFamilia, ActualizarMiembroFamiliaDTO>().ReverseMap();
-        //    CreateMap<MiembroFamilia, MiembroFamiliaDTO>()
-        //        .ForMember(dest => dest.Usuario, opt => opt.MapFrom(src => src.Usuario))
-        //        .ReverseMap();
-        //}
-
         public void MapearSolicitudes()
         {
-            CreateMap<SolicitudUnionFamilia, EnviarSolicitudDTO>().ReverseMap();
-            CreateMap<SolicitudUnionFamilia, SolicitudDTO>().ReverseMap();
+            CreateMap<SolicitudUnionGrupo, EnviarSolicitudDTO>().ReverseMap();
+            CreateMap<SolicitudUnionGrupo, SolicitudDTO>().ReverseMap();
         }
 
         public void MapearCategorias()
@@ -119,12 +110,12 @@ namespace Servicio.Automapper
             CreateMap<SubCategoriaDTO, ActualizarCategoriaDTO>();
 
             CreateMap<SubCategoria, SubCategoriaDTO>()
-                .ForMember(cat => cat.FamiliaId, opt => opt.MapFrom(src => src.GrupoGasto.Id))
+                .ForMember(cat => cat.GrupoId, opt => opt.MapFrom(src => src.GrupoGasto.Id))
                 .ForMember(cat => cat.CategoriaId, opt => opt.MapFrom(src => src.Categoria.Id))
                 .ReverseMap();
 
             CreateMap<SubCategoria, ActualizarCategoriaDTO>()
-            .ForMember(cat => cat.FamiliaId, opt => opt.MapFrom(src => src.GrupoGasto.Id))
+            .ForMember(cat => cat.GrupoId, opt => opt.MapFrom(src => src.GrupoGasto.Id))
             .ForMember(cat => cat.CategoriaId, opt => opt.MapFrom(src => src.Categoria.Id))
             .ReverseMap();
         }

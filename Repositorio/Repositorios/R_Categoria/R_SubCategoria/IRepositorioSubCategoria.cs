@@ -10,7 +10,7 @@ namespace Repositorio.Repositorios.R_Categoria.R_SubCategoria
 {
     public interface IRepositorioSubCategoria : IRepositorioCRUD<SubCategoria>
     {
-        public Task<Resultado<IEnumerable<SubCategoria>>> ObtenerTodasPorFamiliaYCategoria(int familiaId,int categoriaId);
+        public Task<Resultado<IEnumerable<SubCategoria>>> ObtenerTodasPorGrupoYCategoria(int grupoId,int categoriaId);
         public Task<Resultado<SubCategoria>> ObtenerPorIdAsync(int id);
     }
 }

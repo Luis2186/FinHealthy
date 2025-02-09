@@ -13,7 +13,7 @@ namespace Servicio.DTOS.GrupoDTO
         public string? Nombre { get; set; }
         public string? Descripcion { get; set; }
         public bool Activo { get; set; }
-        //public List<MiembroFamilia> Miembros { get; set; }
+        //public List<UsuarioDTO> Miembros { get; set; }
 
   
     }

@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace Dominio.Solicitudes
 {
-    public class SUGF_Aceptada : ISolicitudUnionGrupoFamiliar
+    public class SUG_Aceptada : ISolicitudUnionGrupo
     {
-        public Resultado<bool> Aceptar(SolicitudUnionFamilia solicitud)
+        public Resultado<bool> Aceptar(SolicitudUnionGrupo solicitud)
         {
             solicitud.CambiarEstado("Aceptada");
             solicitud.FechaDeRespuesta = DateTime.Now;
             return Resultado<bool>.Success(true);
         }
 
-        public Resultado<bool> Rechazar(SolicitudUnionFamilia solicitud)
+        public Resultado<bool> Rechazar(SolicitudUnionGrupo solicitud)
         {
            return Resultado<bool>.Failure(new Error("SUGF_Aceptada.Rechazada", "No se puede rechazar una solicitud aceptada."));
         }

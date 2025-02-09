@@ -49,7 +49,7 @@ namespace FinHealthAPI.Controllers
 
         // Obtener un usuario por su ID
         [HttpGet("obtener/{grupoId}")]
-        public async Task<ActionResult<GrupoDTO>> ObtenerFamiliaPorId(int grupoId)
+        public async Task<ActionResult<GrupoDTO>> ObtenerGrupoPorId(int grupoId)
         {
             var resultado = await _servicioGastos.ObtenerGrupoPorId(grupoId);
 
@@ -72,7 +72,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("crear")]
-        public async Task<ActionResult<GrupoDTO>> CrearFamilia([FromBody] CrearGrupoDTO grupoCreacionDTO)
+        public async Task<ActionResult<GrupoDTO>> CrearGrupo([FromBody] CrearGrupoDTO grupoCreacionDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -115,7 +115,7 @@ namespace FinHealthAPI.Controllers
 
         // Actualizar un usuario
         [HttpPut("actualizar/{grupoId}")]
-        public async Task<ActionResult<GrupoDTO>> ActualizarFamilia(int grupoId, [FromBody] ActualizarGrupoDTO grupoActDTO)
+        public async Task<ActionResult<GrupoDTO>> ActualizarGrupo(int grupoId, [FromBody] ActualizarGrupoDTO grupoActDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -157,7 +157,7 @@ namespace FinHealthAPI.Controllers
 
         // Eliminar un usuario
         [HttpDelete("eliminar/{grupoId}")]
-        public async Task<ActionResult> EliminarFamilia(int grupoId)
+        public async Task<ActionResult> EliminarGrupo(int grupoId)
         {
             var resultado = await _servicioGastos.EliminarGrupo(grupoId);
 

@@ -120,7 +120,6 @@ builder.Services.AddScoped<IRepositorioRefreshToken, RepositorioRefreshToken>();
 builder.Services.AddScoped<IRepositorioMoneda, RepositorioMoneda>();
 builder.Services.AddScoped<IRepositorioGrupo, RepositorioGrupo>();
 builder.Services.AddScoped<IRepositorioSolicitud, RepositorioSolicitud>();
-//builder.Services.AddScoped<IRepositorioMiembroFamilia, RepositorioMiembroFamilia>();
 builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
 builder.Services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();

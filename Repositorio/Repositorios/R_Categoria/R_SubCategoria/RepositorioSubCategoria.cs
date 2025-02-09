@@ -40,7 +40,7 @@ namespace Repositorio.Repositorios.R_Categoria.R_SubCategoria
             }
         }
 
-        public async Task<Resultado<IEnumerable<SubCategoria>>> ObtenerTodasPorFamiliaYCategoria(int grupoGastoId, int categoriaId)
+        public async Task<Resultado<IEnumerable<SubCategoria>>> ObtenerTodasPorGrupoYCategoria(int grupoGastoId, int categoriaId)
         {
             try
             {

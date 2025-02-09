@@ -11,6 +11,6 @@ namespace Servicio.DTOS.SubCategoriasDTO
         public string? Nombre { get; set; }
         public string? Descripcion { get; set; }
         public int CategoriaId { get; set; }
-        public int FamiliaId { get; set; }
+        public int GrupoId { get; set; }
     }
 }

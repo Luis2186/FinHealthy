@@ -1,5 +1,4 @@
-﻿using Dominio.Abstracciones;
-using Dominio.Errores;
+﻿using Dominio.Errores;
 using Dominio.Gastos;
 using Dominio.Usuarios;
 using System.ComponentModel.DataAnnotations;
@@ -76,7 +75,7 @@ namespace Dominio.Grupos
             }
         }
 
-        public Resultado<bool> AgregarMiembroAFamilia(Usuario miembro)
+        public Resultado<bool> AgregarMiembro(Usuario miembro)
         {
             if (!MiembrosGrupoGasto.Contains(miembro))
             {
@@ -84,7 +83,7 @@ namespace Dominio.Grupos
             }
             else
             {
-                return Resultado<bool>.Failure(ErroresGrupo.Miembro_Existente("AgregarMiembroAFamilia"));
+                return Resultado<bool>.Failure(ErroresGrupo.Miembro_Existente("AgregarMiembroAGrupo"));
             }
             return Resultado<bool>.Success(true);   
         }

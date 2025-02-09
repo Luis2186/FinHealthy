@@ -18,14 +18,14 @@ namespace Servicio.S_Categorias.S_SubCategorias
     {
         private readonly IRepositorioSubCategoria _repoSubCategoria;
         private readonly IRepositorioCategoria _repoCategoria;
-        private readonly IRepositorioGrupo _repoFamilia;
+        private readonly IRepositorioGrupo _repoGrupo;
         private readonly IMapper _mapper;
         public ServicioSubCategoria(IRepositorioSubCategoria repoSubCategoria, IMapper mapper,
-            IRepositorioCategoria repoCategoria, IRepositorioGrupo repoFamilia)
+            IRepositorioCategoria repoCategoria, IRepositorioGrupo repoGrupo)
         {
             _repoSubCategoria = repoSubCategoria;
             _mapper = mapper;
-            _repoFamilia = repoFamilia;
+            _repoGrupo = repoGrupo;
             _repoCategoria = repoCategoria;
         }
 
@@ -54,13 +54,13 @@ namespace Servicio.S_Categorias.S_SubCategorias
 
             var subCategoria = _mapper.Map<SubCategoria>(model);
 
-            var resultadoFamilia = await _repoFamilia.ObtenerPorIdAsync(subCategoria.GrupoGastoId);
+            var resultadoGrupo = await _repoGrupo.ObtenerPorIdAsync(subCategoria.GrupoGastoId);
             var resultadoCategoria = await _repoCategoria.ObtenerPorIdAsync(subCategoria.CategoriaId);
 
-            if (resultadoFamilia.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultadoFamilia.Errores);
+            if (resultadoGrupo.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultadoGrupo.Errores);
             if (resultadoCategoria.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultadoCategoria.Errores);
             
-            subCategoria.GrupoGasto = resultadoFamilia.Valor;
+            subCategoria.GrupoGasto = resultadoGrupo.Valor;
             subCategoria.Categoria = resultadoCategoria.Valor;
 
             var resultado = await _repoSubCategoria.CrearAsync(subCategoria);
@@ -93,9 +93,9 @@ namespace Servicio.S_Categorias.S_SubCategorias
             return Resultado<SubCategoriaDTO>.Success(subCategoriaDTO);
         }
 
-        public async Task<Resultado<IEnumerable<SubCategoriaDTO>>> ObtenerSubCategorias(int familiaId, int categoriaId)
+        public async Task<Resultado<IEnumerable<SubCategoriaDTO>>> ObtenerSubCategorias(int grupoId, int categoriaId)
         {
-            var subCategorias = await _repoSubCategoria.ObtenerTodasPorFamiliaYCategoria(familiaId, categoriaId);
+            var subCategorias = await _repoSubCategoria.ObtenerTodasPorGrupoYCategoria(grupoId, categoriaId);
 
             if (subCategorias.TieneErrores) return Resultado<IEnumerable<SubCategoriaDTO>>.Failure(subCategorias.Errores);
 

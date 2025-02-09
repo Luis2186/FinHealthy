@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace Dominio.Solicitudes
 {
-    public class SUGF_Rechazada : ISolicitudUnionGrupoFamiliar
+    public class SUG_Rechazada : ISolicitudUnionGrupo
     {
-        public Resultado<bool> Aceptar(SolicitudUnionFamilia solicitud)
+        public Resultado<bool> Aceptar(SolicitudUnionGrupo solicitud)
         {
             
             return Resultado<bool>.Failure(new Error("SUGF_Rechazada.Aceptada", "No se puede aceptar una solicitud rechazada."));
         }
 
-        public Resultado<bool> Rechazar(SolicitudUnionFamilia solicitud)
+        public Resultado<bool> Rechazar(SolicitudUnionGrupo solicitud)
         {
             solicitud.CambiarEstado("Rechazada");
             solicitud.FechaDeRespuesta = DateTime.Now;
