@@ -8,7 +8,7 @@ using Repositorio.Repositorios;
 using Repositorio.Repositorios.R_Grupo;
 using Repositorio.Repositorios.Solicitudes;
 using Repositorio.Repositorios.Usuarios;
-using Servicio.DTOS.GrupoDTO;
+using Servicio.DTOS.GruposDTO;
 using Servicio.DTOS.SolicitudesDTO;
 
 namespace Servicio.S_Grupos

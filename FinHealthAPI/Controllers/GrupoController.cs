@@ -4,7 +4,7 @@ using Dominio.Grupos;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Servicio.DTOS.GrupoDTO;
+using Servicio.DTOS.GruposDTO;
 using Servicio.DTOS.UsuariosDTO;
 using Servicio.Notificaciones.NotificacionesDTO;
 using Servicio.Pdf;

@@ -111,7 +111,14 @@ namespace Servicio.Usuarios
 
         public async Task<Resultado<Usuario>> ObtenerPorId(string id)
         {
-            return await _repoUsuario.ObtenerPorIdAsync(id);
+            var resultadoUsuario = await _repoUsuario.ObtenerPorIdAsync(id);
+            
+            if(resultadoUsuario.TieneErrores || resultadoUsuario.Valor == null)
+                return Resultado<Usuario>.Failure(resultadoUsuario.Errores);
+
+            var usuario = resultadoUsuario.Valor;
+
+            return usuario;
         }
 
         public async Task<Resultado<IEnumerable<string>>> ObtenerRolesPorUsuario(string usuarioId)

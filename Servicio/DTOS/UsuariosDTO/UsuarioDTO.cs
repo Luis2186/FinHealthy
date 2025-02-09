@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Servicio.DTOS.GruposDTO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,5 +21,6 @@ namespace Servicio.DTOS.UsuariosDTO
         public DateTime FechaDeRegistro { get; set; }
         public List<string> Roles { get; set; }
         public bool Activo { get; set; }
+        public GrupoDTO GrupoDeGastos { get; set; }
     }
 }

@@ -3,7 +3,7 @@ using Dominio;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Servicio.DTOS.GrupoDTO;
+using Servicio.DTOS.GruposDTO;
 using Servicio.DTOS.SolicitudesDTO;
 using Servicio.DTOS.UsuariosDTO;
 using Servicio.Notificaciones.NotificacionesDTO;

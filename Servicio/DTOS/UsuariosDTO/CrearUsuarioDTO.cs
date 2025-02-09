@@ -1,4 +1,4 @@
-﻿using Servicio.DTOS.GrupoDTO;
+﻿using Servicio.DTOS.GruposDTO;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

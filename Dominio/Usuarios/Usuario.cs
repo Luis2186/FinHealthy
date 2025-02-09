@@ -14,8 +14,8 @@ namespace Dominio.Usuarios
     {
         public string? Nombre { get; set; }
         public string? Apellido { get; set; }
-        public DateTime? FechaDeRegistro { get; set; }
-        public DateTime? FechaDeNacimiento { get; set; }
+        public DateTime FechaDeRegistro { get; set; }
+        public DateTime FechaDeNacimiento { get; set; }
         public int Edad { get; set; }
         public bool Activo { get; set; }
         [NotMapped]

@@ -1,5 +1,5 @@
 ﻿using Dominio;
-using Servicio.DTOS.GrupoDTO;
+using Servicio.DTOS.GruposDTO;
 using Servicio.DTOS.SolicitudesDTO;
 using System;
 using System.Collections.Generic;

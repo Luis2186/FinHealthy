@@ -17,12 +17,15 @@ namespace Repositorio.Repositorios.Usuarios
         private readonly UserManager<Usuario> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<Usuario> _signInManager;
-        
-        public RepositorioUsuario(UserManager<Usuario> userManager, RoleManager<IdentityRole> roleManager, SignInManager<Usuario> signInManager)
+        private readonly ApplicationDbContext _dbContext;
+
+        public RepositorioUsuario(UserManager<Usuario> userManager, RoleManager<IdentityRole> roleManager,
+            SignInManager<Usuario> signInManager, ApplicationDbContext dbContext)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
+            _dbContext = dbContext;
         }
 
         public async Task<Resultado<Usuario>> ActualizarAsync(Usuario model)
@@ -223,7 +226,9 @@ namespace Repositorio.Repositorios.Usuarios
         {
             try
             {
-                var usuarioBuscado = await _userManager.FindByEmailAsync(email);
+                var usuarioBuscado = await _userManager.Users
+                    .Include(user => user.GrupoDeGastos)
+                    .FirstOrDefaultAsync(user => user.Email == email);
 
                 if (usuarioBuscado == null)
                 {
@@ -242,7 +247,9 @@ namespace Repositorio.Repositorios.Usuarios
         {
             try
             {
-                var usuarioBuscado = await _userManager.FindByIdAsync(id);
+                var usuarioBuscado = await _userManager.Users
+                    .Include(user=> user.GrupoDeGastos)
+                    .FirstOrDefaultAsync(user=> user.Id == id);
 
                 if (usuarioBuscado == null)
                 {
@@ -252,6 +259,8 @@ namespace Repositorio.Repositorios.Usuarios
                 // Obtener los roles del usuario
                 var roles = await _userManager.GetRolesAsync(usuarioBuscado);
                 usuarioBuscado.Roles = roles.ToList();
+
+                
 
                 return Resultado<Usuario>.Success(usuarioBuscado);
             }

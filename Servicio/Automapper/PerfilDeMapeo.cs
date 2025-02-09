@@ -6,7 +6,7 @@ using Dominio.Solicitudes;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.SignalR;
 using Servicio.DTOS.CategoriasDTO;
-using Servicio.DTOS.GrupoDTO;
+using Servicio.DTOS.GruposDTO;
 using Servicio.DTOS.SolicitudesDTO;
 using Servicio.DTOS.SubCategoriasDTO;
 using Servicio.DTOS.UsuariosDTO;
@@ -53,6 +53,7 @@ namespace Servicio.Automapper
             CreateMap<Usuario, UsuarioDTO>()
               .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber))
               .ForMember(destino => destino.NombreDeUsuario, opt => opt.MapFrom(origen => origen.UserName))
+              .ForMember(destino => destino.GrupoDeGastos, opt => opt.MapFrom(origen => origen.GrupoDeGastos))  // Mapeo del grupo
               .ReverseMap();
 
             CreateMap<CrearUsuarioDTO, Usuario>()
@@ -90,7 +91,8 @@ namespace Servicio.Automapper
             CreateMap<Grupo, ActualizarGrupoDTO>().ReverseMap();
             
             CreateMap<Grupo, GrupoDTO>()
-                .ForMember(dest => dest.Miembros, opt => opt.MapFrom(src => src.MiembrosGrupoGasto))
+                 //.ForMember(dest => dest.Miembros, opt => opt.MapFrom(src => src.MiembrosGrupoGasto))
+                 .ForMember(dest => dest.Miembros, opt => opt.MapFrom(src => MapearMiembrosGrupoGasto(src.MiembrosGrupoGasto))) // Evita mapear de nuevo la propiedad GrupoDeGastos para prevenir ciclos
                 .ReverseMap();
         }
 
@@ -119,5 +121,30 @@ namespace Servicio.Automapper
             .ForMember(cat => cat.CategoriaId, opt => opt.MapFrom(src => src.Categoria.Id))
             .ReverseMap();
         }
+
+
+        public List<UsuarioDTO> MapearMiembrosGrupoGasto(IEnumerable<Usuario> miembrosGrupoGasto)
+        {
+            if (miembrosGrupoGasto == null)
+            {
+                return new List<UsuarioDTO>();
+            }
+
+            return miembrosGrupoGasto.Select(m => new UsuarioDTO
+            {
+                Id = m.Id,
+                NombreDeUsuario = m.UserName,
+                Nombre = m.Nombre,
+                Apellido = m.Apellido,
+                Edad = m.Edad,
+                Email = m.Email,
+                Telefono = m.PhoneNumber,
+                FechaDeNacimiento = m.FechaDeNacimiento,
+                FechaDeRegistro = m.FechaDeRegistro,
+                Roles = m.Roles,
+                Activo = m.Activo
+            }).ToList();
+        }
+
     }
 }

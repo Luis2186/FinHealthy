@@ -293,6 +293,7 @@ namespace Repositorio
         }
 
         // DbSet para las notificaciones
+        public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Notificacion> Notificaciones { get; set; }
         public DbSet<SolicitudUnionGrupo> SolcitudesUnionGrupo { get; set; }
