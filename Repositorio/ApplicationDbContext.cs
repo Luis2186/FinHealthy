@@ -6,6 +6,7 @@ using Dominio.Solicitudes;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 
 namespace Repositorio
@@ -180,12 +181,17 @@ namespace Repositorio
                 // Clave primaria
                 entity.HasKey(m => m.Id);
 
-                // Relación con Grupo
-                entity.HasOne(m => m.GrupoDeGastos)
-                      .WithMany(g => g.MiembrosGrupoGasto) // Un Grupo tiene múltiples usuarios
-                      .HasForeignKey(m => m.GrupoDeGastosId)
-                      .OnDelete(DeleteBehavior.Cascade)
-                      .IsRequired(false);
+                builder.Entity<Usuario>()
+                .HasMany(u => u.GrupoDeGastos)
+                .WithMany(g => g.MiembrosGrupoGasto)
+                .UsingEntity<UsuarioGrupo>(
+                    j => j.HasOne(ug => ug.Grupo).WithMany().HasForeignKey(ug => ug.GrupoId),
+                    j => j.HasOne(ug => ug.Usuario).WithMany().HasForeignKey(ug => ug.UsuarioId),
+                    j =>
+                    {
+                        j.Property(ug => ug.FechaDeUnion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                    });
+                       
 
                 // Configuración de propiedades
                 entity.Property(m => m.FechaDeUnion)
@@ -298,6 +304,7 @@ namespace Repositorio
         public DbSet<Notificacion> Notificaciones { get; set; }
         public DbSet<SolicitudUnionGrupo> SolcitudesUnionGrupo { get; set; }
         public DbSet<Grupo> GruposDeGasto { get; set; }
+        public DbSet<UsuarioGrupo> UsuarioGrupos { get; set; }  // Tabla intermedia
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<SubCategoria> SubCategorias { get; set; }
         public DbSet<Moneda> Monedas { get; set; }

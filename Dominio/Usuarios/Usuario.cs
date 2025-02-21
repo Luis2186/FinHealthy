@@ -27,18 +27,29 @@ namespace Dominio.Usuarios
         // Relación con las notificaciones recibidas
         public DateTime? FechaDeUnion { get; set; }
         public int? GrupoDeGastosId { get; set; }
-        public Grupo? GrupoDeGastos { get; set; }
+        public List<Grupo>? GrupoDeGastos { get; set; } = new List<Grupo>();
 
         public ICollection<Notificacion> Notificaciones { get; set; } = new List<Notificacion>();
         
 
         public Usuario UnirseAGrupo(Grupo grupoGastos)
         {
-            this.GrupoDeGastos = grupoGastos;
+            if (!GrupoDeGastos.Contains(grupoGastos)) GrupoDeGastos.Add(grupoGastos);
+            grupoGastos.MiembrosGrupoGasto.Add(this);
             this.FechaDeUnion = DateTime.Now;
             return this;
         }
+        public Usuario DejarGrupo(Grupo grupoGastos)
+        {
+            if (!GrupoDeGastos.Contains(grupoGastos))
+            {
+                throw new InvalidOperationException("El usuario no pertenece a este grupo.");
+            }
 
+            GrupoDeGastos.Remove(grupoGastos);
+            grupoGastos.MiembrosGrupoGasto.Remove(this);  // Eliminar del grupo
+            return this;
+        }
         public void AsignarRoles(List<string> Roles)
         {
             this.Roles = Roles;

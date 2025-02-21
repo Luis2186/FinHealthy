@@ -78,7 +78,7 @@ namespace Servicio.Usuarios
                 var grupoNuevo = new Grupo(usuario, usuarioDto.Grupo.Nombre ?? "", usuarioDto.Grupo.Descripcion ?? "",
                     usuarioDto.Grupo.CodigoAcceso ?? "");
 
-                usuario.GrupoDeGastos = grupoNuevo;
+                usuario.UnirseAGrupo(grupoNuevo);
 
                 await _repoGrupo.CrearAsync(grupoNuevo);
             }

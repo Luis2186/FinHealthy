@@ -21,6 +21,6 @@ namespace Servicio.DTOS.UsuariosDTO
         public DateTime FechaDeRegistro { get; set; }
         public List<string> Roles { get; set; }
         public bool Activo { get; set; }
-        public GrupoDTO GrupoDeGastos { get; set; }
+        public List<GrupoDTO> GrupoDeGastos { get; set; }
     }
 }
