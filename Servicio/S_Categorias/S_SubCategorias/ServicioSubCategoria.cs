@@ -54,7 +54,7 @@ namespace Servicio.S_Categorias.S_SubCategorias
 
             var subCategoria = _mapper.Map<SubCategoria>(model);
 
-            var resultadoGrupo = await _repoGrupo.ObtenerPorIdAsync(subCategoria.GrupoGastoId);
+            var resultadoGrupo = await _repoGrupo.ObtenerPorIdAsync(subCategoria.GrupoId);
             var resultadoCategoria = await _repoCategoria.ObtenerPorIdAsync(subCategoria.CategoriaId);
 
             if (resultadoGrupo.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultadoGrupo.Errores);

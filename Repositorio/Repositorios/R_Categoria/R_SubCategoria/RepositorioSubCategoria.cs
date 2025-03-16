@@ -47,7 +47,7 @@ namespace Repositorio.Repositorios.R_Categoria.R_SubCategoria
                 var subcategorias = _dbContext.SubCategorias
                     .Include(cat => cat.GrupoGasto)
                     .Include(cat => cat.Categoria)
-                    .Where(cat => cat.GrupoGastoId == grupoGastoId && cat.CategoriaId == categoriaId).ToList();
+                    .Where(cat => cat.GrupoId == grupoGastoId && cat.CategoriaId == categoriaId).ToList();
                 return Resultado<IEnumerable<SubCategoria>>.Success(subcategorias);
             }
             catch (Exception ex)

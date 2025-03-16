@@ -110,7 +110,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            return Ok(new { grupoId = resultado.Valor.Id });
+            return Ok(new { grupoId = resultado.Valor});
         }
 
         // Actualizar un usuario

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repositorio;
 
@@ -11,12 +12,15 @@ using Repositorio;
 namespace Repositorio.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250315122204_Subcategoria")]
+    partial class Subcategoria
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("identity")
                 .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
@@ -45,7 +49,7 @@ namespace Repositorio.Migrations
                     b.HasIndex("Nombre")
                         .IsUnique();
 
-                    b.ToTable("TipoDeDocumentos");
+                    b.ToTable("TipoDeDocumentos", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Gastos.Categoria", b =>
@@ -68,7 +72,7 @@ namespace Repositorio.Migrations
                     b.HasIndex("Nombre")
                         .IsUnique();
 
-                    b.ToTable("Categorias");
+                    b.ToTable("Categorias", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Gastos.MetodoDePago", b =>
@@ -91,7 +95,7 @@ namespace Repositorio.Migrations
                     b.HasIndex("Nombre")
                         .IsUnique();
 
-                    b.ToTable("MetodosDePago");
+                    b.ToTable("MetodosDePago", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Gastos.Moneda", b =>
@@ -119,7 +123,7 @@ namespace Repositorio.Migrations
                     b.HasIndex("Codigo", "Nombre")
                         .IsUnique();
 
-                    b.ToTable("Monedas");
+                    b.ToTable("Monedas", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Gastos.SubCategoria", b =>
@@ -152,7 +156,7 @@ namespace Repositorio.Migrations
                         .IsUnique()
                         .HasFilter("[Nombre] IS NOT NULL");
 
-                    b.ToTable("SubCategorias");
+                    b.ToTable("SubCategorias", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Grupos.Grupo", b =>
@@ -193,9 +197,10 @@ namespace Repositorio.Migrations
                     b.HasIndex("Nombre")
                         .IsUnique();
 
-                    b.HasIndex("UsuarioAdministradorId");
+                    b.HasIndex("UsuarioAdministradorId")
+                        .IsUnique();
 
-                    b.ToTable("GruposDeGasto");
+                    b.ToTable("GruposDeGasto", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Grupos.UsuarioGrupo", b =>
@@ -215,7 +220,7 @@ namespace Repositorio.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("UsuarioGrupos");
+                    b.ToTable("UsuarioGrupos", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Notificaciones.Notificacion", b =>
@@ -263,7 +268,7 @@ namespace Repositorio.Migrations
 
                     b.HasIndex("UsuarioReceptorId");
 
-                    b.ToTable("Notificaciones");
+                    b.ToTable("Notificaciones", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Solicitudes.SolicitudUnionGrupo", b =>
@@ -314,7 +319,7 @@ namespace Repositorio.Migrations
 
                     b.HasIndex("UsuarioSolicitanteId");
 
-                    b.ToTable("SolcitudesUnionGrupo");
+                    b.ToTable("SolcitudesUnionGrupo", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Usuarios.RefreshToken", b =>
@@ -344,7 +349,7 @@ namespace Repositorio.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Usuarios.Usuario", b =>
@@ -443,7 +448,7 @@ namespace Repositorio.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("AspNetUsers", "identity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -470,7 +475,7 @@ namespace Repositorio.Migrations
                         .HasDatabaseName("RoleNameIndex")
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("AspNetRoles", "identity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -495,7 +500,7 @@ namespace Repositorio.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("AspNetRoleClaims", "identity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -520,7 +525,7 @@ namespace Repositorio.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("AspNetUserClaims", "identity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -542,7 +547,7 @@ namespace Repositorio.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("AspNetUserLogins", "identity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -557,7 +562,7 @@ namespace Repositorio.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("AspNetUserRoles", "identity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -576,7 +581,7 @@ namespace Repositorio.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("AspNetUserTokens", "identity");
                 });
 
             modelBuilder.Entity("Dominio.Gastos.SubCategoria", b =>
@@ -601,8 +606,8 @@ namespace Repositorio.Migrations
             modelBuilder.Entity("Dominio.Grupos.Grupo", b =>
                 {
                     b.HasOne("Dominio.Usuarios.Usuario", "UsuarioAdministrador")
-                        .WithMany()
-                        .HasForeignKey("UsuarioAdministradorId")
+                        .WithOne()
+                        .HasForeignKey("Dominio.Grupos.Grupo", "UsuarioAdministradorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

@@ -88,7 +88,13 @@ namespace Dominio.Grupos
             return Resultado<bool>.Success(true);   
         }
 
+        public Resultado<bool> AgregarUsuarioAdministrador(Usuario admin)
+        {
+            this.UsuarioAdministrador = admin;
+            this.UsuarioAdministradorId = admin.Id;
 
+            return Resultado<bool>.Success(UsuarioAdministrador != null && UsuarioAdministradorId != "");
+        }
 
     }
 }

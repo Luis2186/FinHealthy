@@ -104,11 +104,10 @@ namespace Servicio.S_Grupos
                 var usuarioAdm = usuarioAdmin.Valor;
 
                 var grupo = _mapper.Map<Grupo>(grupoCreacionDTO);
+                bool adminAgregado = grupo.AgregarUsuarioAdministrador(usuarioAdm).Valor;
+                grupo.EstablecerCodigo(grupoCreacionDTO.CodigoAcceso);
 
                 usuarioAdm.UnirseAGrupo(grupo);
-
-                grupo.UsuarioAdministrador = usuarioAdm;
-                grupo.EstablecerCodigo(grupoCreacionDTO.CodigoAcceso);
 
                 var resultado = await _repoGrupo.CrearAsync(grupo);
 

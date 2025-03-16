@@ -33,7 +33,6 @@ namespace Repositorio
             ConfigurarBuilderMoneda(builder);
             ConfigurarBuilderTipoDeDocumento(builder);
 
-            builder.HasDefaultSchema("identity");
         }
 
         protected private void ConfigurarBuilderNotificacion(ModelBuilder builder)
@@ -142,14 +141,31 @@ namespace Repositorio
 
                 // Relación con UsuarioAdministrador (uno a uno)
                 entity.HasOne(g => g.UsuarioAdministrador) // Relación con Usuario
-                      .WithOne() // Relación uno a uno
-                      .HasForeignKey<Grupo>(g => g.UsuarioAdministradorId) // Clave foránea explícita
+                      .WithMany() // Relación uno a uno
+                      .HasForeignKey(g => g.UsuarioAdministradorId)  // Clave foránea explícita
                       .OnDelete(DeleteBehavior.Restrict); // No permite eliminar al administrador si el grupo está activo
+                                                          // Relación muchos a muchos: Un grupo puede tener muchos miembros
+
+                // Relación muchos a muchos entre Usuario y Grupo
+                entity.HasMany(g => g.MiembrosGrupoGasto)
+                      .WithMany(u => u.GrupoDeGastos)
+                      .UsingEntity<UsuarioGrupo>(
+                          j => j.HasOne(ug => ug.Usuario)
+                                .WithMany()
+                                .HasForeignKey(ug => ug.UsuarioId),
+                          j => j.HasOne(ug => ug.Grupo)
+                                .WithMany()
+                                .HasForeignKey(ug => ug.GrupoId),
+                          j =>
+                          {
+                              j.Property(ug => ug.FechaDeUnion)
+                                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                          });
 
                 // Relación con UsuarioAdministrador (uno a uno)
                 entity.HasMany(g => g.SubCategorias) // Relación con Usuario
                       .WithOne() // Relación uno a uno
-                      .HasForeignKey(g => g.GrupoGastoId) // Clave foránea explícita
+                      .HasForeignKey(g => g.GrupoId) // Clave foránea explícita
                       .OnDelete(DeleteBehavior.Restrict); 
 
                 // Configuración de propiedades adicionales
@@ -181,17 +197,21 @@ namespace Repositorio
                 // Clave primaria
                 entity.HasKey(m => m.Id);
 
-                builder.Entity<Usuario>()
-                .HasMany(u => u.GrupoDeGastos)
-                .WithMany(g => g.MiembrosGrupoGasto)
-                .UsingEntity<UsuarioGrupo>(
-                    j => j.HasOne(ug => ug.Grupo).WithMany().HasForeignKey(ug => ug.GrupoId),
-                    j => j.HasOne(ug => ug.Usuario).WithMany().HasForeignKey(ug => ug.UsuarioId),
-                    j =>
-                    {
-                        j.Property(ug => ug.FechaDeUnion).HasDefaultValueSql("CURRENT_TIMESTAMP");
-                    });
-                       
+                entity.HasMany(u => u.GrupoDeGastos)
+                          .WithMany(g => g.MiembrosGrupoGasto)
+                          .UsingEntity<UsuarioGrupo>(
+                              j => j.HasOne(ug => ug.Grupo)
+                                    .WithMany()
+                                    .HasForeignKey(ug => ug.GrupoId),
+                              j => j.HasOne(ug => ug.Usuario)
+                                    .WithMany()
+                                    .HasForeignKey(ug => ug.UsuarioId),
+                              j =>
+                              {
+                                  j.Property(ug => ug.FechaDeUnion)
+                                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                              });
+
 
                 // Configuración de propiedades
                 entity.Property(m => m.FechaDeUnion)
@@ -233,7 +253,7 @@ namespace Repositorio
                     entity
                     .HasOne(s => s.GrupoGasto)
                     .WithMany(f => f.SubCategorias)
-                    .HasForeignKey(s => s.GrupoGastoId);
+                    .HasForeignKey(s => s.GrupoId);
 
                 // Relación entre Subcategoría y Categoría Principal (una subcategoría pertenece a una categoría principal)
                 entity
