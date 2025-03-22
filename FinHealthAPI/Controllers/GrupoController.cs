@@ -47,6 +47,26 @@ namespace FinHealthAPI.Controllers
             return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
         }
 
+        // Obtener todos los usuarios con paginación
+        [HttpGet("todas/{idUsuario}")]
+        public async Task<ActionResult<Grupo>> ObtenerGrupos(string idUsuario)
+        {
+            var resultado = await _servicioGastos.ObtenerTodosLosGruposPorUsuario(idUsuario);
+
+            if (resultado.TieneErrores) return NotFound(new ProblemDetails
+            {
+                Title = "Error al obtener todos los grupos",
+                Detail = "Ah ocurrido un error al intentar obtener todos los grupos del usuario" + idUsuario,
+                Status = 404,
+                Instance = HttpContext.Request.Path,
+                Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+            });
+
+            return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
+        }
+
         // Obtener un usuario por su ID
         [HttpGet("obtener/{grupoId}")]
         public async Task<ActionResult<GrupoDTO>> ObtenerGrupoPorId(int grupoId)
