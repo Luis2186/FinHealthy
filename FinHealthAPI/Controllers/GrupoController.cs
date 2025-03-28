@@ -17,12 +17,12 @@ namespace FinHealthAPI.Controllers
     [Route("/grupo")]
     public class GrupoController : Controller
     {
-        private readonly IServicioGrupos _servicioGastos;
+        private readonly IServicioGrupos _servicioGrupos;
         private readonly IMapper _mapper;
 
-        public GrupoController(IServicioGrupos servicioGastos, IMapper mapper)
+        public GrupoController(IServicioGrupos servicioGrupo, IMapper mapper)
         {
-            _servicioGastos = servicioGastos;
+            _servicioGrupos = servicioGrupo;
             _mapper = mapper;
         }
 
@@ -31,7 +31,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("todas")]
         public async Task<ActionResult<Grupo>> ObtenerGrupos()
         {
-            var resultado = await _servicioGastos.ObtenerTodosLosGrupos();
+            var resultado = await _servicioGrupos.ObtenerTodosLosGrupos();
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -51,7 +51,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("todas/{idUsuario}")]
         public async Task<ActionResult<Grupo>> ObtenerGrupos(string idUsuario)
         {
-            var resultado = await _servicioGastos.ObtenerTodosLosGruposPorUsuario(idUsuario);
+            var resultado = await _servicioGrupos.ObtenerTodosLosGruposPorUsuario(idUsuario);
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -71,7 +71,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("obtener/{grupoId}")]
         public async Task<ActionResult<GrupoDTO>> ObtenerGrupoPorId(int grupoId)
         {
-            var resultado = await _servicioGastos.ObtenerGrupoPorId(grupoId);
+            var resultado = await _servicioGrupos.ObtenerGrupoPorId(grupoId);
 
             if (resultado.TieneErrores)
             {
@@ -113,7 +113,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioGastos.CrearGrupo(grupoCreacionDTO);
+            var resultado = await _servicioGrupos.CrearGrupo(grupoCreacionDTO);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
@@ -156,7 +156,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioGastos.ActualizarGrupo(grupoId, grupoActDTO);
+            var resultado = await _servicioGrupos.ActualizarGrupo(grupoId, grupoActDTO);
 
             if (resultado.TieneErrores)
             {
@@ -179,7 +179,7 @@ namespace FinHealthAPI.Controllers
         [HttpDelete("eliminar/{grupoId}")]
         public async Task<ActionResult> EliminarGrupo(int grupoId)
         {
-            var resultado = await _servicioGastos.EliminarGrupo(grupoId);
+            var resultado = await _servicioGrupos.EliminarGrupo(grupoId);
 
             if (resultado.TieneErrores)
             {
