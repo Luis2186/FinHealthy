@@ -10,6 +10,7 @@ using Repositorio.Repositorios.Solicitudes;
 using Repositorio.Repositorios.Usuarios;
 using Servicio.DTOS.GruposDTO;
 using Servicio.DTOS.SolicitudesDTO;
+using System.Collections.Generic;
 
 namespace Servicio.S_Grupos
 {
@@ -322,6 +323,17 @@ namespace Servicio.S_Grupos
             {
                 return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion("Servicio.IngresoAGrupoConCodigo", ex.Message));
             }
+        }
+
+        public async Task<Resultado<IEnumerable<GrupoDTO>>> ObtenerTodosLosGruposPorUsuario(string idUsuario)
+        {
+            var resultado = await _repoGrupo.ObtenerGruposPorUsuario(idUsuario);
+
+            if(resultado.TieneErrores) return Resultado<IEnumerable<GrupoDTO>>.Failure(resultado.Errores);
+            
+            var gruposDTO = _mapper.Map<IEnumerable<GrupoDTO>>(resultado.Valor);
+
+            return gruposDTO.ToList();
         }
     }
 }

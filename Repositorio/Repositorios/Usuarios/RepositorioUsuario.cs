@@ -202,10 +202,29 @@ namespace Repositorio.Repositorios.Usuarios
             throw new NotImplementedException();
         }
 
+        public async Task<Resultado<bool>> InhabilitarUsuarioAsync(string id)
+        {
+            var usuarioResult = await ObtenerPorIdAsync(id);
+
+            if (usuarioResult.TieneErrores) return Resultado<bool>.Failure(ErroresUsuario.IdInexistente("EliminarAsync"));
+
+            var usuario = usuarioResult.Valor;
+
+            usuario.Activo = false;
+
+            var usuarioInhabilitado = await ActualizarAsync(usuario);
+
+            if(usuarioInhabilitado.TieneErrores ) return Resultado<bool>.Failure(usuarioInhabilitado.Errores);
+
+            return usuarioInhabilitado.EsCorrecto;
+        }
+
         public async Task<Resultado<Usuario>> Login(Usuario usuario, string password)
         {
             try
             {
+                if(!usuario.Activo) return Resultado<Usuario>.Failure(ErroresUsuario.UsuarioInhabilitado("Login"));
+                
                 var usuarioLogueado = await _userManager.CheckPasswordAsync(usuario, password);
 
                 if (usuarioLogueado)

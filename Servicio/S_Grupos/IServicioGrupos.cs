@@ -13,6 +13,7 @@ namespace Servicio.S_Grupos
     {
         public Task<Resultado<GrupoDTO>> ObtenerGrupoPorId(int id);
         public Task<Resultado<IEnumerable<GrupoDTO>>> ObtenerTodosLosGrupos();
+        public Task<Resultado<IEnumerable<GrupoDTO>>> ObtenerTodosLosGruposPorUsuario(string idUsuario);
         public Task<Resultado<GrupoDTO>> CrearGrupo(CrearGrupoDTO grupoCreacionDTO);
         public Task<Resultado<GrupoDTO>> ActualizarGrupo(int grupoId,ActualizarGrupoDTO grupoActualizacionDTO);
         public Task<Resultado<bool>> EliminarGrupo(int id);

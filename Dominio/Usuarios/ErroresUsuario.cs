@@ -32,6 +32,7 @@ namespace Dominio.Usuarios
         public static Func<string, Error> Datos_Invalidos = (string metodo) => new Error($"{typeof(Usuario).Name}.{metodo}", "Los datos proporcionados no se encuentran o son invalidos, por favor verifiquelos");
         public static Func<string, Error> Login = (string metodo) => new Error($"{typeof(Usuario).Name}.{metodo}", "El usuario y/o la contraseña son incorrectos.");
         public static Func<string, Error> UsuarioInexistente = (string metodo) => new Error($"{typeof(Usuario).Name}.{metodo}", "El usuario no existe en los registros");
+        public static Func<string, Error> UsuarioInhabilitado = (string metodo) => new Error($"{typeof(Usuario).Name}.{metodo}", "El usuario se encuentra inhabilitado");
 
     }
 }

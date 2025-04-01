@@ -11,7 +11,7 @@ namespace Servicio.DTOS.GruposDTO
     {
         [Required(ErrorMessage ="El usuario es requerido,por favor ingreselo")]
         public string? UsuarioId { get; set; }
-        [Required(ErrorMessage = "El grupo es requerido,por favor ingreselo")]
+        //[Required(ErrorMessage = "El grupo es requerido,por favor ingreselo")]
         public int GrupoGastoId { get; set; }
         [Required(ErrorMessage = "El codigo es requerido, por favor ingreselo")]
         public string? Codigo { get; set; }

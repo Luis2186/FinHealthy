@@ -101,6 +101,26 @@ namespace Repositorio.Repositorios.R_Grupo
             }
         }
 
+        public async Task<Resultado<List<Grupo>>> ObtenerGruposPorUsuario(string usuarioId)
+        {
+            try
+            {
+                var grupo = _dbContext.GruposDeGasto
+                    .Include(f => f.UsuarioAdministrador)
+                    .Include(f => f.MiembrosGrupoGasto)
+                    .Where(f => f.UsuarioAdministradorId == usuarioId
+                    || f.MiembrosGrupoGasto.Any(m => m.Id == usuarioId))
+                    .ToList();
+
+                if (grupo == null) return Resultado<List<Grupo>>.Failure(ErroresCrud.ErrorBuscarPorId("Grupo"));
+
+                return Resultado<List<Grupo>>.Success(grupo);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<List<Grupo>>.Failure(ErroresCrud.ErrorDeExcepcion("ObtenerGruposPorUsuario", ex.Message));
+            }
+        }
         public async Task<Resultado<Grupo>> ObtenerGrupoPorIdAdministrador(string usuarioAdminId)
         {
             try

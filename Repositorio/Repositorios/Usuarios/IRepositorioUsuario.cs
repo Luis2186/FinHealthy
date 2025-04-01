@@ -18,6 +18,7 @@ namespace Repositorio.Repositorios.Usuarios
         public Task<Resultado<Usuario>> RestablecerContraseña(string email, string contraseñaVieja ,string nuevaContraseña);
         public Task<Resultado<Usuario>> ObtenerPorIdAsync(string id);
         public Task<Resultado<bool>> EliminarAsync(string id);
+        public Task<Resultado<bool>> InhabilitarUsuarioAsync(string id);
         public Task<Resultado<Usuario>> ObtenerPorEmailAsync(string email);
         public Task<Resultado<bool>> AgregarRol(string usuarioId, string idRol,string nombreRol);
         public Task<Resultado<IdentityRole>> BuscarRol(string rolId, string rolNombre);

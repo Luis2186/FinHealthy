@@ -106,7 +106,7 @@ namespace Servicio.Usuarios
 
         public async Task<Resultado<bool>> Eliminar(string id)
         {
-           return await _repoUsuario.EliminarAsync(id);
+           return await _repoUsuario.InhabilitarUsuarioAsync(id);
         }
 
         public async Task<Resultado<Usuario>> ObtenerPorId(string id)
