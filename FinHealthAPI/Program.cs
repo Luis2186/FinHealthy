@@ -27,6 +27,8 @@ using Repositorio.Repositorios.R_Categoria.R_SubCategoria;
 using Repositorio.Repositorios.Token;
 using Repositorio.Repositorios.R_Grupo;
 using Servicio.S_Grupos;
+using Repositorio.Repositorios.R_Gastos;
+using Repositorio.Repositorios.R_Gastos.R_MetodosDePago;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -124,8 +126,8 @@ builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
 builder.Services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
 builder.Services.AddScoped<IRepositorioSubCategoria, RepositorioSubCategoria>();
-
-
+builder.Services.AddScoped<IRepositorioGasto, RepositorioGasto>();
+builder.Services.AddScoped<IRepositorioMetodoDePago, RepositorioMetodoDePago>();
 
 builder.Services.AddScoped<ProveedorToken>();
 var app = builder.Build();

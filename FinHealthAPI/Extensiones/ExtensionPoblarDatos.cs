@@ -71,20 +71,20 @@ namespace FinHealthAPI.Extensiones
                 {
                     List<Moneda> monedas = new List<Moneda>
                     {
-                        new Moneda("UYU", "Peso Uruguayo", "$", 40.00, "Uruguay"),
-                        new Moneda("UI", "Unidad Indexada", "$", 40.00, "Uruguay"),
-                        new Moneda("ARS", "Peso Argentino", "$", 40.00, "Argentina"),
-                        new Moneda("BRL", "Real", "$", 40.00, "Brasil"),
-                        new Moneda("USD", "Dólar estadounidense", "$", 1.00, "Estados Unidos"),
-                        new Moneda("EUR", "Euro", "€", 0.85, "Unión Europea"),
-                        new Moneda("JPY", "Yen japonés", "¥", 110.00, "Japón"),
-                        new Moneda("GBP", "Libra esterlina", "£", 0.75, "Reino Unido"),
-                        new Moneda("AUD", "Dólar australiano", "A$", 1.35, "Australia"),
-                        new Moneda("CAD", "Dólar canadiense", "C$", 1.25, "Canadá"),
-                        new Moneda("CHF", "Franco suizo", "CHF", 0.92, "Suiza"),
-                        new Moneda("CNY", "Yuan chino", "¥", 6.45, "China"),
-                        new Moneda("SEK", "Corona sueca", "kr", 8.60, "Suecia"),
-                        new Moneda("NZD", "Dólar neozelandés", "NZ$", 1.40, "Nueva Zelanda")
+                        new Moneda("UYU", "Peso Uruguayo", "$", 40.00m, "Uruguay"),
+                        new Moneda("UI", "Unidad Indexada", "$", 40.00m, "Uruguay"),
+                        new Moneda("ARS", "Peso Argentino", "$", 40.00m, "Argentina"),
+                        new Moneda("BRL", "Real", "$", 40.00m, "Brasil"),
+                        new Moneda("USD", "Dólar estadounidense", "$", 1.00m, "Estados Unidos"),
+                        new Moneda("EUR", "Euro", "€", 0.85m, "Unión Europea"),
+                        new Moneda("JPY", "Yen japonés", "¥", 110.00m, "Japón"),
+                        new Moneda("GBP", "Libra esterlina", "£", 0.75m, "Reino Unido"),
+                        new Moneda("AUD", "Dólar australiano", "A$", 1.35m, "Australia"),
+                        new Moneda("CAD", "Dólar canadiense", "C$", 1.25m, "Canadá"),
+                        new Moneda("CHF", "Franco suizo", "CHF", 0.92m, "Suiza"),
+                        new Moneda("CNY", "Yuan chino", "¥", 6.45m, "China"),
+                        new Moneda("SEK", "Corona sueca", "kr", 8.60m, "Suecia"),
+                        new Moneda("NZD", "Dólar neozelandés", "NZ$", 1.40m, "Nueva Zelanda")
                     };
                     dbContext.Monedas.AddRange(monedas);
                 };
