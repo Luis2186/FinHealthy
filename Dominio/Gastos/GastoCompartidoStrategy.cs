@@ -12,7 +12,9 @@ namespace Dominio.Gastos
     {
         public Resultado<Gasto> CalcularGasto(Gasto gasto, List<Usuario> usuarios = null)
         {
-            throw new NotImplementedException();
+            return gasto.CompartirGastoConUsuarios(usuarios);
         }
+
+
     }
 }

@@ -13,7 +13,7 @@ namespace Dominio.Gastos
     {
         public Resultado<Gasto> CalcularGasto(Gasto gasto, List<Usuario> usuarios = null)
         {
-            if (gasto.Monto <= 0) return Resultado < Gasto >.Failure(new Error("GastoPersonalStrategy.CalcularGasto", "El gasto debe ser mayor a 0 "));
+            if (gasto.EsFinanciado && gasto.CantidadDeCuotas > 1) gasto.GenerarCuotas(gasto.CantidadDeCuotas);
 
             return gasto;
         }

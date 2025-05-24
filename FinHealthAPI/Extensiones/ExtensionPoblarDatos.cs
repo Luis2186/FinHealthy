@@ -29,6 +29,7 @@ namespace FinHealthAPI.Extensiones
                         new Categoria { Nombre = "Ahorro y/o Inversion", Descripcion= "Gastos de Ahorro e Inversión"},
                         new Categoria { Nombre = "Familiares", Descripcion= "Gastos Relacionados con la Familia"},
                     };
+
                     dbContext.Categorias.AddRange(categorias);
                 }
 

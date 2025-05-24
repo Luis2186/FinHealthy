@@ -106,7 +106,7 @@ namespace Servicio.Automapper
 
         public void MapearCategorias()
         {
-            //CreateMap<Categoria, CategoriaDTO>().
+            CreateMap<Categoria, CategoriaDTO>().ReverseMap();
             //    ForMember(cat => cat.SubCategorias, opt => opt.MapFrom(src => src.SubCategorias)).ReverseMap();
         }
         public void MapearSubCategorias()
@@ -130,6 +130,8 @@ namespace Servicio.Automapper
                 .ForMember(gasto => gasto.SubCategoria, opt => opt.MapFrom(src => src.SubCategoria))
                 .ForMember(gasto => gasto.Moneda, opt => opt.MapFrom(src => src.Moneda))
                 .ForMember(gasto => gasto.MetodoDePago, opt => opt.MapFrom(src => src.MetodoDePago))
+                .ForMember(gasto => gasto.Cuotas, opt => opt.MapFrom(src => src.Cuotas))
+                .ForMember(gasto => gasto.CompartidoCon, opt => opt.MapFrom(src => src.CompartidoCon))
                 .ReverseMap();
         }
 

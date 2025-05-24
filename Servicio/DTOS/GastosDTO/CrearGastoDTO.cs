@@ -32,5 +32,10 @@ namespace Servicio.DTOS.GastosDTO
         [Required(ErrorMessage = "La moneda es obligatoria")]
         public string MonedaId { get; set; }
         public int? DocumentoAsociadoId { get; set; }
+
+
+
+
+
     }
 }

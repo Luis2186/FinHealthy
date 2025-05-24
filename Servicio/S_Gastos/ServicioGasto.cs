@@ -57,7 +57,7 @@ namespace Servicio.S_Gastos
       
             Gasto nuevoGasto = new Gasto(subCategoriaElegida, metodoDePagoElegido, monedaElegida, gastoCreacionDTO.FechaDeGasto,
                 gastoCreacionDTO.Descripcion, gastoCreacionDTO.Etiqueta,gastoCreacionDTO.Lugar, gastoCreacionDTO.EsFinanciado,
-                gastoCreacionDTO.Monto);
+                gastoCreacionDTO.EsCompartido, gastoCreacionDTO.Monto, gastoCreacionDTO.CantidadDeCuotas);
 
             if (gastoCreacionDTO.EsCompartido)
             {
@@ -65,12 +65,12 @@ namespace Servicio.S_Gastos
                 if (usuariosCompartidosResult.TieneErrores) return Resultado<GastoDTO>.Failure(usuariosCompartidosResult.Errores);
                 
                 var resultadoIngreso = nuevoGasto.IngresarGastoCompartido(usuariosCompartidosResult.Valor.ToList());
-                if(resultadoIngreso.TieneErrores) Resultado<GastoDTO>.Failure(resultadoIngreso.Errores);
+                if(resultadoIngreso.TieneErrores) return Resultado<GastoDTO>.Failure(resultadoIngreso.Errores);
 
             } else
             {
                 var resultadoIngreso = nuevoGasto.IngresarGastoPersonal();
-                if (resultadoIngreso.TieneErrores) Resultado<GastoDTO>.Failure(resultadoIngreso.Errores);
+                if (resultadoIngreso.TieneErrores) return Resultado<GastoDTO>.Failure(resultadoIngreso.Errores);
             }
 
             var resultado = await _repoGastos.CrearAsync(nuevoGasto);

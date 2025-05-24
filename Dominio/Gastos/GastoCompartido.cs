@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Dominio.Gastos
@@ -12,8 +13,10 @@ namespace Dominio.Gastos
     public class GastoCompartido 
     {
         public int GastoId { get; set; }
+        [JsonIgnore]
         public  Gasto Gasto { get; set; }
         public string MiembroId { get; set; }
+        [JsonIgnore]
         public  Usuario Miembro { get; set; }
         public decimal Porcentaje { get; set; }
         public decimal MontoAsignado { get; set; }

@@ -16,32 +16,33 @@ namespace Dominio.Gastos
     public class Gasto
     {
         public int Id { get; set; }
-        [Required(ErrorMessage = "La categoria del gasto es requerida")]
-        public SubCategoria SubCategoria { get; set; }
-        [Required(ErrorMessage = "El metodo de pago del gasto es requerido")]
-        public MetodoDePago MetodoDePago { get; set; }
-        public Documento? DocumentoAsociado { get; set; }
-        [Required(ErrorMessage = "La moneda del gasto es requerida")]
-        public Moneda Moneda { get; set; }
+        [Required(ErrorMessage = "La Subcategoria del gasto es requerida")]
+        public SubCategoria SubCategoria { get; private set; }
+        [Required(ErrorMessage = "El Metodo de Pago del gasto es requerido")]
+        public MetodoDePago MetodoDePago { get; private set; }
+        public Documento? DocumentoAsociado { get; private set; }
+        [Required(ErrorMessage = "La Moneda del gasto es requerida")]
+        public Moneda Moneda { get; private set; }
         [JsonIgnore] [NotMapped]
         private IGastoStrategy GastoStrategy { get; set; }
         [Required(ErrorMessage = "La fecha del gasto es requerida")]
-        public DateTime FechaDeGasto { get; set; }
-        public string Descripcion { get; set; }
-        public string Lugar { get; set; }
-        public string Etiqueta { get; set; }
-        public bool Estado { get; set; }
+        public DateTime FechaDeGasto { get; private set; }
+        public string Descripcion { get; private set; }
+        public string Lugar { get; private set; }
+        public string Etiqueta { get; private set; }
+        public bool Estado { get; private set; }
         [Required(ErrorMessage = "El monto del gasto es requerido")]
-        public bool EsFinanciado { get; set; }
-        public int CantidadDeCuotas { get; set; }
-        public List<Cuota> Cuotas { get; set; }  
-        public bool EsCompartido { get; set; }
-        public List<GastoCompartido> CompartidoCon { get; set; }
-        public decimal Monto { get; set; }
+        public bool EsFinanciado { get; private set; }
+        public int CantidadDeCuotas { get; private set; } 
+        public List<Cuota> Cuotas { get; private set; }  
+        public bool EsCompartido { get; private set; }
+        public List<GastoCompartido> CompartidoCon { get; private set; }
+        public decimal Monto { get; private set; }
 
         public Gasto(){}
         public Gasto(SubCategoria categoria, MetodoDePago metodoDePago, Moneda moneda, DateTime fecha,
-                     string descripcion, string etiqueta,string lugar,bool esFinanciado, decimal monto)
+                     string descripcion, string etiqueta,string lugar,bool esFinanciado,bool esCompartido, decimal monto, 
+                     int cantidadCuotas)
         {
             SubCategoria = categoria;
             MetodoDePago = metodoDePago;
@@ -50,15 +51,35 @@ namespace Dominio.Gastos
             Descripcion = descripcion;
             Etiqueta = etiqueta;
             EsFinanciado = esFinanciado;
+            EsCompartido = esCompartido;
             Lugar = lugar;
             Monto = monto;
             CompartidoCon = new List<GastoCompartido>();
             Cuotas = new List<Cuota>();
+            CantidadDeCuotas = cantidadCuotas;
+            Estado = true;
+        }
+
+        public Resultado<Gasto> EsValido(List<Usuario> usuariosParaCompartirGasto = null)
+        {
+            if (Monto <= 0) return Resultado<Gasto>.Failure(new Error("Gasto.EsValido", "El gasto debe ser mayor a 0 "));
+            if (SubCategoria == null) return Resultado<Gasto>.Failure(new Error("Gasto.EsValido", "El gasto debe estar asignado a una categoria"));
+            if (Moneda == null) return Resultado<Gasto>.Failure(new Error("Gasto.EsValido", "El gasto debe tener asignada una moneda"));
+            if (MetodoDePago == null) return Resultado<Gasto>.Failure(new Error("Gasto.EsValido", "El gasto debe tener asignado un metodo de pago"));
+            if (FechaDeGasto > DateTime.Now || FechaDeGasto < new DateTime(2000, 1, 1)) return Resultado<Gasto>.Failure(new Error("Gasto.EsValido", "La fecha del gasto es invalida"));
+
+            if (EsFinanciado && CantidadDeCuotas <= 2) return Resultado<Gasto>.Failure(new Error("Gasto.EsValido", "El gasto financiado debe tener 2 o mas cuotas"));
+            if (EsCompartido && (usuariosParaCompartirGasto == null || usuariosParaCompartirGasto.Count == 0)) return Resultado<Gasto>.Failure(new Error("Gasto.EsValido", "Los Usuarios con los que intenta compartir el gasto no son validos o no existen"));
+
+            return this;
+
         }
 
         public Resultado<Gasto> IngresarGastoCompartido(List<Usuario> usuarios)
         {
-            EsCompartido = true;
+            var esValidoResultado = EsValido(usuarios);
+            if (esValidoResultado.TieneErrores) return Resultado<Gasto>.Failure(esValidoResultado.Errores);
+
             GastoStrategy = new GastoCompartidoStrategy();
             return GastoStrategy.CalcularGasto(this, usuarios);
             
@@ -66,7 +87,9 @@ namespace Dominio.Gastos
 
         public Resultado<Gasto> IngresarGastoPersonal()
         {
-            EsCompartido = false;
+            var esValidoResultado = EsValido();
+            if(esValidoResultado.TieneErrores) return Resultado <Gasto>.Failure(esValidoResultado.Errores);
+
             GastoStrategy = new GastoPersonalStrategy();
             return GastoStrategy.CalcularGasto(this);
         }
@@ -77,11 +100,10 @@ namespace Dominio.Gastos
         }
 
         // Lógica para generar las cuotas
-        public void GenerarCuotas(int cantidadCuotas)
+        public Resultado<Gasto> GenerarCuotas(int cantidadCuotas)
         {
             if (!EsFinanciado || cantidadCuotas <= 1)
-                throw new InvalidOperationException("No se puede generar cuotas si el gasto no es financiado o la cantidad es inválida.");
-
+                return Resultado<Gasto>.Failure(new Error("GenerarCuotas","No se puede generar cuotas si el gasto no es financiado o la cantidad es inválida."));
 
             Cuotas.Clear();
             decimal montoPorCuota = Monto / cantidadCuotas;
@@ -97,6 +119,8 @@ namespace Dominio.Gastos
                     Pagado = false
                 });
             }
+
+            return this;
         }
 
         public Resultado<Gasto> CompartirGastoConUsuarios(List<Usuario> usuarios)
@@ -121,6 +145,8 @@ namespace Dominio.Gastos
                 gastosCompartidos.Add(gastoCompartido);
             }
 
+            CompartidoCon = gastosCompartidos;
+            
             return this;
         }
 
