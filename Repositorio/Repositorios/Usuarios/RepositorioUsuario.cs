@@ -134,6 +134,20 @@ namespace Repositorio.Repositorios.Usuarios
             }
         }
 
+        public async Task<Resultado<IEnumerable<Usuario>>> BuscarUsuarios(List<string> usuariosIds)
+        {
+            List<Usuario> usuarios =  new List<Usuario>();
+
+            foreach (var usuarioId in usuariosIds)
+            {
+                var usuarioResult = await ObtenerPorIdAsync(usuarioId);
+                if (usuarioResult.TieneErrores) return Resultado<IEnumerable<Usuario>>.Failure(usuarioResult.Errores);
+                if(usuarioResult.Valor != null) usuarios.Add(usuarioResult.Valor);
+            }
+
+            return usuarios;
+        }
+
         public async Task<Resultado<Usuario>> CrearAsync(Usuario model)
         {
             throw new NotImplementedException();

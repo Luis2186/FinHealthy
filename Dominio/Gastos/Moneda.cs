@@ -12,33 +12,33 @@ namespace Dominio.Gastos
         [Key]
         [Required(ErrorMessage = "El codigo de la moneda es requerido")]
         // Código de la moneda, como USD, EUR
-        public string? Codigo { get; set; }
+        public string Codigo { get; set; }
         [Required(ErrorMessage = "El nombre de la moneda es requerido")]
         // Nombre de la moneda, como Dólar, Euro
-        public string? Nombre { get; set; }
+        public string Nombre { get; set; }
         [Required(ErrorMessage = "El simbolo de la moneda es requerido")]
         // Símbolo de la moneda, como $ o €
-        public string? Simbolo { get; set; }
+        public string Simbolo { get; set; }
         [Required(ErrorMessage = "El tipo de cambio de la moneda es requerido")]
         // Tipo de cambio respecto a una moneda base, como USD
-        public double TipoDeCambio { get; set; }
+        public decimal TipoDeCambio { get; set; }
         [Required(ErrorMessage = "El pais de la moneda es requerido")]
         // País o región donde se utiliza la moneda
-        public string? Pais { get; set; }
+        public string Pais { get; set; }
 
 
-        public Moneda(string codigo, string nombre, string simbolo, double tipoDeCambio, string pais)
+        public Moneda(string codigo, string nombre, string simbolo, decimal tipoDeCambio, string pais)
         {
-            this.Codigo = codigo;
-            this.Nombre = nombre;
-            this.Simbolo = simbolo;
-            this.TipoDeCambio = tipoDeCambio;
-            this.Pais = pais;
+            Codigo = codigo;
+            Nombre = nombre;
+            Simbolo = simbolo;
+            TipoDeCambio = tipoDeCambio;
+            Pais = pais;
         }
 
 
         // Método para convertir un monto de esta moneda a otra
-        public double Convertir(double monto, Moneda otraMoneda)
+        public decimal Convertir(decimal monto, Moneda otraMoneda)
         {
             if (otraMoneda == null)
                 throw new ArgumentNullException(nameof(otraMoneda));

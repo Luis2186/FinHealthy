@@ -4,13 +4,8 @@ using Dominio.Gastos;
 using Repositorio.Repositorios.R_Categoria;
 using Repositorio.Repositorios.R_Categoria.R_SubCategoria;
 using Repositorio.Repositorios.R_Grupo;
-using Servicio.DTOS.CategoriasDTO;
 using Servicio.DTOS.SubCategoriasDTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Servicio.S_Categorias.S_SubCategorias
 {

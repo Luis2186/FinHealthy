@@ -26,8 +26,6 @@ namespace Repositorio.Repositorios.R_Categoria
             try
             {
                 var entidad = await _dbContext.Categorias
-                    .Include(cat=> cat.SubCategorias)
-                        .ThenInclude(sub => sub.GrupoGasto)
                     .FirstOrDefaultAsync(cat => cat.Id == id );
 
                 return entidad == null

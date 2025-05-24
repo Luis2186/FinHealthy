@@ -32,7 +32,7 @@ namespace Repositorio
             ConfigurarBuilderMetodoDePago(builder);
             ConfigurarBuilderMoneda(builder);
             ConfigurarBuilderTipoDeDocumento(builder);
-
+            ConfigurarBuilderGastoCompartido(builder);
         }
 
         protected private void ConfigurarBuilderNotificacion(ModelBuilder builder)
@@ -183,6 +183,12 @@ namespace Repositorio
         
         }
 
+        protected private void ConfigurarBuilderGastoCompartido(ModelBuilder builder)
+        {
+            builder.Entity<GastoCompartido>()
+                   .HasKey(gc => new { gc.GastoId, gc.MiembroId });
+        }
+
         protected private void ConfigurarBuilderUsuario(ModelBuilder builder)
         {
             builder.Entity<Usuario>().Property(user => user.Nombre).HasMaxLength(60).IsRequired();
@@ -230,10 +236,10 @@ namespace Repositorio
                 entity.HasKey(c => c.Id);
 
                 // Relación con UsuarioAdministrador (uno a uno)
-                entity.HasMany(g => g.SubCategorias) // Relación con Usuario
-                      .WithOne() // Relación uno a uno
-                      .HasForeignKey(g => g.CategoriaId) // Clave foránea explícita
-                      .OnDelete(DeleteBehavior.Restrict);
+                //entity.HasMany(g => g.SubCategorias) // Relación con Usuario
+                //      .WithOne() // Relación uno a uno
+                //      .HasForeignKey(g => g.CategoriaId) // Clave foránea explícita
+                //      .OnDelete(DeleteBehavior.Restrict);
 
                 // Configuración de propiedades
                 entity.Property(c => c.Nombre)
@@ -256,10 +262,10 @@ namespace Repositorio
                     .HasForeignKey(s => s.GrupoId);
 
                 // Relación entre Subcategoría y Categoría Principal (una subcategoría pertenece a una categoría principal)
-                entity
-                     .HasOne(s => s.Categoria)
-                    .WithMany(c => c.SubCategorias)
-                    .HasForeignKey(s => s.CategoriaId);
+                //entity
+                //     .HasOne(s => s.Categoria)
+                //    .WithMany(c => c.SubCategorias)
+                //    .HasForeignKey(s => s.CategoriaId);
 
                 entity.HasIndex(s => s.Nombre).IsUnique();
             });
@@ -330,6 +336,7 @@ namespace Repositorio
         public DbSet<Moneda> Monedas { get; set; }
         public DbSet<TipoDeDocumento> TipoDeDocumentos { get; set; }
         public DbSet<MetodoDePago> MetodosDePago { get; set; }
+        public DbSet<Gasto> Gastos { get; set; }
 
     }
 }

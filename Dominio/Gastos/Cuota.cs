@@ -10,14 +10,11 @@ namespace Dominio.Gastos
     {
         public int Id { get; set; }
         public int GastoId { get; set; }
-        public Gasto Gasto { get; set; }
-        public double Monto { get; set; }
+        public Gasto? Gasto { get; set; }
+        public decimal Monto { get; set; }
         public DateTime FechaPago { get; set; }
         public bool Pagado { get; set; } = false;
 
-        public Cuota()
-        {
-            Gasto = new Gasto();
-        }
+        public Cuota(){}
     }
 }

@@ -6,6 +6,7 @@ using Dominio.Solicitudes;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.SignalR;
 using Servicio.DTOS.CategoriasDTO;
+using Servicio.DTOS.GastosDTO;
 using Servicio.DTOS.GruposDTO;
 using Servicio.DTOS.SolicitudesDTO;
 using Servicio.DTOS.SubCategoriasDTO;
@@ -30,6 +31,7 @@ namespace Servicio.Automapper
             MapearSolicitudes();
             MapearCategorias();
             MapearSubCategorias();
+            MapearGastos();
         }
 
         private int CalcularEdad(DateTime fechaNacimiento)
@@ -104,8 +106,8 @@ namespace Servicio.Automapper
 
         public void MapearCategorias()
         {
-            CreateMap<Categoria, CategoriaDTO>().
-                ForMember(cat => cat.SubCategorias, opt => opt.MapFrom(src => src.SubCategorias)).ReverseMap();
+            //CreateMap<Categoria, CategoriaDTO>().
+            //    ForMember(cat => cat.SubCategorias, opt => opt.MapFrom(src => src.SubCategorias)).ReverseMap();
         }
         public void MapearSubCategorias()
         {
@@ -121,6 +123,17 @@ namespace Servicio.Automapper
             .ForMember(cat => cat.CategoriaId, opt => opt.MapFrom(src => src.Categoria.Id))
             .ReverseMap();
         }
+
+        public void MapearGastos()
+        {
+            CreateMap<Gasto, GastoDTO>()
+                .ForMember(gasto => gasto.SubCategoria, opt => opt.MapFrom(src => src.SubCategoria))
+                .ForMember(gasto => gasto.Moneda, opt => opt.MapFrom(src => src.Moneda))
+                .ForMember(gasto => gasto.MetodoDePago, opt => opt.MapFrom(src => src.MetodoDePago))
+                .ReverseMap();
+        }
+
+
 
 
         public List<UsuarioDTO> MapearMiembrosGrupoGasto(IEnumerable<Usuario> miembrosGrupoGasto)

@@ -11,7 +11,7 @@ namespace Dominio
 {
     public struct Resultado<T>
     {
-        public readonly T? Valor;
+        public readonly T Valor;
         public static implicit operator Resultado<T>(T valor) => new Resultado<T>(valor);
         public bool EsCorrecto { get; }
         public bool TieneErrores => !EsCorrecto;

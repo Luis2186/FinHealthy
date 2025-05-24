@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dominio.Gastos.IGastos;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Dominio.Gastos
 {
-    public class GastoFinanciado
+    public class GastoFinanciado 
     {
         public int Id { get; set; }
         [Required(ErrorMessage = "La cantidad de cuotas del gasto financiado es requerida")]
@@ -16,5 +17,7 @@ namespace Dominio.Gastos
         public int CuotasRestantes { get; set; }
         [Required(ErrorMessage = "La frencuencia del gasto es requerida")]
         public string? Frecuencia { get; set; } //Mensual, Anual, Trimestral, Semestral, etc
+
+   
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repositorio;
 
@@ -11,9 +12,11 @@ using Repositorio;
 namespace Repositorio.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250405193343_doubleToDecimals")]
+    partial class doubleToDecimals
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -155,6 +158,9 @@ namespace Repositorio.Migrations
                     b.Property<int>("CantidadDeCuotas")
                         .HasColumnType("int");
 
+                    b.Property<int>("CategoriaId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -192,18 +198,15 @@ namespace Repositorio.Migrations
                     b.Property<decimal>("Monto")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("SubCategoriaId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoriaId");
 
                     b.HasIndex("DocumentoAsociadoId");
 
                     b.HasIndex("MetodoDePagoId");
 
                     b.HasIndex("MonedaCodigo");
-
-                    b.HasIndex("SubCategoriaId");
 
                     b.ToTable("Gastos");
                 });
@@ -761,6 +764,12 @@ namespace Repositorio.Migrations
 
             modelBuilder.Entity("Dominio.Gastos.Gasto", b =>
                 {
+                    b.HasOne("Dominio.Gastos.Categoria", "Categoria")
+                        .WithMany()
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Dominio.Documentos.Documento", "DocumentoAsociado")
                         .WithMany()
                         .HasForeignKey("DocumentoAsociadoId");
@@ -777,19 +786,13 @@ namespace Repositorio.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Dominio.Gastos.SubCategoria", "SubCategoria")
-                        .WithMany()
-                        .HasForeignKey("SubCategoriaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Categoria");
 
                     b.Navigation("DocumentoAsociado");
 
                     b.Navigation("MetodoDePago");
 
                     b.Navigation("Moneda");
-
-                    b.Navigation("SubCategoria");
                 });
 
             modelBuilder.Entity("Dominio.Gastos.GastoCompartido", b =>
@@ -814,9 +817,9 @@ namespace Repositorio.Migrations
             modelBuilder.Entity("Dominio.Gastos.SubCategoria", b =>
                 {
                     b.HasOne("Dominio.Gastos.Categoria", "Categoria")
-                        .WithMany()
+                        .WithMany("SubCategorias")
                         .HasForeignKey("CategoriaId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Dominio.Grupos.Grupo", "GrupoGasto")
@@ -956,6 +959,11 @@ namespace Repositorio.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Dominio.Gastos.Categoria", b =>
+                {
+                    b.Navigation("SubCategorias");
                 });
 
             modelBuilder.Entity("Dominio.Gastos.Gasto", b =>

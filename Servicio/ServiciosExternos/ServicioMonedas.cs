@@ -44,7 +44,7 @@ namespace Servicio.ServiciosExternos
                         {
                             if (conversionRates.TryGetProperty("UYU", out JsonElement uyuRate))
                             {
-                                double valorEnPesosUruguayos = uyuRate.GetDouble();
+                                decimal valorEnPesosUruguayos = uyuRate.GetDecimal();
 
                                 if (valorEnPesosUruguayos > 0)
                                 {
