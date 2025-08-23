@@ -31,13 +31,28 @@ using Repositorio.Repositorios.R_Gastos.R_MetodosDePago;
 using Servicio.DTOS.CategoriasDTO;
 using Servicio.DTOS.SubCategoriasDTO;
 using Servicio.Usuarios.Authentication;
-
+using Servicio.S_TipoDeDocumento;
+using Repositorio.Repositorios.R_Gastos.R_TipoDeDocumento;
+using Repositorio.Repositorios.R_Gastos.R_TipoDeCambios;
+using Servicio.S_MetodosDePago;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    var xmlFile = $"{typeof(Program).Assembly.GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+    options.SwaggerDoc("v1", new()
+    {
+        Title = "FinHealthAPI",
+        Version = "v1",
+        Description = "API para gestión financiera familiar. Permite administrar usuarios, gastos, grupos, categorías y más.",
+        Contact = new() { Name = "Soporte FinHealth", Email = "soporte@finhealth.com" }
+    });
+});
 
 builder.Services.AddAuthorization();
 
@@ -119,6 +134,9 @@ builder.Services.AddScoped<IServicioMonedas, ServicioMonedas>();
 builder.Services.AddScoped<IServicioCategoria,  ServicioCategoria>();
 builder.Services.AddScoped<IServicioSubCategoria, ServicioSubCategoria>();
 builder.Services.AddScoped<IServicioGasto, ServicioGasto>();
+builder.Services.AddScoped<IServicioTipoDeDocumento, ServicioTipoDeDocumento>();
+builder.Services.AddScoped<IServicioMetodoDePago, ServicioMetodoDePago>();
+builder.Services.AddScoped<IServicioMonedas, ServicioMonedas>();
 
 builder.Services.AddScoped<IRepositorioRefreshToken, RepositorioRefreshToken>();
 builder.Services.AddScoped<IRepositorioMoneda, RepositorioMoneda>();
@@ -130,6 +148,7 @@ builder.Services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
 builder.Services.AddScoped<IRepositorioSubCategoria, RepositorioSubCategoria>();
 builder.Services.AddScoped<IRepositorioGasto, RepositorioGasto>();
 builder.Services.AddScoped<IRepositorioMetodoDePago, RepositorioMetodoDePago>();
+builder.Services.AddScoped<IRepositorioTipoDeDocumento, RepositorioTipoDeDocumento>();
 
 builder.Services.AddScoped<ProveedorToken>();
 var app = builder.Build();
@@ -140,7 +159,12 @@ await app.PoblarDatos();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "FinHealthAPI v1");
+        options.DocumentTitle = "FinHealthAPI Documentation";
+        options.RoutePrefix = "swagger";
+    });
 }
 // Usar CORS antes de las rutas
 app.UseCors("AllowSpecificOrigin");

@@ -3,6 +3,7 @@ using Dominio.Documentos;
 using Dominio.Errores;
 using Dominio.Gastos;
 using Microsoft.EntityFrameworkCore;
+using Repositorio.Repositorios.R_Gastos.R_TipoDeDocumento;
 using Repositorio.Repositorios.Validacion;
 using System;
 using System.Collections.Generic;

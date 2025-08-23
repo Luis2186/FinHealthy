@@ -1,12 +1,10 @@
 namespace Servicio.DTOS.SolicitudesDTO
 {
-    public class SolicitudDTO
+    public class CrearSolicitudDTO
     {
-        public int Id { get; set; }
         public required int GrupoId { get; set; }
         public required string UsuarioSolicitanteId { get; set; }
         public required string UsuarioAdministradorGrupoId { get; set; }
-        public required int Estado { get; set; }
         public string? Mensaje { get; set; }
     }
 }

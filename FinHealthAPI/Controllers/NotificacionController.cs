@@ -11,6 +11,9 @@ using Servicio.Usuarios;
 
 namespace FinHealthAPI.Controllers
 {
+    /// <summary>
+    /// Controlador para la gestión de notificaciones.
+    /// </summary>
     [Authorize(Roles = "Sys_Adm , Administrador, Usuario")]
     [ApiController]
     [Route("/notificacion")]
@@ -23,6 +26,11 @@ namespace FinHealthAPI.Controllers
             _servicioNotificacion = servicioNotificacion;
         }
 
+        /// <summary>
+        /// Obtiene las notificaciones emitidas por un usuario.
+        /// </summary>
+        /// <param name="usuarioEmisorId">El ID del usuario emisor.</param>
+        /// <returns>Una lista de notificaciones emitidas.</returns>
         [HttpGet("emitidas")]
         public async Task<ActionResult<Usuario>> ObtenerNotificacionesEmitidas([FromBody] string usuarioEmisorId)
         {
@@ -42,6 +50,11 @@ namespace FinHealthAPI.Controllers
             return Ok(resultado);
         }
 
+        /// <summary>
+        /// Obtiene las notificaciones recibidas por un usuario.
+        /// </summary>
+        /// <param name="usuarioReceptorId">El ID del usuario receptor.</param>
+        /// <returns>Una lista de notificaciones recibidas.</returns>
         [HttpGet("recibidas")]
         public async Task<ActionResult<Usuario>> ObtenerNotificacionesRecibidas([FromBody] string usuarioReceptorId)
         {
@@ -61,6 +74,11 @@ namespace FinHealthAPI.Controllers
             return Ok(resultado);
         }
 
+        /// <summary>
+        /// Marca una notificación como leída.
+        /// </summary>
+        /// <param name="notificacionId">El ID de la notificación.</param>
+        /// <returns>Un resultado vacío si la operación fue exitosa.</returns>
         [HttpPost("leerNotificacion")]
         public async Task<ActionResult<Usuario>> MarcarNotificacionLeida([FromBody] int notificacionId)
         {
@@ -82,7 +100,12 @@ namespace FinHealthAPI.Controllers
 
             return NoContent();
         }
-        // Crear un nuevo usuario
+
+        /// <summary>
+        /// Envía una nueva notificación.
+        /// </summary>
+        /// <param name="notificacionDTO">El objeto de notificación a enviar.</param>
+        /// <returns>Los detalles de la notificación enviada.</returns>
         [HttpPost("enviarNotificacion")]
         public async Task<ActionResult<Usuario>> EnviarNotificacion([FromBody] CrearNotificacionDTO notificacionDTO)
         {
@@ -124,7 +147,12 @@ namespace FinHealthAPI.Controllers
 
             return Ok(resultado.Valor) ;
         }
-        // Obtener un usuario por su ID
+
+        /// <summary>
+        /// Busca una notificación por su ID.
+        /// </summary>
+        /// <param name="notificacionId">El ID de la notificación.</param>
+        /// <returns>Los detalles de la notificación buscada.</returns>
         [HttpGet("buscar")]
         public async Task<ActionResult<Usuario>> BuscarNotificacion([FromBody] int notificacionId)
         {
@@ -166,7 +194,12 @@ namespace FinHealthAPI.Controllers
 
             return Ok(resultado);  // Devuelve el usuario con estado 200 OK
         }
-        // Actualizar un usuario
+
+        /// <summary>
+        /// Elimina una notificación.
+        /// </summary>
+        /// <param name="notificacionId">El ID de la notificación a eliminar.</param>
+        /// <returns>Un resultado vacío si la operación fue exitosa.</returns>
         [HttpDelete("eliminar")]
         public async Task<ActionResult<Usuario>> eliminarNotificacion([FromBody] int notificacionId)
         {

@@ -1,26 +1,28 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using Dominio;
 using Dominio.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using QuestPDF.Fluent;
 using Servicio.DTOS.UsuariosDTO;
-using Servicio.Pdf;
-using Servicio.ServiciosExternos;
 using Servicio.Usuarios;
 using Servicio.Usuarios.Authentication;
+using Servicio.ServiciosExternos; // IServicioMonedas
+using Servicio.S_Pdf; // Pdf<T>
+using Servicio.DTOS.UsuariosDTO; // UsuarioPDFDTO
 using System.Configuration;
 using System.Net;
 
 namespace FinHealthAPI.Controllers
 {
+    /// <summary>
+    /// Controlador para la gestión de usuarios.
+    /// </summary>
     [Authorize(Roles = "Sys_Adm,Administrador")]
     [ApiController]
     [Route("/usuario")]
-    public class UsuarioController : Controller
+    public class UsuarioController : ControllerBase
     {
         private readonly IServicioUsuario _servicioUsuario;
         private readonly IServicioMonedas _servicioMoneda;
@@ -40,7 +42,9 @@ namespace FinHealthAPI.Controllers
         }
 
 
-        // Obtener todos los usuarios con paginación
+        /// <summary>
+        /// Obtener todos los usuarios con paginación
+        /// </summary>
         [HttpGet("paginados")]
         public async Task<ActionResult<Usuario>> ObtenerUsuariosPaginados()
         {
@@ -59,15 +63,17 @@ namespace FinHealthAPI.Controllers
 
             var usuariosDTOS = _mapper.Map<List<UsuarioDTO>>(resultado.Valor);
             
-            var usuariosPDFDTOS = _mapper.Map<List<UsuarioPDFDTO>>(resultado.Valor);
+            //var usuariosPDFDTOS = _mapper.Map<List<UsuarioPDFDTO>>(resultado.Valor);
 
-            var reporte = new Pdf<UsuarioPDFDTO>(usuariosPDFDTOS, "Listado de Usuarios");
-            reporte.GeneratePdf("C:\\Users\\lilp_\\Desktop\\Usuarios.pdf");
+            //var reporte = new Pdf<UsuarioPDFDTO>(usuariosPDFDTOS, "Listado de Usuarios");
+            //reporte.GeneratePdf("C:\\Users\\lilp_\\Desktop\\Usuarios.pdf");
 
             return Ok(usuariosDTOS);  // Devuelve los datos con estado HTTP 200 OK
         }
 
-        // Obtener un usuario por su ID
+        /// <summary>
+        /// Obtener un usuario por su ID
+        /// </summary>
         [HttpGet("obtener/{usuarioId}")]
         [AllowAnonymous]
         public async Task<ActionResult<Usuario>> ObtenerUsuarioPorId(string usuarioId)
@@ -90,7 +96,9 @@ namespace FinHealthAPI.Controllers
             return Ok(usuarioDTO);  // Devuelve el usuario with estado 200 OK
         }
 
-        // Crear un nuevo usuario
+        /// <summary>
+        /// Crear un nuevo usuario
+        /// </summary>
         [HttpPost("registrar")]
         [AllowAnonymous]
         public async Task<ActionResult<Usuario>> RegistrarUsuario([FromBody] CrearUsuarioDTO usuarioDto)
@@ -136,7 +144,9 @@ namespace FinHealthAPI.Controllers
 
             return Ok(new { mensaje = "Registro exitoso", id = usuarioId }) ;
         }
-        // Obtener un usuario por su ID
+        /// <summary>
+        /// Obtener un usuario por su ID
+        /// </summary>
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult<Usuario>> Login([FromBody] UsuarioLoginDTO usuarioDto)
@@ -184,7 +194,9 @@ namespace FinHealthAPI.Controllers
             return Ok( new { mensaje = "Inicio de sesión exitoso", id = usuarioId });  // Devuelve el usuario con estado 200 OK
         }
 
-        // Obtener un usuario por su ID
+        /// <summary>
+        /// Obtener un usuario por su ID
+        /// </summary>
         [HttpPost("logout")]
         [AllowAnonymous]
         public async Task<ActionResult<Usuario>> Logout()
@@ -205,7 +217,9 @@ namespace FinHealthAPI.Controllers
         }
 
 
-        // Actualizar un usuario
+        /// <summary>
+        /// Actualizar un usuario
+        /// </summary>
         [HttpPut("actualizar/{usuarioId}")]
         public async Task<ActionResult<Usuario>> ActualizarUsuario(string usuarioId, [FromBody] ActualizarUsuarioDTO usuarioDto)
         {
@@ -249,7 +263,9 @@ namespace FinHealthAPI.Controllers
             return Ok(usuarioDTO);  // Devuelve el usuario actualizado con estado 200 OK
         }
 
-        // Eliminar un usuario
+        /// <summary>
+        /// Eliminar un usuario
+        /// </summary>
         [HttpDelete("eliminar/{usuarioId}")]
         public async Task<ActionResult> EliminarUsuario(string usuarioId)
         {
@@ -271,6 +287,9 @@ namespace FinHealthAPI.Controllers
 
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
         }
+        /// <summary>
+        /// Eliminar un rol a un usuario
+        /// </summary>
         [HttpDelete("eliminarRol/{idUsuario}/{idRol}/{nombreRol}")]
         public async Task<ActionResult> EliminarRolAUsuario(string idUsuario,string nombreRol, string idRol)
         {
@@ -293,6 +312,9 @@ namespace FinHealthAPI.Controllers
             return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
         }
 
+        /// <summary>
+        /// Agregar un rol a un usuario
+        /// </summary>
         [HttpPost("agregarRol")]
         public async Task<ActionResult> AgregarRolAUsuario([FromBody] UsuarioRolDTO rol)
         {
@@ -334,7 +356,9 @@ namespace FinHealthAPI.Controllers
             return NoContent();
         }
 
-        // Obtener todos los usuarios con paginación
+        /// <summary>
+        /// Obtener todos los roles de un usuario
+        /// </summary>
         [HttpGet("obtenerRoles/{usuarioId}")]
         public async Task<ActionResult<Usuario>> ObtenerRolesPorUsuario(string usuarioId)
         {
@@ -354,7 +378,9 @@ namespace FinHealthAPI.Controllers
             return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
         }
 
-        // Obtener todos los usuarios con paginación
+        /// <summary>
+        /// Obtener todos los roles
+        /// </summary>
         [HttpGet("obtenerRoles")]
         public async Task<ActionResult<Usuario>> ObtenerRoles()
         {
@@ -374,6 +400,9 @@ namespace FinHealthAPI.Controllers
             return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
         }
 
+        /// <summary>
+        /// Refrescar el token de acceso
+        /// </summary>
         [HttpPost("refresh-token")]
         [AllowAnonymous]
         public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)

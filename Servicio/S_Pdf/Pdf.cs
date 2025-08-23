@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace Servicio.Pdf
+namespace Servicio.S_Pdf
 {
     public class Pdf<T> : IDocument
     {
@@ -25,23 +24,19 @@ namespace Servicio.Pdf
 
         public void Compose(IDocumentContainer container)
         {
-
             container.Page(page =>
             {
                 page.Size(PageSizes.A4.Landscape());
                 page.Margin(30);
                 page.PageColor(Colors.White);
                 page.DefaultTextStyle(x => x.FontSize(12));
-                
                 page.Header().Container().PaddingBottom(40)
                     .Text(_title)
                     .FontSize(18)
                     .Bold()
                     .FontColor(Colors.Blue.Medium)
                     .AlignCenter();
-
                 page.Content().Element(ComposeContent);
-
                 page.Footer()
                     .AlignCenter()
                     .Text(x =>
@@ -61,11 +56,8 @@ namespace Servicio.Pdf
                 container.AlignCenter().Text("No hay datos para mostrar").FontSize(14).Italic();
                 return;
             }
-
             container.Table(table =>
             {
-
-                // Configurar columnas dinámicamente basado en las propiedades del tipo T
                 table.ColumnsDefinition(columns =>
                 {
                     columns.ConstantColumn(100);
@@ -75,27 +67,14 @@ namespace Servicio.Pdf
                     columns.RelativeColumn();
                     columns.RelativeColumn();
                     columns.RelativeColumn();
-
-
-
-
-                    //foreach (var property in typeof(T).GetProperties())
-                    //{
-                    //    columns.RelativeColumn(10); // Definir columnas iguales
-                    //}
                 });
-
-                // Encabezados
                 table.Header(header =>
                 {
-                    
                     foreach (var property in typeof(T).GetProperties())
                     {
                         header.Cell().Element(CellStyle).Text(property.Name).Bold();
                     }
                 });
-
-                // Filas
                 foreach (var item in _data)
                 {
                     foreach (var property in typeof(T).GetProperties())
@@ -110,6 +89,12 @@ namespace Servicio.Pdf
         private static IContainer CellStyle(IContainer container)
         {
             return container.Padding(5).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).AlignCenter().AlignMiddle();
+        }
+
+        // Implementación pública para guardar el PDF en disco
+        public void GeneratePdf(string filePath)
+        {
+            this.GeneratePdf(filePath);
         }
     }
 }

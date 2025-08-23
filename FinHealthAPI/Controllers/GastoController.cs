@@ -1,13 +1,22 @@
 ﻿using AutoMapper;
+using Dominio;
+using Dominio.Usuarios;
+using Servicio.DTOS.GastosDTO; // CrearGastoDTO
+using Servicio.DTOS.GruposDTO; // GrupoDTO
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Servicio.DTOS.GastosDTO;
-using Servicio.DTOS.GruposDTO;
-using Servicio.S_Categorias;
 using Servicio.S_Gastos;
+using Servicio.Usuarios;
+using System.Configuration;
+using System.Net;
 
 namespace FinHealthAPI.Controllers
 {
+    /// <summary>
+    /// Controlador para la gestión de gastos.
+    /// </summary>
     [Authorize(Roles = "Sys_Adm , Administrador, Usuario")]
     [ApiController]
     [Route("/gasto")]
@@ -24,6 +33,15 @@ namespace FinHealthAPI.Controllers
 
 
         // Crear un nuevo usuario
+        /// <summary>
+        /// Crea un nuevo gasto.
+        /// </summary>
+        /// <param name="gastoCreacionDTO">Datos del gasto a crear.</param>
+        /// <param name="cancellationToken">Token de cancelación.</param>
+        /// <returns>Un objeto GrupoDTO con los detalles del grupo creado.</returns>
+        /// <response code="200">Devuelve el ID del gasto creado.</response>
+        /// <response code="400">Si hay errores de validación.</response>
+        /// <response code="404">Si ya existe un gasto con ese ID.</response>
         [HttpPost("crear")]
         public async Task<ActionResult<GrupoDTO>> CrearGrupo([FromBody] CrearGastoDTO gastoCreacionDTO, CancellationToken cancellationToken)
         {

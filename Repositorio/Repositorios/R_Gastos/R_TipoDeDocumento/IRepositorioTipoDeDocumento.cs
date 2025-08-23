@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dominio.Documentos;
 
-namespace Repositorio.Repositorios.R_Gastos.R_TipoDeCambios
+namespace Repositorio.Repositorios.R_Gastos.R_TipoDeDocumento
 {
     public interface IRepositorioTipoDeDocumento : IRepositorioCRUD<TipoDeDocumento>
     {

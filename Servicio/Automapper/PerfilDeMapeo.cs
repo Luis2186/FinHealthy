@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Dominio.Documentos;
 using Dominio.Gastos;
 using Dominio.Grupos;
 using Dominio.Notificaciones;
@@ -11,12 +12,16 @@ using Servicio.DTOS.GruposDTO;
 using Servicio.DTOS.SolicitudesDTO;
 using Servicio.DTOS.SubCategoriasDTO;
 using Servicio.DTOS.UsuariosDTO;
-using Servicio.Notificaciones.NotificacionesDTO;
+using Servicio.DTOS.NotificacionesDTO;
+using Servicio.DTOS.TipoDeDocumentoDTO;
+using Servicio.DTOS.MonedasDTO;
+using Servicio.DTOS.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Servicio.DTOS.MetodosDePagoDTO;
 
 namespace Servicio.Automapper
 {
@@ -32,6 +37,9 @@ namespace Servicio.Automapper
             MapearCategorias();
             MapearSubCategorias();
             MapearGastos();
+            MapearTipoDeDocumento();
+            MapearMonedas();
+            MapearMetodosDePago();
         }
 
         private int CalcularEdad(DateTime fechaNacimiento)
@@ -76,12 +84,16 @@ namespace Servicio.Automapper
             CreateMap<Usuario, ActualizarUsuarioDTO>()
                .ForMember(destino => destino.Telefono, opt => opt.MapFrom(origen => origen.PhoneNumber))
                .ForMember(destino => destino.NombreDeUsuario, opt => opt.MapFrom(origen => origen.UserName));
+
+            CreateMap<UsuarioLoginDTO, Usuario>().ReverseMap();
+            CreateMap<UsuarioRolDTO, Usuario>().ReverseMap();
+            CreateMap<PaginacionUsuarioDTO, Usuario>().ReverseMap();
         }
 
         public void MapearNotificaciones()
         {
-            CreateMap<Notificacion, NotificacionCreacionDTO>();
-            CreateMap<NotificacionCreacionDTO, Notificacion>();
+            CreateMap<Notificacion, CrearNotificacionDTO>();
+            CreateMap<CrearNotificacionDTO, Notificacion>();
 
             CreateMap<Notificacion, NotificacionDTO>();
             CreateMap<NotificacionDTO, Notificacion>();
@@ -96,19 +108,40 @@ namespace Servicio.Automapper
                  //.ForMember(dest => dest.Miembros, opt => opt.MapFrom(src => src.MiembrosGrupoGasto))
                  .ForMember(dest => dest.Miembros, opt => opt.MapFrom(src => MapearMiembrosGrupoGasto(src.MiembrosGrupoGasto))) // Evita mapear de nuevo la propiedad GrupoDeGastos para prevenir ciclos
                 .ReverseMap();
+
+            CreateMap<UnirseAGrupoDTO, Grupo>().ReverseMap();
+            CreateMap<GrupoPaginacionDTO, Grupo>().ReverseMap();
+        }
+
+        public void MapearTipoDeDocumento()
+        {
+            CreateMap<TipoDeDocumento, CrearTipoDeDocumentoDTO>().ReverseMap();
+            CreateMap<TipoDeDocumento, TipoDeDocumentoDTO>().ReverseMap();
+            CreateMap<TipoDeDocumento, ActualizarTipoDeDocumentoDTO>().ReverseMap();
+        }
+
+        public void MapearMonedas()
+        {
+            CreateMap<Moneda, CrearMonedaDTO>().ReverseMap();
+            CreateMap<Moneda, MonedaDTO>().ReverseMap();
+            CreateMap<Moneda, ActualizarMonedaDTO>().ReverseMap();
         }
 
         public void MapearSolicitudes()
         {
             CreateMap<SolicitudUnionGrupo, EnviarSolicitudDTO>().ReverseMap();
             CreateMap<SolicitudUnionGrupo, SolicitudDTO>().ReverseMap();
+
+            CreateMap<PaginacionSolicitudDTO, SolicitudUnionGrupo>().ReverseMap();
         }
 
         public void MapearCategorias()
         {
             CreateMap<Categoria, CategoriaDTO>().ReverseMap();
-            //    ForMember(cat => cat.SubCategorias, opt => opt.MapFrom(src => src.SubCategorias)).ReverseMap();
+            CreateMap<CrearCategoriaDTO, Categoria>().ReverseMap();
+            CreateMap<ActualizarCategoriaDTO, Categoria>().ReverseMap();
         }
+
         public void MapearSubCategorias()
         {
             CreateMap<SubCategoriaDTO, ActualizarCategoriaDTO>();
@@ -122,6 +155,8 @@ namespace Servicio.Automapper
             .ForMember(cat => cat.GrupoId, opt => opt.MapFrom(src => src.GrupoGasto.Id))
             .ForMember(cat => cat.CategoriaId, opt => opt.MapFrom(src => src.Categoria.Id))
             .ReverseMap();
+
+            CreateMap<ObtenerSubCategoriasDTO, SubCategoria>().ReverseMap();
         }
 
         public void MapearGastos()
@@ -133,6 +168,8 @@ namespace Servicio.Automapper
                 .ForMember(gasto => gasto.Cuotas, opt => opt.MapFrom(src => src.Cuotas))
                 .ForMember(gasto => gasto.CompartidoCon, opt => opt.MapFrom(src => src.CompartidoCon))
                 .ReverseMap();
+
+            CreateMap<CrearGastoDTO, Gasto>().ReverseMap();
         }
 
 
@@ -161,5 +198,25 @@ namespace Servicio.Automapper
             }).ToList();
         }
 
+        // Mapeo para paginación común
+        public void MapearPaginacion()
+        {
+            CreateMap<PaginacionDTO<UsuarioDTO>, PaginacionResultado<UsuarioDTO>>().ReverseMap();
+            CreateMap<PaginacionDTO<GrupoDTO>, PaginacionResultado<GrupoDTO>>().ReverseMap();
+            CreateMap<PaginacionDTO<CategoriaDTO>, PaginacionResultado<CategoriaDTO>>().ReverseMap();
+            CreateMap<PaginacionDTO<SubCategoriaDTO>, PaginacionResultado<SubCategoriaDTO>>().ReverseMap();
+            CreateMap<PaginacionDTO<GastoDTO>, PaginacionResultado<GastoDTO>>().ReverseMap();
+            CreateMap<PaginacionDTO<NotificacionDTO>, PaginacionResultado<NotificacionDTO>>().ReverseMap();
+            CreateMap<PaginacionDTO<TipoDeDocumentoDTO>, PaginacionResultado<TipoDeDocumentoDTO>>().ReverseMap();
+            CreateMap<PaginacionDTO<MonedaDTO>, PaginacionResultado<MonedaDTO>>().ReverseMap();
+            CreateMap<PaginacionDTO<SolicitudDTO>, PaginacionResultado<SolicitudDTO>>().ReverseMap();
+        }
+
+        public void MapearMetodosDePago()
+        {
+            CreateMap<MetodoDePago, MetodoDePagoDTO>().ReverseMap();
+            CreateMap<MetodoDePago, CrearMetodoDePagoDTO>().ReverseMap();
+            CreateMap<MetodoDePago, ActualizarMetodoDePagoDTO>().ReverseMap();
+        }
     }
 }

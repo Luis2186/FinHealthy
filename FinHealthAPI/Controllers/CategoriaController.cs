@@ -9,6 +9,9 @@ using Servicio.S_Categorias;
 
 namespace FinHealthAPI.Controllers
 {
+    /// <summary>
+    /// Controlador para la gestión de categorías.
+    /// </summary>
     [Authorize(Roles = "Sys_Adm , Administrador, Usuario")]
     [ApiController]
     [Route("/categoria")]

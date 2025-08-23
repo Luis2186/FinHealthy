@@ -1,16 +1,22 @@
 ﻿using AutoMapper;
 using Dominio;
 using Dominio.Usuarios;
+using Servicio.DTOS.SolicitudesDTO; // EnviarSolicitudDTO, SolicitudDTO, PaginacionSolicitudDTO
+using Servicio.DTOS.GruposDTO; // GrupoDTO, UnirseAGrupoDTO
+using Servicio.S_Grupos; // IServicioGrupos
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Servicio.DTOS.GruposDTO;
-using Servicio.DTOS.SolicitudesDTO;
-using Servicio.DTOS.UsuariosDTO;
-using Servicio.Pdf;
-using Servicio.S_Grupos;
+using Servicio.Usuarios;
+using System.Configuration;
+using System.Net;
 
 namespace FinHealthAPI.Controllers
 {
+    /// <summary>
+    /// Controlador para la gestión de solicitudes.
+    /// </summary>
     [Authorize(Roles = "Sys_Adm , Administrador, Usuario")]
     [ApiController]
     [Route("/solicitud")]
@@ -27,6 +33,11 @@ namespace FinHealthAPI.Controllers
 
 
         // Obtener todos los usuarios con paginación
+        /// <summary>
+        /// Obtiene las solicitudes de un administrador en particular.
+        /// </summary>
+        /// <param name="solicitudes">Objeto que contiene el id del administrador y el estado de las solicitudes.</param>
+        /// <returns>Lista de solicitudes del administrador.</returns>
         [HttpGet("porAdmin")]
         public async Task<ActionResult<SolicitudDTO>> ObtenerSolicitudesPorAdministrador([FromBody] PaginacionSolicitudDTO solicitudes)
         {
@@ -70,6 +81,11 @@ namespace FinHealthAPI.Controllers
         //}
 
         // Crear un nuevo usuario
+        /// <summary>
+        /// Envía una solicitud para unirse a un grupo.
+        /// </summary>
+        /// <param name="enviarSolicitudDTO">Objeto que contiene la información de la solicitud.</param>
+        /// <returns>El ID de la solicitud creada.</returns>
         [HttpPost("enviar")]
         public async Task<ActionResult<GrupoDTO>> EnviarSolicitud([FromBody] EnviarSolicitudDTO enviarSolicitudDTO)
         {
@@ -113,6 +129,11 @@ namespace FinHealthAPI.Controllers
         }
 
         // Crear un nuevo usuario
+        /// <summary>
+        /// Acepta una solicitud de unión a un grupo.
+        /// </summary>
+        /// <param name="idSolicitud">ID de la solicitud a aceptar.</param>
+        /// <returns>Indica si la aceptación fue exitosa.</returns>
         [HttpPost("aceptar/{idSolicitud}")]
         public async Task<ActionResult<bool>> AceptarSolicitudDeUnionGrupo(int idSolicitud)
         {
@@ -156,6 +177,11 @@ namespace FinHealthAPI.Controllers
         }
 
         // Crear un nuevo usuario
+        /// <summary>
+        /// Se une a un grupo utilizando un código.
+        /// </summary>
+        /// <param name="solicitud">Objeto que contiene la información para unirse al grupo.</param>
+        /// <returns>Indica si la unión al grupo fue exitosa.</returns>
         [HttpPost("porCodigo")]
         public async Task<ActionResult<bool>> UnirseConCodigoAGrupo([FromBody] UnirseAGrupoDTO solicitud)
         {

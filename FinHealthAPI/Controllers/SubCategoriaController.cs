@@ -9,10 +9,13 @@ using Servicio.S_Categorias.S_SubCategorias;
 
 namespace FinHealthAPI.Controllers
 {
+    /// <summary>
+    /// Controlador para la gestión de subcategorías.
+    /// </summary>
     [Authorize(Roles = "Sys_Adm , Administrador, Usuario")]
     [ApiController]
     [Route("/subcategoria")]
-    public class SubCategoriaController : Controller
+    public class SubCategoriaController : ControllerBase
     {
         private readonly IServicioSubCategoria _servicioSubCategoria;
         private readonly IMapper _mapper;
@@ -25,6 +28,12 @@ namespace FinHealthAPI.Controllers
 
 
         // Obtener todos los usuarios con paginación
+        /// <summary>
+        /// Obtiene todas las subcategorías de una categoría específica en un grupo.
+        /// </summary>
+        /// <param name="grupoId">ID del grupo.</param>
+        /// <param name="categoriaId">ID de la categoría.</param>
+        /// <returns>Lista de subcategorías.</returns>
         [HttpGet("todas/{grupoId}/{categoriaId}")]
         public async Task<ActionResult<SubCategoriaDTO>> ObtenerTodas(int grupoId, int categoriaId)
         {
@@ -46,6 +55,11 @@ namespace FinHealthAPI.Controllers
         }
 
         // Obtener un usuario por su ID
+        /// <summary>
+        /// Obtiene una subcategoría por su ID.
+        /// </summary>
+        /// <param name="subCategoriaId">ID de la subcategoría.</param>
+        /// <returns>Datos de la subcategoría.</returns>
         [HttpGet("obtener/{subCategoriaId}")]
         public async Task<ActionResult<SubCategoriaDTO>> ObtenerPorId(int subCategoriaId)
         {
@@ -69,6 +83,11 @@ namespace FinHealthAPI.Controllers
         }
 
         // Crear un nuevo usuario
+        /// <summary>
+        /// Crea una nueva subcategoría.
+        /// </summary>
+        /// <param name="subCategoriaCreacionDTO">Datos de la subcategoría a crear.</param>
+        /// <returns>Datos de la subcategoría creada.</returns>
         [HttpPost("crear")]
         public async Task<ActionResult<SubCategoriaDTO>> Crear([FromBody] CrearSubCategoriaDTO subCategoriaCreacionDTO)
         {
@@ -102,6 +121,12 @@ namespace FinHealthAPI.Controllers
         }
 
         // Actualizar un usuario
+        /// <summary>
+        /// Actualiza una subcategoría existente.
+        /// </summary>
+        /// <param name="categoriaId">ID de la subcategoría a actualizar.</param>
+        /// <param name="subCategoriaActDTO">Datos actualizados de la subcategoría.</param>
+        /// <returns>Datos de la subcategoría actualizada.</returns>
         [HttpPut("actualizar/{categoriaId}")]
         public async Task<ActionResult<SubCategoriaDTO>> Actualizar(int categoriaId, [FromBody] ActualizarCategoriaDTO subCategoriaActDTO)
         {
@@ -134,6 +159,11 @@ namespace FinHealthAPI.Controllers
         }
 
         // Eliminar un usuario
+        /// <summary>
+        /// Elimina una subcategoría por su ID.
+        /// </summary>
+        /// <param name="subCategoriaId">ID de la subcategoría a eliminar.</param>
+        /// <returns>Respuesta vacía si la eliminación fue exitosa.</returns>
         [HttpDelete("eliminar/{subCategoriaId}")]
         public async Task<ActionResult> Eliminar(int subCategoriaId)
         {

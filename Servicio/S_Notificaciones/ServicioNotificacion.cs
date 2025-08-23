@@ -5,13 +5,13 @@ using Dominio.Notificaciones;
 using Dominio.Usuarios;
 using Repositorio.Repositorios.Notificaciones;
 using Repositorio.Repositorios.Usuarios;
-using Servicio.Notificaciones.NotificacionesDTO;
+using Servicio.DTOS.NotificacionesDTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Servicio.Notificaciones
 {
@@ -44,7 +44,7 @@ namespace Servicio.Notificaciones
             return await _repoNotificacion.EliminarNotificacion(notificacionId);
         }
 
-        public async Task<Resultado<NotificacionDTO>> EnviarNotificacion(NotificacionCreacionDTO notificacionCreacionDTO, CancellationToken cancellationToken)
+        public async Task<Resultado<NotificacionDTO>> EnviarNotificacion(CrearNotificacionDTO notificacionCreacionDTO, CancellationToken cancellationToken)
         {
             var resultado_UEmisor = await _repoUsuario.ObtenerPorIdAsync(notificacionCreacionDTO.UsuarioEmisorId, cancellationToken);
             var resultado_UReceptor = await _repoUsuario.ObtenerPorIdAsync(notificacionCreacionDTO.UsuarioReceptorId, cancellationToken);
@@ -66,7 +66,7 @@ namespace Servicio.Notificaciones
             return notificacionDTO;
         }
 
-        public async Task<Resultado<NotificacionDTO>> EnviarNotificacion(NotificacionCreacionDTO notificacionCreacionDTO)
+        public async Task<Resultado<NotificacionDTO>> EnviarNotificacion(CrearNotificacionDTO notificacionCreacionDTO)
         {
             // Llama a la sobrecarga con CancellationToken.None para cumplir la interfaz
             return await EnviarNotificacion(notificacionCreacionDTO, CancellationToken.None);
