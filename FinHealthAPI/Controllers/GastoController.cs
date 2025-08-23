@@ -25,7 +25,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("crear")]
-        public async Task<ActionResult<GrupoDTO>> CrearGrupo([FromBody] CrearGastoDTO gastoCreacionDTO)
+        public async Task<ActionResult<GrupoDTO>> CrearGrupo([FromBody] CrearGastoDTO gastoCreacionDTO, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -46,7 +46,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioGasto.CrearGasto(gastoCreacionDTO);
+            var resultado = await _servicioGasto.CrearGasto(gastoCreacionDTO, cancellationToken);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)

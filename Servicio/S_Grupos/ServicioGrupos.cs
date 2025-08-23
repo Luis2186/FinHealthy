@@ -11,6 +11,7 @@ using Repositorio.Repositorios.Usuarios;
 using Servicio.DTOS.GruposDTO;
 using Servicio.DTOS.SolicitudesDTO;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Servicio.S_Grupos
 {
@@ -33,11 +34,11 @@ namespace Servicio.S_Grupos
             _mapper = mapper;
         }
 
-        public async Task<Resultado<bool>> AceptarSolicitudIngresoAGrupo(int idSolicitud)
+        public async Task<Resultado<bool>> AceptarSolicitudIngresoAGrupo(int idSolicitud, CancellationToken cancellationToken)
         {
             try
             {
-                var solicitudBuscada = await _repositorioSolicitud.ObtenerPorIdAsync(idSolicitud);
+                var solicitudBuscada = await _repositorioSolicitud.ObtenerPorIdAsync(idSolicitud, cancellationToken);
 
                 if (solicitudBuscada.TieneErrores) return Resultado<bool>.Failure(solicitudBuscada.Errores);
 
@@ -45,15 +46,15 @@ namespace Servicio.S_Grupos
 
                 if (solicitudParaAceptar.Estado != "Pendiente") return Resultado<bool>.Failure(ErroresSolicitud.Estado_No_Es_Pendiente);
 
-                var grupoAdmin = await _repoGrupo.ObtenerGrupoPorIdAdministrador(solicitudParaAceptar.UsuarioAdministradorGrupoId);
+                var grupoAdmin = await _repoGrupo.ObtenerGrupoPorIdAdministrador(solicitudParaAceptar.UsuarioAdministradorGrupoId, cancellationToken);
                 
                 if(grupoAdmin.TieneErrores) return Resultado<bool>.Failure(grupoAdmin.Errores);
 
-                var solicitudAceptada =await _repositorioSolicitud.AceptarSolicitud(idSolicitud);
+                var solicitudAceptada =await _repositorioSolicitud.AceptarSolicitud(idSolicitud, cancellationToken);
 
                 if (solicitudAceptada.TieneErrores) return Resultado<bool>.Failure(solicitudAceptada.Errores);
 
-                var usuarioIngresado =await IngresarAGrupo(grupoAdmin.Valor.Id, solicitudParaAceptar.UsuarioSolicitanteId);
+                var usuarioIngresado =await IngresarAGrupo(grupoAdmin.Valor.Id, solicitudParaAceptar.UsuarioSolicitanteId, cancellationToken);
 
                 if(usuarioIngresado.EsCorrecto)
                 {              
@@ -68,17 +69,17 @@ namespace Servicio.S_Grupos
             }
         }
 
-        public async Task<Resultado<GrupoDTO>> ActualizarGrupo(int grupoId,ActualizarGrupoDTO grupoActDTO)
+        public async Task<Resultado<GrupoDTO>> ActualizarGrupo(int grupoId, ActualizarGrupoDTO grupoActDTO, CancellationToken cancellationToken)
         {
             try
             {
-                var grupoBuscado = await _repoGrupo.ObtenerPorIdAsync(grupoId);
+                var grupoBuscado = await _repoGrupo.ObtenerPorIdAsync(grupoId, cancellationToken);
 
                 if (grupoBuscado.TieneErrores) return Resultado<GrupoDTO>.Failure(grupoBuscado.Errores);
 
                 _mapper.Map(grupoActDTO, grupoBuscado.Valor); // Actualizar el usuario con el DTO
 
-                var resultado = await _repoGrupo.ActualizarAsync(grupoBuscado.Valor);
+                var resultado = await _repoGrupo.ActualizarAsync(grupoBuscado.Valor, cancellationToken);
 
                 if (resultado.TieneErrores) return Resultado<GrupoDTO>.Failure(resultado.Errores);
 
@@ -92,13 +93,13 @@ namespace Servicio.S_Grupos
             }
         }
 
-        public async Task<Resultado<GrupoDTO>> CrearGrupo(CrearGrupoDTO grupoCreacionDTO)
+        public async Task<Resultado<GrupoDTO>> CrearGrupo(CrearGrupoDTO grupoCreacionDTO, CancellationToken cancellationToken)
         {
             try
             {
                 await _unitOfWork.IniciarTransaccionAsync();
 
-                var usuarioAdmin =await _repoUsuarios.ObtenerPorIdAsync(grupoCreacionDTO.UsuarioAdministradorId);
+                var usuarioAdmin =await _repoUsuarios.ObtenerPorIdAsync(grupoCreacionDTO.UsuarioAdministradorId, cancellationToken);
 
                 if (usuarioAdmin.TieneErrores || usuarioAdmin.Valor == null) return Resultado<GrupoDTO>.Failure(usuarioAdmin.Errores);
 
@@ -110,9 +111,9 @@ namespace Servicio.S_Grupos
 
                 usuarioAdm.UnirseAGrupo(grupo);
 
-                var resultado = await _repoGrupo.CrearAsync(grupo);
+                var resultado = await _repoGrupo.CrearAsync(grupo, cancellationToken);
 
-                await _repoUsuarios.ActualizarAsync(usuarioAdm);
+                await _repoUsuarios.ActualizarAsync(usuarioAdm, cancellationToken);
 
                 if (resultado.TieneErrores) return Resultado<GrupoDTO>.Failure(resultado.Errores);
 
@@ -128,11 +129,11 @@ namespace Servicio.S_Grupos
             }
         }
 
-        public async Task<Resultado<bool>> EliminarGrupo(int id)
+        public async Task<Resultado<bool>> EliminarGrupo(int id, CancellationToken cancellationToken)
         {
             try
             {
-                var resultado = await _repoGrupo.EliminarAsync(id);
+                var resultado = await _repoGrupo.EliminarAsync(id, cancellationToken);
 
                 if (resultado.TieneErrores) return Resultado<bool>.Failure(resultado.Errores);
 
@@ -144,21 +145,21 @@ namespace Servicio.S_Grupos
             }
         }
 
-        public async Task<Resultado<SolicitudDTO>> EnviarSolicitudIngresoAGrupo(EnviarSolicitudDTO solicitud)
+        public async Task<Resultado<SolicitudDTO>> EnviarSolicitudIngresoAGrupo(EnviarSolicitudDTO solicitud, CancellationToken cancellationToken)
         {
             try
             {
                 SolicitudUnionGrupo solicitudUnion = _mapper.Map<SolicitudUnionGrupo>(solicitud);
 
-                var resultado_usuarioSolicitante = await _repoUsuarios.ObtenerPorIdAsync(solicitud.UsuarioSolicitanteId);
-                var resultado_usuarioAdmin = await _repoUsuarios.ObtenerPorIdAsync(solicitud.UsuarioAdministradorGrupoId);
+                var resultado_usuarioSolicitante = await _repoUsuarios.ObtenerPorIdAsync(solicitud.UsuarioSolicitanteId, cancellationToken);
+                var resultado_usuarioAdmin = await _repoUsuarios.ObtenerPorIdAsync(solicitud.UsuarioAdministradorGrupoId, cancellationToken);
 
                 if (resultado_usuarioSolicitante.TieneErrores) return Resultado<SolicitudDTO>.Failure(new Error("El usuario solicitante no existe"));
                 if (resultado_usuarioAdmin.TieneErrores) return Resultado<SolicitudDTO>.Failure(new Error("El usuario administrador no existe"));
 
                 solicitudUnion.EnviarSolicitudParaUnirseAGrupo(resultado_usuarioSolicitante.Valor, resultado_usuarioAdmin.Valor);
                 
-                var solicitudEnviada = await _repositorioSolicitud.CrearAsync(solicitudUnion);
+                var solicitudEnviada = await _repositorioSolicitud.CrearAsync(solicitudUnion, cancellationToken);
 
                 if (solicitudEnviada.TieneErrores) return Resultado<SolicitudDTO>.Failure(solicitudEnviada.Errores);
 
@@ -173,19 +174,19 @@ namespace Servicio.S_Grupos
             }
         }
 
-        private async Task<Resultado<bool>> IngresarAGrupo(int grupoId, string usuarioSolicitante)
+        private async Task<Resultado<bool>> IngresarAGrupo(int grupoId, string usuarioSolicitante, CancellationToken cancellationToken)
         {
             try
             {
                 //await _unitOfWork.IniciarTransaccionAsync();
 
-                var resultadoUsuario = await _repoUsuarios.ObtenerPorIdAsync(usuarioSolicitante);
+                var resultadoUsuario = await _repoUsuarios.ObtenerPorIdAsync(usuarioSolicitante, cancellationToken);
                 
                 if (resultadoUsuario.TieneErrores) return Resultado<bool>.Failure(resultadoUsuario.Errores);
 
                 var usuario = resultadoUsuario.Valor;
 
-                var grupoBuscado = await _repoGrupo.ObtenerPorIdAsync(grupoId);
+                var grupoBuscado = await _repoGrupo.ObtenerPorIdAsync(grupoId, cancellationToken);
 
                 if (grupoBuscado.TieneErrores) return Resultado<bool>.Failure(grupoBuscado.Errores);
 
@@ -193,10 +194,10 @@ namespace Servicio.S_Grupos
 
                 usuario.UnirseAGrupo(grupo);
                 
-                var resultadoActualizacionMiembro = await _repoUsuarios.ActualizarAsync(usuario);
+                var resultadoActualizacionMiembro = await _repoUsuarios.ActualizarAsync(usuario, cancellationToken);
 
                 grupo.AgregarMiembro(usuario);
-                var resultadoActualizacionGrupo = await _repoGrupo.ActualizarAsync(grupo);
+                var resultadoActualizacionGrupo = await _repoGrupo.ActualizarAsync(grupo, cancellationToken);
 
                 if (resultadoActualizacionGrupo.EsCorrecto && resultadoActualizacionMiembro.EsCorrecto)
                 {
@@ -214,11 +215,11 @@ namespace Servicio.S_Grupos
             }
         }
 
-        public async Task<Resultado<GrupoDTO>> ObtenerGrupoPorId(int id)
+        public async Task<Resultado<GrupoDTO>> ObtenerGrupoPorId(int id, CancellationToken cancellationToken)
         {
             try
             {
-                var resultado = await _repoGrupo.ObtenerPorIdAsync(id);
+                var resultado = await _repoGrupo.ObtenerPorIdAsync(id, cancellationToken);
 
                 if (resultado.TieneErrores) return Resultado<GrupoDTO>.Failure(resultado.Errores);
 
@@ -232,11 +233,11 @@ namespace Servicio.S_Grupos
             }
         }
 
-        public async Task<Resultado<IEnumerable<GrupoDTO>>> ObtenerTodosLosGrupos()
+        public async Task<Resultado<IEnumerable<GrupoDTO>>> ObtenerTodosLosGrupos(CancellationToken cancellationToken)
         {
             try
             {
-                var resultado = await _repoGrupo.ObtenerTodosAsync();
+                var resultado = await _repoGrupo.ObtenerTodosAsync(cancellationToken);
 
                 if (resultado.TieneErrores) return Resultado<IEnumerable<GrupoDTO>>.Failure(resultado.Errores);
 
@@ -250,12 +251,12 @@ namespace Servicio.S_Grupos
             }
         }
 
-        public async Task<Resultado<bool>> RechazarSolicitudIngresoAGrupo(int idSolicitud)
+        public async Task<Resultado<bool>> RechazarSolicitudIngresoAGrupo(int idSolicitud, CancellationToken cancellationToken)
         {
             try
             {
 
-                var solicitudBuscada = await _repositorioSolicitud.ObtenerPorIdAsync(idSolicitud);
+                var solicitudBuscada = await _repositorioSolicitud.ObtenerPorIdAsync(idSolicitud, cancellationToken);
 
                 if (solicitudBuscada.TieneErrores) return Resultado<bool>.Failure(solicitudBuscada.Errores);
 
@@ -263,7 +264,7 @@ namespace Servicio.S_Grupos
 
                 if (solicitudParaRechazar.Estado != "Pendiente") return Resultado<bool>.Failure(ErroresSolicitud.Estado_No_Es_Pendiente);
 
-                var solicitudRechazada = await _repositorioSolicitud.RechazarSolicitud(idSolicitud);
+                var solicitudRechazada = await _repositorioSolicitud.RechazarSolicitud(idSolicitud, cancellationToken);
 
                 if (solicitudRechazada.TieneErrores) return Resultado<bool>.Failure(solicitudRechazada.Errores);
 
@@ -276,11 +277,11 @@ namespace Servicio.S_Grupos
             }
         }
 
-        public async Task<Resultado<IEnumerable<SolicitudDTO>>> ObtenerSolicitudesPorAdministrador(string idAdministrador, string estado)
+        public async Task<Resultado<IEnumerable<SolicitudDTO>>> ObtenerSolicitudesPorAdministrador(string idAdministrador, string estado, CancellationToken cancellationToken)
         {
             try
             {
-                var resultado = await _repositorioSolicitud.ObtenerTodasPorAdministrador(idAdministrador,estado);
+                var resultado = await _repositorioSolicitud.ObtenerTodasPorAdministrador(idAdministrador, estado, cancellationToken);
 
                 if (resultado.TieneErrores) return Resultado<IEnumerable<SolicitudDTO>>.Failure(resultado.Errores);
 
@@ -294,11 +295,11 @@ namespace Servicio.S_Grupos
             }
         }
 
-        public async Task<Resultado<bool>> IngresoAGrupoConCodigo(UnirseAGrupoDTO acceso)
+        public async Task<Resultado<bool>> IngresoAGrupoConCodigo(UnirseAGrupoDTO acceso, CancellationToken cancellationToken)
         {
             try
             {
-                var grupo = await _repoGrupo.ObtenerPorIdAsync(acceso.GrupoGastoId);
+                var grupo = await _repoGrupo.ObtenerPorIdAsync(acceso.GrupoGastoId, cancellationToken);
 
                 if (grupo.TieneErrores) return Resultado<bool>.Failure(grupo.Errores);
 
@@ -310,7 +311,7 @@ namespace Servicio.S_Grupos
 
                 if(codigoVerificado.TieneErrores) return Resultado<bool>.Failure(codigoVerificado.Errores);
 
-                var usuarioIngresado = await IngresarAGrupo(grupo.Valor.Id, acceso.UsuarioId);
+                var usuarioIngresado = await IngresarAGrupo(grupo.Valor.Id, acceso.UsuarioId, cancellationToken);
 
                 if (usuarioIngresado.EsCorrecto)
                 {
@@ -325,7 +326,7 @@ namespace Servicio.S_Grupos
             }
         }
 
-        public async Task<Resultado<IEnumerable<GrupoDTO>>> ObtenerTodosLosGruposPorUsuario(string idUsuario)
+        public async Task<Resultado<IEnumerable<GrupoDTO>>> ObtenerTodosLosGruposPorUsuario(string idUsuario, CancellationToken cancellationToken)
         {
             var resultado = await _repoGrupo.ObtenerGruposPorUsuario(idUsuario);
 
@@ -333,7 +334,7 @@ namespace Servicio.S_Grupos
             
             var gruposDTO = _mapper.Map<IEnumerable<GrupoDTO>>(resultado.Valor);
 
-            return gruposDTO.ToList();
+            return Resultado<IEnumerable<GrupoDTO>>.Success(gruposDTO);
         }
     }
 }

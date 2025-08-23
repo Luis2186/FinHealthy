@@ -44,7 +44,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("paginados")]
         public async Task<ActionResult<Usuario>> ObtenerUsuariosPaginados()
         {
-            var resultado = await _servicioUsuario.ObtenerTodos();
+            var resultado = await _servicioUsuario.ObtenerTodos(HttpContext.RequestAborted);
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -72,7 +72,7 @@ namespace FinHealthAPI.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<Usuario>> ObtenerUsuarioPorId(string usuarioId)
         {
-            var usuario = await _servicioUsuario.ObtenerPorId(usuarioId);
+            var usuario = await _servicioUsuario.ObtenerPorId(usuarioId, HttpContext.RequestAborted);
             
             if (usuario.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -87,7 +87,7 @@ namespace FinHealthAPI.Controllers
 
             var usuarioDTO = _mapper.Map<UsuarioDTO>(usuario.Valor);
 
-            return Ok(usuarioDTO);  // Devuelve el usuario con estado 200 OK
+            return Ok(usuarioDTO);  // Devuelve el usuario with estado 200 OK
         }
 
         // Crear un nuevo usuario
@@ -114,7 +114,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var usuarioCreado = await _servicioUsuario.Registrar(usuarioDto);
+            var usuarioCreado = await _servicioUsuario.Registrar(usuarioDto, HttpContext.RequestAborted);
             
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (usuarioCreado.TieneErrores)
@@ -131,7 +131,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var (accessToken, refreshToken, usuarioId) = usuarioCreado.Valor;
+            (string accessToken, string refreshToken, string usuarioId) = usuarioCreado.Valor;
             AgregarTokensACookies(accessToken, refreshToken);
 
             return Ok(new { mensaje = "Registro exitoso", id = usuarioId }) ;
@@ -162,7 +162,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var usuario = await _servicioUsuario.Login(usuarioDto);
+            var usuario = await _servicioUsuario.Login(usuarioDto, HttpContext.RequestAborted);
 
             if (usuario.TieneErrores)
             {
@@ -178,7 +178,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
             // Generar el token JWT
-            var (accessToken, refreshToken, usuarioId) = usuario.Valor;
+            (string accessToken, string refreshToken, string usuarioId) = usuario.Valor;
             AgregarTokensACookies(accessToken, refreshToken);
 
             return Ok( new { mensaje = "Inicio de sesión exitoso", id = usuarioId });  // Devuelve el usuario con estado 200 OK
@@ -195,7 +195,7 @@ namespace FinHealthAPI.Controllers
             if (refreshTokenCookieName != null && refreshTokenCookieName != "") {
                 Request.Cookies.TryGetValue(refreshTokenCookieName, out string refreshTokenCookie);
 
-                if (refreshTokenCookie != null && refreshTokenCookie != "") await _servicioUsuario.RevocarRefreshToken(refreshTokenCookie);
+                if (refreshTokenCookie != null && refreshTokenCookie != "") await _servicioUsuario.RevocarRefreshToken(refreshTokenCookie, HttpContext.RequestAborted);
 
             } 
 
@@ -228,7 +228,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var usuarioActualizado = await _servicioUsuario.Actualizar(usuarioId, usuarioDto);
+            var usuarioActualizado = await _servicioUsuario.Actualizar(usuarioId, usuarioDto, HttpContext.RequestAborted);
 
             if (usuarioActualizado.TieneErrores)
             {
@@ -253,7 +253,7 @@ namespace FinHealthAPI.Controllers
         [HttpDelete("eliminar/{usuarioId}")]
         public async Task<ActionResult> EliminarUsuario(string usuarioId)
         {
-            var usuarioEliminado = await _servicioUsuario.Eliminar(usuarioId);
+            var usuarioEliminado = await _servicioUsuario.Eliminar(usuarioId, HttpContext.RequestAborted);
 
             if (usuarioEliminado.TieneErrores)
             {
@@ -274,7 +274,7 @@ namespace FinHealthAPI.Controllers
         [HttpDelete("eliminarRol/{idUsuario}/{idRol}/{nombreRol}")]
         public async Task<ActionResult> EliminarRolAUsuario(string idUsuario,string nombreRol, string idRol)
         {
-            var rolEliminado = await _servicioUsuario.RemoverRol(idUsuario, idRol, nombreRol);
+            var rolEliminado = await _servicioUsuario.RemoverRol(idUsuario, idRol, nombreRol, HttpContext.RequestAborted);
 
             if (rolEliminado.TieneErrores)
             {
@@ -308,14 +308,14 @@ namespace FinHealthAPI.Controllers
                         ["errors"] = ModelState.Keys
                             .SelectMany(key => ModelState[key].Errors.Select(error => new
                             {
-                                Code = key, // Aquí puedes ajustar el código como desees
+                                Code = key,
                                 Description = error.ErrorMessage
                             }))
                     }
                 });
             }
 
-            var rolAgregado = await _servicioUsuario.AgregarRol(rol.idUsuario, rol.IdRol,rol.NombreRol);
+            var rolAgregado = await _servicioUsuario.AgregarRol(rol.idUsuario, rol.IdRol, rol.NombreRol, HttpContext.RequestAborted);
 
             if (rolAgregado.TieneErrores)
             {
@@ -331,14 +331,14 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
+            return NoContent();
         }
 
         // Obtener todos los usuarios con paginación
         [HttpGet("obtenerRoles/{usuarioId}")]
         public async Task<ActionResult<Usuario>> ObtenerRolesPorUsuario(string usuarioId)
         {
-            var resultado = await _servicioUsuario.ObtenerRolesPorUsuario(usuarioId);
+            var resultado = await _servicioUsuario.ObtenerRolesPorUsuario(usuarioId, HttpContext.RequestAborted);
             
             if(resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -358,7 +358,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("obtenerRoles")]
         public async Task<ActionResult<Usuario>> ObtenerRoles()
         {
-            var resultado = await _servicioUsuario.ObtenerTodosLosRoles();
+            var resultado = await _servicioUsuario.ObtenerTodosLosRoles(HttpContext.RequestAborted);
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -388,7 +388,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioUsuario.RefreshToken(refreshToken);
+            var resultado = await _servicioUsuario.RefreshToken(refreshToken, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -401,7 +401,7 @@ namespace FinHealthAPI.Controllers
                     }
             });
 
-            var (nuevoAccessToken, nuevoRefreshToken, usuarioId) = resultado.Valor;
+            (string nuevoAccessToken, string nuevoRefreshToken, string usuarioId) = resultado.Valor;
             LimpiarCookies();
             AgregarTokensACookies(nuevoAccessToken, nuevoRefreshToken);
 

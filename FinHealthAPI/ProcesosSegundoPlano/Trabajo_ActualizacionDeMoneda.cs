@@ -1,5 +1,5 @@
 ﻿using Quartz;
-using Repositorio.Repositorios.Monedas;
+using Repositorio.Repositorios.R_Gastos.R_Monedas;
 using Servicio.ServiciosExternos;
 
 namespace FinHealthAPI.ProcesosSegundoPlano
@@ -16,7 +16,7 @@ namespace FinHealthAPI.ProcesosSegundoPlano
 
         public async Task Execute(IJobExecutionContext context)
         {
-            await _servicioMonedas.ActualizarMonedasDesdeServicio();
+            await _servicioMonedas.ActualizarMonedasDesdeServicio(context.CancellationToken);
         }
     }
 }

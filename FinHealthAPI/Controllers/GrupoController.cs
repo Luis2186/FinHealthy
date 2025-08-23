@@ -31,7 +31,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("todas")]
         public async Task<ActionResult<Grupo>> ObtenerGrupos()
         {
-            var resultado = await _servicioGrupos.ObtenerTodosLosGrupos();
+            var resultado = await _servicioGrupos.ObtenerTodosLosGrupos(HttpContext.RequestAborted);
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -51,7 +51,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("todas/{idUsuario}")]
         public async Task<ActionResult<Grupo>> ObtenerGrupos(string idUsuario)
         {
-            var resultado = await _servicioGrupos.ObtenerTodosLosGruposPorUsuario(idUsuario);
+            var resultado = await _servicioGrupos.ObtenerTodosLosGruposPorUsuario(idUsuario, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -71,7 +71,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("obtener/{grupoId}")]
         public async Task<ActionResult<GrupoDTO>> ObtenerGrupoPorId(int grupoId)
         {
-            var resultado = await _servicioGrupos.ObtenerGrupoPorId(grupoId);
+            var resultado = await _servicioGrupos.ObtenerGrupoPorId(grupoId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores)
             {
@@ -113,7 +113,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioGrupos.CrearGrupo(grupoCreacionDTO);
+            var resultado = await _servicioGrupos.CrearGrupo(grupoCreacionDTO, HttpContext.RequestAborted);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
@@ -156,7 +156,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioGrupos.ActualizarGrupo(grupoId, grupoActDTO);
+            var resultado = await _servicioGrupos.ActualizarGrupo(grupoId, grupoActDTO, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores)
             {
@@ -179,7 +179,7 @@ namespace FinHealthAPI.Controllers
         [HttpDelete("eliminar/{grupoId}")]
         public async Task<ActionResult> EliminarGrupo(int grupoId)
         {
-            var resultado = await _servicioGrupos.EliminarGrupo(grupoId);
+            var resultado = await _servicioGrupos.EliminarGrupo(grupoId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores)
             {

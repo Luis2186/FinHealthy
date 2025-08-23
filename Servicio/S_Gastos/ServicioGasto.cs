@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Dominio;
 using Dominio.Gastos;
-using Repositorio.Repositorios.Monedas;
+using Repositorio.Repositorios.R_Gastos.R_Monedas;
 using Repositorio.Repositorios.R_Categoria;
 using Repositorio.Repositorios.R_Categoria.R_SubCategoria;
 using Repositorio.Repositorios.R_Gastos;
@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Servicio.S_Gastos
 {
@@ -40,28 +41,28 @@ namespace Servicio.S_Gastos
             _mapper = mapper;
         }
 
-        public async Task<Resultado<GastoDTO>> CrearGasto(CrearGastoDTO gastoCreacionDTO)
+        public async Task<Resultado<GastoDTO>> CrearGasto(CrearGastoDTO gastoCreacionDTO, CancellationToken cancellationToken)
         {
-            var metodoDePagoResult = await _repoMetodoDePago.ObtenerPorIdAsync(gastoCreacionDTO.MetodoDePagoId);
+            var metodoDePagoResult = await _repoMetodoDePago.ObtenerPorIdAsync(gastoCreacionDTO.MetodoDePagoId, cancellationToken);
             if (metodoDePagoResult.TieneErrores) return Resultado<GastoDTO>.Failure(metodoDePagoResult.Errores);
 
-            var categoriaResult = await _repoSubCategoria.ObtenerPorIdAsync(gastoCreacionDTO.SubCategoriaId);
+            var categoriaResult = await _repoSubCategoria.ObtenerPorIdAsync(gastoCreacionDTO.SubCategoriaId, cancellationToken);
             if (categoriaResult.TieneErrores) return Resultado<GastoDTO>.Failure(categoriaResult.Errores);
 
-            var monedaResult = await _repoMoneda.ObtenerPorIdAsync(gastoCreacionDTO.MonedaId);
+            var monedaResult = await _repoMoneda.ObtenerPorCodigoAsync(gastoCreacionDTO.MonedaId, cancellationToken);
             if (monedaResult.TieneErrores) return Resultado<GastoDTO>.Failure(monedaResult.Errores);
 
             MetodoDePago metodoDePagoElegido = metodoDePagoResult.Valor;
             SubCategoria subCategoriaElegida = categoriaResult.Valor;
             Moneda monedaElegida = monedaResult.Valor;
-      
+  
             Gasto nuevoGasto = new Gasto(subCategoriaElegida, metodoDePagoElegido, monedaElegida, gastoCreacionDTO.FechaDeGasto,
                 gastoCreacionDTO.Descripcion, gastoCreacionDTO.Etiqueta,gastoCreacionDTO.Lugar, gastoCreacionDTO.EsFinanciado,
                 gastoCreacionDTO.EsCompartido, gastoCreacionDTO.Monto, gastoCreacionDTO.CantidadDeCuotas);
 
             if (gastoCreacionDTO.EsCompartido)
             {
-                var usuariosCompartidosResult = await _repoUsuarios.BuscarUsuarios(gastoCreacionDTO.UsuariosCompartidosIds);
+                var usuariosCompartidosResult = await _repoUsuarios.BuscarUsuarios(gastoCreacionDTO.UsuariosCompartidosIds, cancellationToken);
                 if (usuariosCompartidosResult.TieneErrores) return Resultado<GastoDTO>.Failure(usuariosCompartidosResult.Errores);
                 
                 var resultadoIngreso = nuevoGasto.IngresarGastoCompartido(usuariosCompartidosResult.Valor.ToList());
@@ -73,7 +74,7 @@ namespace Servicio.S_Gastos
                 if (resultadoIngreso.TieneErrores) return Resultado<GastoDTO>.Failure(resultadoIngreso.Errores);
             }
 
-            var resultado = await _repoGastos.CrearAsync(nuevoGasto);
+            var resultado = await _repoGastos.CrearAsync(nuevoGasto, cancellationToken);
 
             if (resultado.TieneErrores) return Resultado<GastoDTO>.Failure(resultado.Errores);
 

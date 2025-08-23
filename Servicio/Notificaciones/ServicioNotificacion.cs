@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Servicio.Notificaciones
 {
@@ -27,7 +28,7 @@ namespace Servicio.Notificaciones
             this._repoUsuario=repositorioUsuario;
             this._mapper = mapper;
         }
-        public async Task<Resultado<NotificacionDTO>> BuscarNotificacion(int notificacionId)
+        public async Task<Resultado<NotificacionDTO>> BuscarNotificacion(int notificacionId, CancellationToken cancellationToken)
         {
             var resultado = await _repoNotificacion.BuscarNotificacion(notificacionId);
 
@@ -38,16 +39,15 @@ namespace Servicio.Notificaciones
             return notificacionDTO;
         }
 
-        public async Task<Resultado<bool>> EliminarNotificacion(int notificacionId)
+        public async Task<Resultado<bool>> EliminarNotificacion(int notificacionId, CancellationToken cancellationToken)
         {
             return await _repoNotificacion.EliminarNotificacion(notificacionId);
         }
 
-        public async Task<Resultado<NotificacionDTO>> EnviarNotificacion(NotificacionCreacionDTO notificacionCreacionDTO)
+        public async Task<Resultado<NotificacionDTO>> EnviarNotificacion(NotificacionCreacionDTO notificacionCreacionDTO, CancellationToken cancellationToken)
         {
-
-            var resultado_UEmisor = await _repoUsuario.ObtenerPorIdAsync(notificacionCreacionDTO.UsuarioEmisorId);
-            var resultado_UReceptor = await _repoUsuario.ObtenerPorIdAsync(notificacionCreacionDTO.UsuarioReceptorId);
+            var resultado_UEmisor = await _repoUsuario.ObtenerPorIdAsync(notificacionCreacionDTO.UsuarioEmisorId, cancellationToken);
+            var resultado_UReceptor = await _repoUsuario.ObtenerPorIdAsync(notificacionCreacionDTO.UsuarioReceptorId, cancellationToken);
 
             if (resultado_UEmisor.TieneErrores) return Resultado<NotificacionDTO>.Failure(new Error("EnviarNotificacion", "El usuario emisor no fue encontrado"));
             if (resultado_UReceptor.TieneErrores) return Resultado<NotificacionDTO>.Failure(new Error("EnviarNotificacion", "El usuario receptor no fue encontrado"));
@@ -66,30 +66,30 @@ namespace Servicio.Notificaciones
             return notificacionDTO;
         }
 
-        public async Task<Resultado<bool>> MarcarComoLeida(int notificacionId)
+        public async Task<Resultado<NotificacionDTO>> EnviarNotificacion(NotificacionCreacionDTO notificacionCreacionDTO)
+        {
+            // Llama a la sobrecarga con CancellationToken.None para cumplir la interfaz
+            return await EnviarNotificacion(notificacionCreacionDTO, CancellationToken.None);
+        }
+
+        public async Task<Resultado<bool>> MarcarComoLeida(int notificacionId, CancellationToken cancellationToken)
         {
             return await _repoNotificacion.MarcarComoLeida(notificacionId);
         }
 
-        public async Task<Resultado<IEnumerable<NotificacionDTO>>> ObtenerNotificacionesEmitidas(string usuarioEmisorId)
+        public async Task<Resultado<IEnumerable<NotificacionDTO>>> ObtenerNotificacionesEmitidas(string usuarioEmisorId, CancellationToken cancellationToken)
         {
             var resultado = await _repoNotificacion.ObtenerNotificacionesEmitidas(usuarioEmisorId);
-
             if (resultado.TieneErrores) return Resultado<IEnumerable<NotificacionDTO>>.Failure(resultado.Errores);
-
             var notificacionesDTOS = _mapper.Map<List<NotificacionDTO>>(resultado.Valor);
-
             return notificacionesDTOS;
         }
 
-        public async Task<Resultado<IEnumerable<NotificacionDTO>>> ObtenerNotificacionesRecibidas(string usuarioReceptorId)
+        public async Task<Resultado<IEnumerable<NotificacionDTO>>> ObtenerNotificacionesRecibidas(string usuarioReceptorId, CancellationToken cancellationToken)
         {
             var resultado = await _repoNotificacion.ObtenerNotificacionesRecibidas(usuarioReceptorId);
-
             if (resultado.TieneErrores) return Resultado<IEnumerable<NotificacionDTO>>.Failure(resultado.Errores);
-
             var notificacionesDTOS = _mapper.Map<List<NotificacionDTO>>(resultado.Valor);
-
             return notificacionesDTOS;
         }
     }

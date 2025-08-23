@@ -27,7 +27,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("todas/{grupoId}/{categoriaId}")]
         public async Task<ActionResult<SubCategoriaDTO>> ObtenerTodas(int grupoId, int categoriaId)
         {
-            var resultado = await _servicioSubCategoria.ObtenerSubCategorias(grupoId, categoriaId);
+            var resultado = await _servicioSubCategoria.ObtenerSubCategorias(grupoId, categoriaId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores) return NotFound(
                 new ProblemDetails
@@ -48,7 +48,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("obtener/{subCategoriaId}")]
         public async Task<ActionResult<SubCategoriaDTO>> ObtenerPorId(int subCategoriaId)
         {
-            var resultado = await _servicioSubCategoria.ObtenerPorId(subCategoriaId);
+            var resultado = await _servicioSubCategoria.ObtenerPorId(subCategoriaId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores)
             {
@@ -64,7 +64,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            return Ok(resultado.Valor);  // Devuelve el usuario con estado 200 OK
+            return Ok(resultado.Valor);  // Devuelve el usuario with estado 200 OK
         }
 
         // Crear un nuevo usuario
@@ -90,7 +90,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultadoCreacion = await _servicioSubCategoria.Crear(subCategoriaCreacionDTO);
+            var resultadoCreacion = await _servicioSubCategoria.Crear(subCategoriaCreacionDTO, HttpContext.RequestAborted);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultadoCreacion.TieneErrores)
@@ -125,7 +125,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultadoActualizacion = await _servicioSubCategoria.Actualizar(categoriaId, subCategoriaActDTO);
+            var resultadoActualizacion = await _servicioSubCategoria.Actualizar(categoriaId, subCategoriaActDTO, HttpContext.RequestAborted);
 
             if (resultadoActualizacion.TieneErrores)
             {
@@ -139,7 +139,7 @@ namespace FinHealthAPI.Controllers
         [HttpDelete("eliminar/{subCategoriaId}")]
         public async Task<ActionResult> Eliminar(int subCategoriaId)
         {
-            var resultado = await _servicioSubCategoria.Eliminar(subCategoriaId);
+            var resultado = await _servicioSubCategoria.Eliminar(subCategoriaId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores)
             {

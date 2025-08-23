@@ -2,13 +2,15 @@
 using Dominio.Errores;
 using Dominio.Gastos;
 using HtmlAgilityPack;
-using Repositorio.Repositorios.Monedas;
+using Repositorio.Repositorios.R_Gastos.R_Monedas;
+using Servicio.ServiciosExternos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Servicio.ServiciosExternos
@@ -24,32 +26,28 @@ namespace Servicio.ServiciosExternos
             _repoMoneda = repoMoneda;
         }
 
-        public async Task<Resultado<bool>> ActualizarMonedasDesdeServicio()
+        public async Task<Resultado<bool>> ActualizarMonedasDesdeServicio(CancellationToken cancellationToken)
         {
             try
             {
-                var monedas = await _repoMoneda.ObtenerTodosAsync();
-
+                var monedas = await _repoMoneda.ObtenerTodosAsync(cancellationToken);
                 if (monedas.TieneErrores) return Resultado<bool>.Failure(monedas.Errores);
-
                 foreach (var moneda in monedas.Valor)
                 {
                     try
                     {
                         var urlServicio = $"https://v6.exchangerate-api.com/v6/c7eb5f1fd1bbd0c66a9049a4/latest/{moneda.Codigo}";
-                        var response = await _httpClient.GetStringAsync(urlServicio);
+                        var response = await _httpClient.GetStringAsync(urlServicio, cancellationToken);
                         var jsonDoc = JsonDocument.Parse(response);
-
                         if (jsonDoc.RootElement.TryGetProperty("conversion_rates", out JsonElement conversionRates))
                         {
                             if (conversionRates.TryGetProperty("UYU", out JsonElement uyuRate))
                             {
                                 decimal valorEnPesosUruguayos = uyuRate.GetDecimal();
-
                                 if (valorEnPesosUruguayos > 0)
                                 {
                                     moneda.TipoDeCambio = valorEnPesosUruguayos;
-                                    await _repoMoneda.ActualizarAsync(moneda);
+                                    await _repoMoneda.ActualizarAsync(moneda, cancellationToken);
                                 }
                             }                        
                         }
@@ -68,42 +66,28 @@ namespace Servicio.ServiciosExternos
             }
         }
 
-        private async Task GetCotizacion()
+        private async Task GetCotizacion(CancellationToken cancellationToken)
         {
-            // URL de la página que deseas scrapear
             string url = "https://www.brou.com.uy/web/guest/cotizaciones";
-
-            // Usar HttpClient para realizar la solicitud HTTP
             using (HttpClient client = new HttpClient())
             {
                 try
                 {
-                    // Obtener el contenido HTML de la página
-                    var response = await client.GetStringAsync(url);
-
-                    // Analizar el HTML con HtmlAgilityPack
+                    var response = await client.GetStringAsync(url, cancellationToken);
                     HtmlDocument doc = new HtmlDocument();
                     doc.LoadHtml(response);
-                    // Seleccionar la tabla que contiene las cotizaciones
                     var tablaCotizaciones = doc.DocumentNode.SelectSingleNode("//table[@class='table table-striped table-condensed']");
-
                     if (tablaCotizaciones != null)
                     {
-                        // Buscar todas las filas dentro de la tabla
                         var filas = tablaCotizaciones.SelectNodes(".//tr");
-
                         foreach (var fila in filas)
                         {
-                            // Obtener las celdas de cada fila
                             var celdas = fila.SelectNodes(".//td");
-
-                            if (celdas != null && celdas.Count == 3) // Asumiendo que hay 3 celdas por fila
+                            if (celdas != null && celdas.Count == 3)
                             {
-                                // Extraer la información de las celdas
                                 var moneda = celdas[0].InnerText.Trim();
                                 var compra = celdas[1].InnerText.Trim();
                                 var venta = celdas[2].InnerText.Trim();
-
                                 Console.WriteLine($"Moneda: {moneda}, Compra: {compra}, Venta: {venta}");
                             }
                         }
@@ -114,9 +98,6 @@ namespace Servicio.ServiciosExternos
                     Console.WriteLine($"Error al cargar la página: {ex.Message}");
                 }
             }
-
         }
-
-
     }
 }

@@ -26,7 +26,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("emitidas")]
         public async Task<ActionResult<Usuario>> ObtenerNotificacionesEmitidas([FromBody] string usuarioEmisorId)
         {
-            var resultado = await _servicioNotificacion.ObtenerNotificacionesEmitidas(usuarioEmisorId);
+            var resultado = await _servicioNotificacion.ObtenerNotificacionesEmitidas(usuarioEmisorId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -45,7 +45,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("recibidas")]
         public async Task<ActionResult<Usuario>> ObtenerNotificacionesRecibidas([FromBody] string usuarioReceptorId)
         {
-            var resultado = await _servicioNotificacion.ObtenerNotificacionesRecibidas(usuarioReceptorId);
+            var resultado = await _servicioNotificacion.ObtenerNotificacionesRecibidas(usuarioReceptorId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -64,7 +64,7 @@ namespace FinHealthAPI.Controllers
         [HttpPost("leerNotificacion")]
         public async Task<ActionResult<Usuario>> MarcarNotificacionLeida([FromBody] int notificacionId)
         {
-            var resultado = await _servicioNotificacion.MarcarComoLeida(notificacionId);
+            var resultado = await _servicioNotificacion.MarcarComoLeida(notificacionId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores)
             {
@@ -105,7 +105,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioNotificacion.EnviarNotificacion(notificacionDTO);
+            var resultado = await _servicioNotificacion.EnviarNotificacion(notificacionDTO, HttpContext.RequestAborted);
             
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
@@ -148,7 +148,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioNotificacion.BuscarNotificacion(notificacionId);
+            var resultado = await _servicioNotificacion.BuscarNotificacion(notificacionId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores)
             {
@@ -189,7 +189,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioNotificacion.EliminarNotificacion(notificacionId);
+            var resultado = await _servicioNotificacion.EliminarNotificacion(notificacionId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores)
             {

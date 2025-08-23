@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Repositorio.Repositorios.R_Categoria.R_SubCategoria
@@ -22,14 +23,14 @@ namespace Repositorio.Repositorios.R_Categoria.R_SubCategoria
             _dbContext = context;
         }
 
-        public async Task<Resultado<SubCategoria>> ObtenerPorIdAsync(int id)
+        public async Task<Resultado<SubCategoria>> ObtenerPorIdAsync(int id, CancellationToken cancellationToken)
         {
             try
             {
                 var entidad = await _dbContext.SubCategorias
                     .Include(sub => sub.Categoria)
                     .Include(sub => sub.GrupoGasto)
-                    .FirstOrDefaultAsync(subC => subC.Id == id);
+                    .FirstOrDefaultAsync(subC => subC.Id == id, cancellationToken);
                 return entidad == null
                     ? Resultado<SubCategoria>.Failure(ErroresCrud.ErrorDeCreacion(typeof(SubCategoria).Name))
                     : Resultado<SubCategoria>.Success(entidad);
@@ -40,14 +41,14 @@ namespace Repositorio.Repositorios.R_Categoria.R_SubCategoria
             }
         }
 
-        public async Task<Resultado<IEnumerable<SubCategoria>>> ObtenerTodasPorGrupoYCategoria(int grupoGastoId, int categoriaId)
+        public async Task<Resultado<IEnumerable<SubCategoria>>> ObtenerTodasPorGrupoYCategoria(int grupoId, int categoriaId, CancellationToken cancellationToken)
         {
             try
             {
                 var subcategorias = _dbContext.SubCategorias
                     .Include(cat => cat.GrupoGasto)
                     .Include(cat => cat.Categoria)
-                    .Where(cat => cat.GrupoId == grupoGastoId && cat.CategoriaId == categoriaId).ToList();
+                    .Where(cat => cat.GrupoId == grupoId && cat.CategoriaId == categoriaId).ToList();
                 return Resultado<IEnumerable<SubCategoria>>.Success(subcategorias);
             }
             catch (Exception ex)

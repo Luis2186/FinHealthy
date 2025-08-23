@@ -7,28 +7,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Servicio.Usuarios
 {
     public interface IServicioUsuario
     {
-        public Task<Resultado<Usuario>> ObtenerPorId(string id);
-        // Obtener todos los elementos con soporte de paginación y cancelación
-        public Task<Resultado<IEnumerable<Usuario>>> ObtenerTodos();
-        public Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> Registrar(CrearUsuarioDTO usuario);
-        public Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> Login(UsuarioLoginDTO usuario);
-        public Task<Resultado<bool>> Logout();
-        public Task<Resultado<Usuario>> Actualizar(string id, ActualizarUsuarioDTO usuario);
-        public Task<Resultado<bool>> Eliminar(string id);
-        public Task<Resultado<bool>> AgregarRol(string usuarioId, string idRol,string nombreRol);
-        public Task<Resultado<bool>> RemoverRol(string usuarioId, string rol, string nombreRol);
-        public Task<Resultado<bool>> AgregarClaim(string usuarioId, string tipoClaim, string claim);
-        public Task<Resultado<bool>> RemoverClaim(string usuarioId, string tipoClaim, string claim);
-        public Task<Resultado<IEnumerable<Claim>>> ObtenerTodosLosClaim(string usuarioId);
-        public Task<Resultado<IEnumerable<string>>> ObtenerTodosLosRoles();
-        public Task<Resultado<IEnumerable<string>>> ObtenerRolesPorUsuario(string usuarioId);
-        public Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> RefreshToken(string refreshToken);
-        public Task<Resultado<bool>> RevocarRefreshToken(string refreshToken);
+        Task<Resultado<Usuario>> ObtenerPorId(string id, CancellationToken cancellationToken);
+        Task<Resultado<IEnumerable<Usuario>>> ObtenerTodos(CancellationToken cancellationToken);
+        Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> Registrar(CrearUsuarioDTO usuario, CancellationToken cancellationToken);
+        Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> Login(UsuarioLoginDTO usuario, CancellationToken cancellationToken);
+        Task<Resultado<bool>> Logout(CancellationToken cancellationToken);
+        Task<Resultado<Usuario>> Actualizar(string id, ActualizarUsuarioDTO usuario, CancellationToken cancellationToken);
+        Task<Resultado<bool>> Eliminar(string id, CancellationToken cancellationToken);
+        Task<Resultado<bool>> AgregarRol(string usuarioId, string idRol, string nombreRol, CancellationToken cancellationToken);
+        Task<Resultado<bool>> RemoverRol(string usuarioId, string rol, string nombreRol, CancellationToken cancellationToken);
+        Task<Resultado<bool>> AgregarClaim(string usuarioId, string tipoClaim, string claim, CancellationToken cancellationToken);
+        Task<Resultado<bool>> RemoverClaim(string usuarioId, string tipoClaim, string claim, CancellationToken cancellationToken);
+        Task<Resultado<IEnumerable<Claim>>> ObtenerTodosLosClaim(string usuarioId, CancellationToken cancellationToken);
+        Task<Resultado<IEnumerable<string>>> ObtenerTodosLosRoles(CancellationToken cancellationToken);
+        Task<Resultado<IEnumerable<string>>> ObtenerRolesPorUsuario(string usuarioId, CancellationToken cancellationToken);
+        Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> RefreshToken(string refreshToken, CancellationToken cancellationToken);
+        Task<Resultado<bool>> RevocarRefreshToken(string refreshToken, CancellationToken cancellationToken);
     }
 }

@@ -31,7 +31,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("porAdmin")]
         public async Task<ActionResult<SolicitudDTO>> ObtenerSolicitudesPorAdministrador([FromBody] PaginacionSolicitudDTO solicitudes)
         {
-            var resultado = await _servicioGrupo.ObtenerSolicitudesPorAdministrador(solicitudes.IdAdministrador,solicitudes.Estado);
+            var resultado = await _servicioGrupo.ObtenerSolicitudesPorAdministrador(solicitudes.IdAdministrador, solicitudes.Estado, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores) return NotFound(new ProblemDetails
             {
@@ -93,7 +93,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioGrupo.EnviarSolicitudIngresoAGrupo(enviarSolicitudDTO);
+            var resultado = await _servicioGrupo.EnviarSolicitudIngresoAGrupo(enviarSolicitudDTO, HttpContext.RequestAborted);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
@@ -136,7 +136,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioGrupo.AceptarSolicitudIngresoAGrupo(idSolicitud);
+            var resultado = await _servicioGrupo.AceptarSolicitudIngresoAGrupo(idSolicitud, HttpContext.RequestAborted);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
@@ -179,7 +179,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioGrupo.IngresoAGrupoConCodigo(solicitud);
+            var resultado = await _servicioGrupo.IngresoAGrupoConCodigo(solicitud, HttpContext.RequestAborted);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)

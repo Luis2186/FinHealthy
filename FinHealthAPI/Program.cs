@@ -15,7 +15,7 @@ using Servicio.Notificaciones;
 using Repositorio.Repositorios.Notificaciones;
 using Repositorio.Repositorios;
 using Repositorio.Repositorios.Solicitudes;
-using Repositorio.Repositorios.Monedas;
+using Repositorio.Repositorios.R_Gastos.R_Monedas;
 using Servicio.ServiciosExternos;
 using FinHealthAPI.ProcesosSegundoPlano;
 using Repositorio.Repositorios.Validacion;

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Repositorio.Repositorios.R_Gastos.R_MetodosDePago
@@ -22,12 +23,12 @@ namespace Repositorio.Repositorios.R_Gastos.R_MetodosDePago
         }
 
 
-        public async Task<Resultado<MetodoDePago>> ObtenerPorIdAsync(int id)
+        public async Task<Resultado<MetodoDePago>> ObtenerPorIdAsync(int id, CancellationToken cancellationToken)
         {
             try
             {
                 var entidad = await _dbContext.MetodosDePago
-                    .FirstOrDefaultAsync(doc => doc.Id == id);
+                    .FirstOrDefaultAsync(doc => doc.Id == id, cancellationToken);
 
                 return entidad == null
                     ? Resultado<MetodoDePago>.Failure(ErroresCrud.ErrorDeCreacion(typeof(MetodoDePago).Name))
@@ -39,12 +40,12 @@ namespace Repositorio.Repositorios.R_Gastos.R_MetodosDePago
             }
         }
 
-        public async Task<Resultado<IEnumerable<MetodoDePago>>> ObtenerTodosAsync()
+        public async Task<Resultado<IEnumerable<MetodoDePago>>> ObtenerTodosAsync(CancellationToken cancellationToken)
         {
             try
             {
-                var categorias = _dbContext.MetodosDePago
-                    .ToList();
+                var categorias = await _dbContext.MetodosDePago
+                    .ToListAsync(cancellationToken: cancellationToken);
 
                 return Resultado<IEnumerable<MetodoDePago>>.Success(categorias);
             }

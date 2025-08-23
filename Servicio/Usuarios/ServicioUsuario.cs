@@ -36,32 +36,31 @@ namespace Servicio.Usuarios
             _repoRefreshToken = repoRefreshToken;
             _repoGrupo = repoGrupo;
         }
-        public async Task<Resultado<Usuario>> Actualizar(string id, ActualizarUsuarioDTO usuarioDto)
+        public async Task<Resultado<Usuario>> Actualizar(string id, ActualizarUsuarioDTO usuarioDto, CancellationToken cancellationToken)
         {
-            var usuarioBuscado = await ObtenerPorId(id);
+            var usuarioBuscado = await ObtenerPorId(id, cancellationToken);
 
             if (usuarioBuscado.TieneErrores) return Resultado<Usuario>.Failure(usuarioBuscado.Errores);
 
             // Mapeo de los datos del DTO al usuario existente
             _mapper.Map(usuarioDto, usuarioBuscado.Valor); // Actualizar el usuario con el DTO
 
-            var usuarioActualizado = await _repoUsuario.ActualizarAsync(usuarioBuscado.Valor);
+            var usuarioActualizado = await _repoUsuario.ActualizarAsync(usuarioBuscado.Valor, cancellationToken);
 
             return usuarioActualizado;
         }
 
-        public async Task<Resultado<bool>> AgregarClaim(string usuarioId, string tipoClaim, string claim)
+        public async Task<Resultado<bool>> AgregarClaim(string usuarioId, string tipoClaim, string claim, CancellationToken cancellationToken)
         {
-            return await _repoUsuario.AgregarClaim(usuarioId, tipoClaim, claim);
+            return await _repoUsuario.AgregarClaim(usuarioId, tipoClaim, claim, cancellationToken);
         }
 
-        public async Task<Resultado<bool>> AgregarRol(string usuarioId, string idRol, string nombreRol)
+        public async Task<Resultado<bool>> AgregarRol(string usuarioId, string idRol, string nombreRol, CancellationToken cancellationToken)
         {
-            return await _repoUsuario.AgregarRol(usuarioId, idRol, nombreRol);
+            return await _repoUsuario.AgregarRol(usuarioId, idRol, nombreRol, cancellationToken);
         }
 
-        public async Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>>
-            Registrar(CrearUsuarioDTO usuarioDto)
+        public async Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> Registrar(CrearUsuarioDTO usuarioDto, CancellationToken cancellationToken)
         {
             if(usuarioDto == null) return Resultado<(string, string, string)>.Failure(ErroresUsuario.Datos_Invalidos("Registrar"));
 
@@ -69,7 +68,7 @@ namespace Servicio.Usuarios
 
             Usuario usuario = _mapper.Map<Usuario>(usuarioDto);
 
-            var usuarioCreado = await _repoUsuario.CrearAsync(usuario, usuarioDto.Password);
+            var usuarioCreado = await _repoUsuario.CrearAsync(usuario, usuarioDto.Password, cancellationToken);
 
             if (usuarioDto.CrearGrupo)
             {
@@ -80,23 +79,23 @@ namespace Servicio.Usuarios
 
                 usuario.UnirseAGrupo(grupoNuevo);
 
-                await _repoGrupo.CrearAsync(grupoNuevo);
+                await _repoGrupo.CrearAsync(grupoNuevo, cancellationToken);
             }
             
             if (usuarioCreado.TieneErrores) return Resultado<(string,string,string)>.Failure(usuarioCreado.Errores);
 
             if (usuarioDto.Rol != null && usuarioDto.Rol.Trim() != "")
             {
-                var rol = await _repoUsuario.BuscarRol("", usuarioDto.Rol.Trim());
+                var rol = await _repoUsuario.BuscarRol("", usuarioDto.Rol.Trim(), cancellationToken);
 
                 if (rol.TieneErrores) return Resultado<(string,string,string)>.Failure(rol.Errores);
                 
-                var rolesAgregados = await _repoUsuario.AgregarRol(usuario.Id,rol.Valor.Id, rol.Valor.Name);
+                var rolesAgregados = await _repoUsuario.AgregarRol(usuario.Id,rol.Valor.Id, rol.Valor.Name, cancellationToken);
 
                 if(rolesAgregados.TieneErrores) return Resultado<(string,string,string)>.Failure(rolesAgregados.Errores);
             }
 
-            var (accessToken, refreshToken) = await _provedorJwt.GenerarTokens(usuario,null!);
+            var (accessToken, refreshToken) = await _provedorJwt.GenerarTokens(usuario,null!, cancellationToken);
 
             usuario.AsignarToken(accessToken, refreshToken);
 
@@ -104,14 +103,14 @@ namespace Servicio.Usuarios
             return Resultado<(string, string,string)>.Success((accessToken, refreshToken,usuario.Id)); ;
         }
 
-        public async Task<Resultado<bool>> Eliminar(string id)
+        public async Task<Resultado<bool>> Eliminar(string id, CancellationToken cancellationToken)
         {
-           return await _repoUsuario.InhabilitarUsuarioAsync(id);
+           return await _repoUsuario.InhabilitarUsuarioAsync(id, cancellationToken);
         }
 
-        public async Task<Resultado<Usuario>> ObtenerPorId(string id)
+        public async Task<Resultado<Usuario>> ObtenerPorId(string id, CancellationToken cancellationToken)
         {
-            var resultadoUsuario = await _repoUsuario.ObtenerPorIdAsync(id);
+            var resultadoUsuario = await _repoUsuario.ObtenerPorIdAsync(id, cancellationToken);
             
             if(resultadoUsuario.TieneErrores || resultadoUsuario.Valor == null)
                 return Resultado<Usuario>.Failure(resultadoUsuario.Errores);
@@ -121,52 +120,52 @@ namespace Servicio.Usuarios
             return usuario;
         }
 
-        public async Task<Resultado<IEnumerable<string>>> ObtenerRolesPorUsuario(string usuarioId)
+        public async Task<Resultado<IEnumerable<string>>> ObtenerRolesPorUsuario(string usuarioId, CancellationToken cancellationToken)
         {
-            return await _repoUsuario.ObtenerRolesPorUsuario(usuarioId);
+            return await _repoUsuario.ObtenerRolesPorUsuario(usuarioId, cancellationToken);
         }
     
-        public async Task<Resultado<IEnumerable<Usuario>>> ObtenerTodos()
+        public async Task<Resultado<IEnumerable<Usuario>>> ObtenerTodos(CancellationToken cancellationToken)
         {
-            var usuarios = await _repoUsuario.ObtenerTodosAsync();
+            var usuarios = await _repoUsuario.ObtenerTodosAsync(cancellationToken);
 
             var listaDeUsuarios = usuarios.Valor.ToList();
 
             foreach (var usuario in listaDeUsuarios)
             {
-                usuario.Roles = _repoUsuario.ObtenerRolesPorUsuario(usuario.Id).Result.Valor.ToList();
+                usuario.Roles = (await _repoUsuario.ObtenerRolesPorUsuario(usuario.Id, cancellationToken)).Valor.ToList();
             }
 
             return Resultado<IEnumerable<Usuario>>.Success(listaDeUsuarios);
         }
 
-        public async Task<Resultado<IEnumerable<Claim>>> ObtenerTodosLosClaim(string usuarioId)
+        public async Task<Resultado<IEnumerable<Claim>>> ObtenerTodosLosClaim(string usuarioId, CancellationToken cancellationToken)
         {
-            return await _repoUsuario.ObtenerTodosLosClaim(usuarioId);
+            return await _repoUsuario.ObtenerTodosLosClaim(usuarioId, cancellationToken);
         }
 
-        public async Task<Resultado<IEnumerable<string>>> ObtenerTodosLosRoles()
+        public async Task<Resultado<IEnumerable<string>>> ObtenerTodosLosRoles(CancellationToken cancellationToken)
         {
-            return await _repoUsuario.ObtenerTodosLosRoles();
+            return await _repoUsuario.ObtenerTodosLosRoles(cancellationToken);
         }
 
-        public async Task<Resultado<bool>> RemoverClaim(string usuarioId, string tipoClaim, string claim)
+        public async Task<Resultado<bool>> RemoverClaim(string usuarioId, string tipoClaim, string claim, CancellationToken cancellationToken)
         {
-            return await _repoUsuario.RemoverClaim(usuarioId, tipoClaim, claim);
+            return await _repoUsuario.RemoverClaim(usuarioId, tipoClaim, claim, cancellationToken);
         }
 
-        public async Task<Resultado<bool>> RemoverRol(string usuarioId, string idRol, string nombreRol)
+        public async Task<Resultado<bool>> RemoverRol(string usuarioId, string idRol, string nombreRol, CancellationToken cancellationToken)
         {
-            return await _repoUsuario.RemoverRol(usuarioId, idRol , nombreRol);
+            return await _repoUsuario.RemoverRol(usuarioId, idRol , nombreRol, cancellationToken);
         }
 
-        public async Task<Resultado<(string AccessToken, string RefreshToken,string usuarioId)>> Login(UsuarioLoginDTO usuario)
+        public async Task<Resultado<(string AccessToken, string RefreshToken,string usuarioId)>> Login(UsuarioLoginDTO usuario, CancellationToken cancellationToken)
         {
-            var usuarioBuscado = await _repoUsuario.ObtenerPorEmailAsync(usuario.Email);
+            var usuarioBuscado = await _repoUsuario.ObtenerPorEmailAsync(usuario.Email, cancellationToken);
 
             if (usuarioBuscado.TieneErrores || usuarioBuscado.Valor == null) return Resultado<(string, string, string)>.Failure(ErroresUsuario.Login("Login"));
 
-            var usuarioLogueadoResultado = await _repoUsuario.Login(usuarioBuscado.Valor, usuario.Password ?? "");
+            var usuarioLogueadoResultado = await _repoUsuario.Login(usuarioBuscado.Valor, usuario.Password ?? "", cancellationToken);
 
             if(usuarioLogueadoResultado.TieneErrores) return Resultado<(string,string,string)>.Failure(usuarioLogueadoResultado.Errores);
 
@@ -174,46 +173,46 @@ namespace Servicio.Usuarios
             
             if(usuarioLogueado == null ) return Resultado<(string, string, string)>.Failure(ErroresUsuario.UsuarioInexistente("Login"));
 
-            var (accessToken, refreshToken) = await _provedorJwt.GenerarTokens(usuarioLogueado!,null!);
+            var (accessToken, refreshToken) = await _provedorJwt.GenerarTokens(usuarioLogueado!,null!, cancellationToken);
 
             usuarioLogueado.AsignarToken(accessToken, refreshToken);
 
             return Resultado<(string, string,string)>.Success((accessToken, refreshToken, usuarioLogueado.Id));
         }
 
-        public async Task<Resultado<bool>> Logout()
+        public async Task<Resultado<bool>> Logout(CancellationToken cancellationToken)
         {
-            return false;
+            return Resultado<bool>.Success(true);
         }
 
-        public async Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> RefreshToken(string refreshToken)
+        public async Task<Resultado<(string AccessToken, string RefreshToken, string usuarioId)>> RefreshToken(string refreshToken, CancellationToken cancellationToken)
         {
-            var resultadoToken = await _repoRefreshToken.ObtenerPorToken(refreshToken);
+            var resultadoToken = await _repoRefreshToken.ObtenerPorToken(refreshToken, cancellationToken);
             var tokenAnterior = resultadoToken.Valor;
 
             if (resultadoToken.TieneErrores || tokenAnterior!.TokenExpirado) return Resultado<(string, string, string)>.Failure(ErroresToken.Invalido("RefreshToken"));
 
-            var resultadoUsuario = await _repoUsuario.ObtenerPorIdAsync(tokenAnterior.UsuarioId ?? "" );
+            var resultadoUsuario = await _repoUsuario.ObtenerPorIdAsync(tokenAnterior.UsuarioId ?? "", cancellationToken);
 
             if (resultadoUsuario.TieneErrores) return Resultado<(string, string, string)>.Failure(resultadoUsuario.Errores);
 
             var usuarioLogueado = resultadoUsuario.Valor;
             if (usuarioLogueado == null) return Resultado<(string, string, string)>.Failure(ErroresUsuario.UsuarioInexistente("RefreshToken"));
 
-            var (nuevoAccessToken, nuevoRefreshToken) = await _provedorJwt.GenerarTokens(usuarioLogueado, tokenAnterior);
+            var (nuevoAccessToken, nuevoRefreshToken) = await _provedorJwt.GenerarTokens(usuarioLogueado, tokenAnterior, cancellationToken);
 
             //await _repoRefreshToken.RevocarYCrearNuevo(tokenAnterior, nuevoRefreshToken);
 
             return Resultado<(string, string, string)>.Success((nuevoAccessToken, nuevoRefreshToken, usuarioLogueado.Id));
         }
 
-        public async Task<Resultado<bool>> RevocarRefreshToken(string refreshToken)
+        public async Task<Resultado<bool>> RevocarRefreshToken(string refreshToken, CancellationToken cancellationToken)
         {
-            var resultadoRefreshToken = await _repoRefreshToken.ObtenerPorToken(refreshToken);
+            var resultadoRefreshToken = await _repoRefreshToken.ObtenerPorToken(refreshToken, cancellationToken);
             
             if (resultadoRefreshToken.TieneErrores || resultadoRefreshToken.Valor == null) return Resultado<bool>.Failure(ErroresToken.Invalido("RevocarRefreshToken"));
 
-            var resultadoTokenRevocado = await _repoRefreshToken.Revocar(resultadoRefreshToken.Valor);
+            var resultadoTokenRevocado = await _repoRefreshToken.Revocar(resultadoRefreshToken.Valor, cancellationToken);
 
             if (resultadoTokenRevocado.TieneErrores) return Resultado<bool>.Failure(resultadoTokenRevocado.Errores);
 

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Repositorio.Repositorios.Token
 {
@@ -29,6 +30,25 @@ namespace Repositorio.Repositorios.Token
                     .FirstOrDefaultAsync(doc => doc.Token == token &&
                                          doc.FechaExpiracion > DateTime.UtcNow &&
                                         !doc.Revocado);
+
+                return entidad == null
+                    ? Resultado<RefreshToken>.Failure(ErroresCrud.ErrorDeCreacion(typeof(RefreshToken).Name))
+                    : Resultado<RefreshToken>.Success(entidad);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<RefreshToken>.Failure(ErroresCrud.ErrorDeExcepcion($"{typeof(RefreshToken).Name}.ObtenerPorToken", ex.Message));
+            }
+        }
+
+        public async Task<Resultado<RefreshToken>> ObtenerPorToken(string token, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var entidad = await _dbContext.RefreshTokens
+                    .FirstOrDefaultAsync(doc => doc.Token == token &&
+                                         doc.FechaExpiracion > DateTime.UtcNow &&
+                                        !doc.Revocado, cancellationToken);
 
                 return entidad == null
                     ? Resultado<RefreshToken>.Failure(ErroresCrud.ErrorDeCreacion(typeof(RefreshToken).Name))
@@ -110,6 +130,21 @@ namespace Repositorio.Repositorios.Token
             }
         }
 
+        public async Task<Resultado<bool>> Revocar(RefreshToken refreshToken, CancellationToken cancellationToken)
+        {
+            try
+            {
+                refreshToken.Revocado = true;
+                _dbContext.RefreshTokens.Update(refreshToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return Resultado<bool>.Failure(ErroresCrud.ErrorDeExcepcion($"{typeof(RefreshToken).Name}.Revocar", ex.Message));
+            }
+        }
+
         public async Task<Resultado<bool>> RevocarTokensAntiguos(string usuarioId,int cantidadSesionesActivas)
         {
             try
@@ -159,6 +194,27 @@ namespace Repositorio.Repositorios.Token
                 catch
                 {
                     await transaction.RollbackAsync();
+                    return false;
+                }
+            }
+        }
+
+        public async Task<Resultado<bool>> RevocarYCrearNuevo(RefreshToken refreshTokenAnterior, RefreshToken nuevoRefreshToken, CancellationToken cancellationToken)
+        {
+            using (var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
+            {
+                try
+                {
+                    refreshTokenAnterior.Revocado = true;
+                    _dbContext.RefreshTokens.Update(refreshTokenAnterior);
+                    await _dbContext.RefreshTokens.AddAsync(nuevoRefreshToken, cancellationToken);
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return true;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(cancellationToken);
                     return false;
                 }
             }

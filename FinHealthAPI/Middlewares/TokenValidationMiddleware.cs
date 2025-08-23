@@ -45,7 +45,7 @@ namespace FinHealthAPI.Middlewares
             
             try
             {
-                var refreshTokenValido = await ValidateRefreshToken(refreshToken);
+                var refreshTokenValido = await ValidateRefreshToken(refreshToken, context.RequestAborted);
                 // Intentar validar el accessToken
                 if (!string.IsNullOrEmpty(accessToken))
                 {
@@ -146,33 +146,25 @@ namespace FinHealthAPI.Middlewares
             }
         }
 
-        private async Task<bool> ValidateRefreshToken(string refreshToken)
+        private async Task<bool> ValidateRefreshToken(string refreshToken, CancellationToken cancellationToken)
         {
             try
             {
-                // Crear un nuevo alcance para resolver servicios scoped
                 using var scope = _serviceScopeFactory.CreateScope();
-
                 var refreshTokenRepo = scope.ServiceProvider.GetRequiredService<IRepositorioRefreshToken>();
-
-                var resultado = await refreshTokenRepo.ObtenerPorToken(refreshToken);
-              
-                if (resultado.TieneErrores) throw new UnauthorizedAccessException("Refresh Token inválido o inexistente"); ;
-
+                var resultado = await refreshTokenRepo.ObtenerPorToken(refreshToken, cancellationToken);
+                if (resultado.TieneErrores) throw new UnauthorizedAccessException("Refresh Token inválido o inexistente");
                 var token = resultado.Valor;
                 var refreshTokenValido = true;
-
                 if (token != null && token.TokenExpirado)
                 {
                     refreshTokenValido = false;
-                    await refreshTokenRepo.Revocar(token);
+                    await refreshTokenRepo.Revocar(token, cancellationToken);
                 }
-
-                return refreshTokenValido;  // Si el token es válido, retornamos el ClaimsPrincipal
+                return refreshTokenValido;
             }
             catch (SecurityTokenException ex)
             {
-                // Si ocurre un error en la validación (token inválido, expirado, etc.), manejamos la excepción
                 throw new UnauthorizedAccessException("Token inválido", ex);
             }
         }

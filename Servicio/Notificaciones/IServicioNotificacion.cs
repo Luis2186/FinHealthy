@@ -11,11 +11,11 @@ namespace Servicio.Notificaciones
 {
     public interface IServicioNotificacion
     {
-        public Task<Resultado<NotificacionDTO>> EnviarNotificacion(NotificacionCreacionDTO notificacion);
-        public Task<Resultado<IEnumerable<NotificacionDTO>>> ObtenerNotificacionesEmitidas(string usuarioEmisorId);
-        public Task<Resultado<IEnumerable<NotificacionDTO>>> ObtenerNotificacionesRecibidas(string usuarioReceptorId);
-        public Task<Resultado<bool>> MarcarComoLeida(int notificacionId);
-        public Task<Resultado<NotificacionDTO>> BuscarNotificacion(int notificacionId);
-        public Task<Resultado<bool>> EliminarNotificacion(int notificacionId);
+        public Task<Resultado<NotificacionDTO>> EnviarNotificacion(NotificacionCreacionDTO notificacionCreacionDTO, CancellationToken cancellationToken);
+        public Task<Resultado<IEnumerable<NotificacionDTO>>> ObtenerNotificacionesEmitidas(string usuarioEmisorId, CancellationToken cancellationToken);
+        public Task<Resultado<IEnumerable<NotificacionDTO>>> ObtenerNotificacionesRecibidas(string usuarioReceptorId, CancellationToken cancellationToken);
+        public Task<Resultado<bool>> MarcarComoLeida(int notificacionId, CancellationToken cancellationToken);
+        public Task<Resultado<NotificacionDTO>> BuscarNotificacion(int notificacionId, CancellationToken cancellationToken);
+        public Task<Resultado<bool>> EliminarNotificacion(int notificacionId, CancellationToken cancellationToken);
     }
 }

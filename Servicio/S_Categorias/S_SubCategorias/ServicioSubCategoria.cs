@@ -5,7 +5,7 @@ using Repositorio.Repositorios.R_Categoria;
 using Repositorio.Repositorios.R_Categoria.R_SubCategoria;
 using Repositorio.Repositorios.R_Grupo;
 using Servicio.DTOS.SubCategoriasDTO;
-
+using System.Threading;
 
 namespace Servicio.S_Categorias.S_SubCategorias
 {
@@ -24,9 +24,9 @@ namespace Servicio.S_Categorias.S_SubCategorias
             _repoCategoria = repoCategoria;
         }
 
-        public async Task<Resultado<SubCategoriaDTO>> Actualizar(int idModel, SubCategoriaDTO model)
+        public async Task<Resultado<SubCategoriaDTO>> Actualizar(int idModel, SubCategoriaDTO model, CancellationToken cancellationToken)
         {
-            var subCategoriaBuscada = await _repoSubCategoria.ObtenerPorIdAsync(idModel);
+            var subCategoriaBuscada = await _repoSubCategoria.ObtenerPorIdAsync(idModel, cancellationToken);
 
             if (subCategoriaBuscada.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(subCategoriaBuscada.Errores);
 
@@ -35,7 +35,7 @@ namespace Servicio.S_Categorias.S_SubCategorias
             //mapeamos el DTO con los datos actualizados
             _mapper.Map(subCategoriaActDTO, subCategoriaBuscada.Valor);
 
-            var subCategoriaActualizada = await _repoSubCategoria.ActualizarAsync(subCategoriaBuscada.Valor);
+            var subCategoriaActualizada = await _repoSubCategoria.ActualizarAsync(subCategoriaBuscada.Valor, cancellationToken);
 
             if (subCategoriaActualizada.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(subCategoriaBuscada.Errores);
 
@@ -44,13 +44,13 @@ namespace Servicio.S_Categorias.S_SubCategorias
             return subCategoriaActualizadaDTO;
         }
 
-        public async Task<Resultado<SubCategoriaDTO>> Crear(SubCategoriaDTO model)
+        public async Task<Resultado<SubCategoriaDTO>> Crear(SubCategoriaDTO model, CancellationToken cancellationToken)
         {
 
             var subCategoria = _mapper.Map<SubCategoria>(model);
 
-            var resultadoGrupo = await _repoGrupo.ObtenerPorIdAsync(subCategoria.GrupoId);
-            var resultadoCategoria = await _repoCategoria.ObtenerPorIdAsync(subCategoria.CategoriaId);
+            var resultadoGrupo = await _repoGrupo.ObtenerPorIdAsync(subCategoria.GrupoId, cancellationToken);
+            var resultadoCategoria = await _repoCategoria.ObtenerPorIdAsync(subCategoria.CategoriaId, cancellationToken);
 
             if (resultadoGrupo.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultadoGrupo.Errores);
             if (resultadoCategoria.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultadoCategoria.Errores);
@@ -58,7 +58,7 @@ namespace Servicio.S_Categorias.S_SubCategorias
             subCategoria.GrupoGasto = resultadoGrupo.Valor;
             subCategoria.Categoria = resultadoCategoria.Valor;
 
-            var resultado = await _repoSubCategoria.CrearAsync(subCategoria);
+            var resultado = await _repoSubCategoria.CrearAsync(subCategoria, cancellationToken);
 
             if (resultado.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultado.Errores);
 
@@ -68,18 +68,18 @@ namespace Servicio.S_Categorias.S_SubCategorias
 
         }
 
-        public async Task<Resultado<bool>> Eliminar(int id)
+        public async Task<Resultado<bool>> Eliminar(int id, CancellationToken cancellationToken)
         {
-            var resultado = await _repoSubCategoria.EliminarAsync(id);
+            var resultado = await _repoSubCategoria.EliminarAsync(id, cancellationToken);
 
             if (resultado.TieneErrores) return Resultado<bool>.Failure(resultado.Errores);
 
             return resultado;
         }
 
-        public async Task<Resultado<SubCategoriaDTO>> ObtenerPorId(int id)
+        public async Task<Resultado<SubCategoriaDTO>> ObtenerPorId(int id, CancellationToken cancellationToken)
         {
-            var resultado = await _repoSubCategoria.ObtenerPorIdAsync(id);
+            var resultado = await _repoSubCategoria.ObtenerPorIdAsync(id, cancellationToken);
 
             if (resultado.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultado.Errores);
 
@@ -88,9 +88,9 @@ namespace Servicio.S_Categorias.S_SubCategorias
             return Resultado<SubCategoriaDTO>.Success(subCategoriaDTO);
         }
 
-        public async Task<Resultado<IEnumerable<SubCategoriaDTO>>> ObtenerSubCategorias(int grupoId, int categoriaId)
+        public async Task<Resultado<IEnumerable<SubCategoriaDTO>>> ObtenerSubCategorias(int grupoId, int categoriaId, CancellationToken cancellationToken)
         {
-            var subCategorias = await _repoSubCategoria.ObtenerTodasPorGrupoYCategoria(grupoId, categoriaId);
+            var subCategorias = await _repoSubCategoria.ObtenerTodasPorGrupoYCategoria(grupoId, categoriaId, cancellationToken);
 
             if (subCategorias.TieneErrores) return Resultado<IEnumerable<SubCategoriaDTO>>.Failure(subCategorias.Errores);
 
@@ -100,7 +100,7 @@ namespace Servicio.S_Categorias.S_SubCategorias
 
         }
 
-        public async Task<Resultado<IEnumerable<SubCategoriaDTO>>> ObtenerTodas()
+        public async Task<Resultado<IEnumerable<SubCategoriaDTO>>> ObtenerTodas(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
