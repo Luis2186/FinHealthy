@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Servicio.DTOS.NotificacionesDTO;
 using Servicio.Notificaciones;
-using Servicio.Notificaciones.NotificacionesDTO;
 using Servicio.Usuarios;
 
 namespace FinHealthAPI.Controllers
@@ -84,7 +84,7 @@ namespace FinHealthAPI.Controllers
         }
         // Crear un nuevo usuario
         [HttpPost("enviarNotificacion")]
-        public async Task<ActionResult<Usuario>> EnviarNotificacion([FromBody] NotificacionCreacionDTO notificacionDTO)
+        public async Task<ActionResult<Usuario>> EnviarNotificacion([FromBody] CrearNotificacionDTO notificacionDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -98,7 +98,7 @@ namespace FinHealthAPI.Controllers
                        ["errors"] = ModelState.Keys
                             .SelectMany(key => ModelState[key].Errors.Select(error => new
                             {
-                                Code = key, // Aquí puedes ajustar el código como desees
+                                Code = key,
                                 Description = error.ErrorMessage
                             }))
                     }

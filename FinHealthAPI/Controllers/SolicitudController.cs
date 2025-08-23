@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Servicio.DTOS.GruposDTO;
 using Servicio.DTOS.SolicitudesDTO;
 using Servicio.DTOS.UsuariosDTO;
-using Servicio.Notificaciones.NotificacionesDTO;
 using Servicio.Pdf;
 using Servicio.S_Grupos;
 
