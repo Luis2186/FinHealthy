@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Servicio
 {
-    public interface IServiciosCRUD<T> where T : class
+    public interface IServiciosCRUD<T>
     {
         Task<Resultado<T>> ObtenerPorId(int id, CancellationToken cancellationToken);
         Task<Resultado<IEnumerable<T>>> ObtenerTodas(CancellationToken cancellationToken);

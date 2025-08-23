@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using QuestPDF.Fluent;
-using Servicio.Authentication;
 using Servicio.DTOS.UsuariosDTO;
 using Servicio.Pdf;
 using Servicio.ServiciosExternos;
 using Servicio.Usuarios;
+using Servicio.Usuarios.Authentication;
 using System.Configuration;
 using System.Net;
 

@@ -8,7 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading;
 
-namespace Servicio.Authentication
+namespace Servicio.Usuarios.Authentication
 {
     public sealed class ProveedorToken(IConfiguration configuration, IRepositorioRefreshToken _repoRefreshToken,
         IRepositorioUsuario _repoUsuario)

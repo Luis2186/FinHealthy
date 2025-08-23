@@ -3,6 +3,7 @@ using Dominio.Gastos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Servicio.DTOS.SubCategoriasDTO;
+using Servicio.DTOS.CategoriasDTO;
 using Servicio.S_Categorias;
 using Servicio.S_Categorias.S_SubCategorias;
 
@@ -69,7 +70,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("crear")]
-        public async Task<ActionResult<SubCategoriaDTO>> Crear([FromBody] SubCategoriaDTO subCategoriaCreacionDTO)
+        public async Task<ActionResult<SubCategoriaDTO>> Crear([FromBody] CrearSubCategoriaDTO subCategoriaCreacionDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -92,19 +93,17 @@ namespace FinHealthAPI.Controllers
 
             var resultadoCreacion = await _servicioSubCategoria.Crear(subCategoriaCreacionDTO, HttpContext.RequestAborted);
 
-            // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultadoCreacion.TieneErrores)
             {
                 return Conflict(resultadoCreacion.Errores);
             }
 
             return Ok(resultadoCreacion.Valor);
-            //return Ok(new { id = resultadoCreacion.Valor.Id });
         }
 
         // Actualizar un usuario
         [HttpPut("actualizar/{categoriaId}")]
-        public async Task<ActionResult<SubCategoriaDTO>> Actualizar(int categoriaId, [FromBody] SubCategoriaDTO subCategoriaActDTO)
+        public async Task<ActionResult<SubCategoriaDTO>> Actualizar(int categoriaId, [FromBody] ActualizarCategoriaDTO subCategoriaActDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -118,7 +117,7 @@ namespace FinHealthAPI.Controllers
                      ["errors"] = ModelState.Keys
                             .SelectMany(key => ModelState[key].Errors.Select(error => new
                             {
-                                Code = key, // Aquí puedes ajustar el código como desees
+                                Code = key,
                                 Description = error.ErrorMessage
                             }))
                     }
@@ -132,7 +131,6 @@ namespace FinHealthAPI.Controllers
                 return NotFound(resultadoActualizacion.Errores);
             }
             return Ok(resultadoActualizacion.Valor);
-            //return Ok(resultadoActualizacion.Valor);  // Devuelve el usuario actualizado con estado 200 OK
         }
 
         // Eliminar un usuario

@@ -26,4 +26,8 @@
     <ProjectReference Include="..\Servicio\Servicio.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTOS\SubCategoriasDTO\" />
+  </ItemGroup>
+
 </Project>

@@ -1,58 +1,36 @@
 ﻿using AutoMapper;
 using Dominio;
+using Dominio.Gastos;
 using Repositorio.Repositorios.R_Categoria;
 using Servicio.DTOS.CategoriasDTO;
 using Servicio.DTOS.SubCategoriasDTO;
+using Servicio;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Servicio.S_Categorias
 {
-    public class ServicioCategoria : IServicioCategoria
+    public class ServicioCategoria : ServicioCrud<CrearCategoriaDTO, ActualizarCategoriaDTO, CategoriaDTO, Categoria>, IServicioCategoria
     {
-        private readonly IRepositorioCategoria _repoCategoria;
-        private readonly IMapper _mapper;
         public ServicioCategoria(IRepositorioCategoria repoCategoria, IMapper mapper)
+            : base(repoCategoria, mapper)
         {
-            _repoCategoria = repoCategoria;
-            _mapper = mapper;
         }
 
-        public Task<Resultado<CategoriaDTO>> ActualizarCategoria(int categoriaId, CategoriaDTO categoriaActualizacionDTO)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<Resultado<CategoriaDTO>> ObtenerCategoriaPorId(int id, CancellationToken cancellationToken)
+            => ObtenerPorIdAsync(id, cancellationToken);
 
-        public Task<Resultado<CategoriaDTO>> CrearCategoria(CategoriaDTO categoriaCreacionDTO)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<Resultado<IEnumerable<CategoriaDTO>>> ObtenerTodasLasCategorias(CancellationToken cancellationToken)
+            => ObtenerTodosAsync(cancellationToken);
 
-        public Task<Resultado<bool>> EliminarCategoria(int id)
-        {
-            throw new NotImplementedException();
-        }
+        public Task<Resultado<CategoriaDTO>> CrearCategoria(CrearCategoriaDTO categoriaCreacionDTO, CancellationToken cancellationToken)
+            => CrearAsync(categoriaCreacionDTO, cancellationToken);
 
-        public async Task<Resultado<CategoriaDTO>> ObtenerCategoriaPorId(int id)
-        {
-            var resultado = await _repoCategoria.ObtenerPorIdAsync(id);
+        public Task<Resultado<CategoriaDTO>> ActualizarCategoria(int categoriaId, ActualizarCategoriaDTO categoriaActualizacionDTO, CancellationToken cancellationToken)
+            => ActualizarAsync(categoriaId, categoriaActualizacionDTO, cancellationToken);
 
-            if (resultado.TieneErrores) return Resultado<CategoriaDTO>.Failure(resultado.Errores);
-
-            var subCategoriaDTO = _mapper.Map<CategoriaDTO>(resultado.Valor);
-
-            return Resultado<CategoriaDTO>.Success(subCategoriaDTO);
-        }
-
-        public async Task<Resultado<IEnumerable<CategoriaDTO>>> ObtenerTodasLasCategorias()
-        {
-            var resultado = await _repoCategoria.ObtenerTodosAsync();
-
-            if (resultado.TieneErrores) return Resultado<IEnumerable<CategoriaDTO>>.Failure(resultado.Errores);
-
-            var categorias = resultado.Valor;
-
-            var categoriasDTO = _mapper.Map<IEnumerable<CategoriaDTO>>(categorias);
-
-            return Resultado<IEnumerable<CategoriaDTO>>.Success(categoriasDTO);
-        }
+        public Task<Resultado<bool>> EliminarCategoria(int id, CancellationToken cancellationToken)
+            => EliminarAsync(id, cancellationToken);
     }
 }

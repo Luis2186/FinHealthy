@@ -2,6 +2,7 @@
 using Dominio.Gastos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Servicio.DTOS.SubCategoriasDTO;
 using Servicio.DTOS.CategoriasDTO;
 using Servicio.S_Categorias;
 
@@ -27,7 +28,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("todas")]
         public async Task<ActionResult<CategoriaDTO>> ObtenerTodas()
         {
-            var resultado = await _servicioCategoria.ObtenerTodasLasCategorias();
+            var resultado = await _servicioCategoria.ObtenerTodasLasCategorias(HttpContext.RequestAborted);
 
             if (resultado.TieneErrores) return NotFound(
                 new ProblemDetails
@@ -48,7 +49,7 @@ namespace FinHealthAPI.Controllers
         [HttpGet("obtener/{categoriaId}")]
         public async Task<ActionResult<CategoriaDTO>> ObtenerPorId(int categoriaId)
         {
-            var resultado = await _servicioCategoria.ObtenerCategoriaPorId(categoriaId);
+            var resultado = await _servicioCategoria.ObtenerCategoriaPorId(categoriaId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores)
             {
@@ -69,7 +70,7 @@ namespace FinHealthAPI.Controllers
 
         // Crear un nuevo usuario
         [HttpPost("crear")]
-        public async Task<ActionResult<CategoriaDTO>> Crear([FromBody] CategoriaDTO categoriaCreacionDTO)
+        public async Task<ActionResult<CategoriaDTO>> Crear([FromBody] CrearCategoriaDTO categoriaCreacionDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -90,7 +91,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultadoCreacion = await _servicioCategoria.CrearCategoria(categoriaCreacionDTO);
+            var resultadoCreacion = await _servicioCategoria.CrearCategoria(categoriaCreacionDTO, HttpContext.RequestAborted);
 
             // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultadoCreacion.TieneErrores)
@@ -104,7 +105,7 @@ namespace FinHealthAPI.Controllers
 
         // Actualizar un usuario
         [HttpPut("actualizar/{categoriaId}")]
-        public async Task<ActionResult<CategoriaDTO>> Actualizar(int categoriaId, [FromBody] CategoriaDTO categoriaActDTO)
+        public async Task<ActionResult<CategoriaDTO>> Actualizar(int categoriaId, [FromBody] ActualizarCategoriaDTO categoriaActDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -118,14 +119,14 @@ namespace FinHealthAPI.Controllers
                      ["errors"] = ModelState.Keys
                             .SelectMany(key => ModelState[key].Errors.Select(error => new
                             {
-                                Code = key, // Aquí puedes ajustar el código como desees
+                                Code = key,
                                 Description = error.ErrorMessage
                             }))
                     }
                 });
             }
 
-            var resultadoActualizacion = await _servicioCategoria.ActualizarCategoria(categoriaId, categoriaActDTO);
+            var resultadoActualizacion = await _servicioCategoria.ActualizarCategoria(categoriaId, categoriaActDTO, HttpContext.RequestAborted);
 
             if (resultadoActualizacion.TieneErrores)
             {
@@ -139,7 +140,7 @@ namespace FinHealthAPI.Controllers
         [HttpDelete("eliminar/{categoriaId}")]
         public async Task<ActionResult> Eliminar(int categoriaId)
         {
-            var resultado = await _servicioCategoria.EliminarCategoria(categoriaId);
+            var resultado = await _servicioCategoria.EliminarCategoria(categoriaId, HttpContext.RequestAborted);
 
             if (resultado.TieneErrores)
             {

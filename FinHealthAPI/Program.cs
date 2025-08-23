@@ -1,15 +1,14 @@
 using Dominio.Usuarios;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Repositorio;
-using FinHealthAPI.Extensiones;
-using Repositorio.Repositorios.Usuarios;
-using Servicio.Automapper;
-using Servicio.Usuarios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Servicio.Authentication;
+using FinHealthAPI.Extensiones;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Repositorio;
+using Repositorio.Repositorios.Usuarios;
+using Servicio.Automapper;
+using Servicio.Usuarios;
 using FinHealthAPI.Middlewares;
 using Servicio.Notificaciones;
 using Repositorio.Repositorios.Notificaciones;
@@ -29,6 +28,9 @@ using Repositorio.Repositorios.R_Grupo;
 using Servicio.S_Grupos;
 using Repositorio.Repositorios.R_Gastos;
 using Repositorio.Repositorios.R_Gastos.R_MetodosDePago;
+using Servicio.DTOS.CategoriasDTO;
+using Servicio.DTOS.SubCategoriasDTO;
+using Servicio.Usuarios.Authentication;
 
 
 var builder = WebApplication.CreateBuilder(args);

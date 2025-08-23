@@ -10,7 +10,7 @@ using Repositorio.Repositorios;
 using Repositorio.Repositorios.R_Grupo;
 using Repositorio.Repositorios.Token;
 using Repositorio.Repositorios.Usuarios;
-using Servicio.Authentication;
+using Servicio.Usuarios.Authentication;
 using Servicio.DTOS.UsuariosDTO;
 using System.Security.Claims;
 
