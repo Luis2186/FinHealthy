@@ -65,5 +65,20 @@ namespace Repositorio.Repositorios.R_Grupo
                 return Resultado<Grupo>.Failure(new Error("ERROR_OBTENER_GRUPO_ADMIN", ex.Message));
             }
         }
+
+        public async Task<Resultado<Grupo>> ObtenerGrupoPorIdConUsuariosYSubcategorias(int grupoId, CancellationToken cancellationToken)
+        {
+            var grupo = await _dbContext.GruposDeGasto
+                .Include(g => g.UsuarioAdministrador)
+                .Include(g => g.MiembrosGrupoGasto)
+                .Include(g => g.GrupoSubCategorias)
+                    .ThenInclude(gsc => gsc.SubCategoria)
+                .FirstOrDefaultAsync(g => g.Id == grupoId, cancellationToken);
+
+            if (grupo == null)
+                return Resultado<Grupo>.Failure(new Error("GRUPO_NO_ENCONTRADO", "No se encontró el grupo con el id especificado."));
+
+            return Resultado<Grupo>.Success(grupo);
+        }
     }
 }

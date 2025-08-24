@@ -20,7 +20,7 @@ namespace Dominio.Grupos
         public string? CodigoAccesoHash { get; private set; }
         public List<Usuario> MiembrosGrupoGasto { get; set; } = new List<Usuario>();
         public bool Activo { get; set; }
-        public List<SubCategoria> SubCategorias { get; set; } = new List<SubCategoria>();
+        public List<GrupoSubCategoria> GrupoSubCategorias { get; set; } = new();
 
         public Grupo()
         {
@@ -97,16 +97,16 @@ namespace Dominio.Grupos
             return Resultado<bool>.Success(UsuarioAdministrador != null && UsuarioAdministradorId != "");
         }
 
-        public Resultado<bool> AgregarSubCategoria(SubCategoria subCategoria)
+        public Resultado<bool> AgregarGrupoSubCategoria(GrupoSubCategoria grupoSubCategoria)
         {
-            if (subCategoria == null || string.IsNullOrWhiteSpace(subCategoria.Nombre))
-                return Resultado<bool>.Failure(new Error("Grupo.AgregarSubCategoria", "La subcategoría es nula o su nombre es inválido."));
+            if (grupoSubCategoria == null || grupoSubCategoria.SubCategoria == null || string.IsNullOrWhiteSpace(grupoSubCategoria.SubCategoria.Nombre))
+                return Resultado<bool>.Failure(new Error("Grupo.AgregarGrupoSubCategoria", "La subcategoría es nula o su nombre es inválido."));
 
-            bool existe = SubCategorias.Any(sc => sc.Nombre != null && sc.Nombre.Trim().Equals(subCategoria.Nombre.Trim(), StringComparison.OrdinalIgnoreCase));
+            bool existe = GrupoSubCategorias.Any(gsc => gsc.SubCategoriaId == grupoSubCategoria.SubCategoriaId);
             if (existe)
-                return Resultado<bool>.Failure(new Error("Grupo.AgregarSubCategoria", $"Ya existe una subcategoría con el nombre '{subCategoria.Nombre}' en el grupo."));
+                return Resultado<bool>.Failure(new Error("Grupo.AgregarGrupoSubCategoria", $"Ya existe una subcategoría con el id '{grupoSubCategoria.SubCategoriaId}' en el grupo."));
 
-            SubCategorias.Add(subCategoria);
+            GrupoSubCategorias.Add(grupoSubCategoria);
             return Resultado<bool>.Success(true);
         }
 
@@ -115,11 +115,11 @@ namespace Dominio.Grupos
             if (gasto == null || gasto.SubCategoria == null)
                 return Resultado<Gasto>.Failure(new Error("Grupo.ValidarConsistenciaSubcategoria", "El gasto o la subcategoría es nula."));
 
-            if (gasto.GrupoId != gasto.SubCategoria.GrupoId)
-                return Resultado<Gasto>.Failure(new Error("Grupo.ValidarConsistenciaSubcategoria", "La subcategoría seleccionada no pertenece al mismo grupo que el gasto."));
+            bool existe = GrupoSubCategorias.Any(gsc => gsc.SubCategoriaId == gasto.SubCategoria.Id && gsc.Activo);
+            if (!existe)
+                return Resultado<Gasto>.Failure(new Error("Grupo.ValidarConsistenciaSubcategoria", "La subcategoría seleccionada no está habilitada para este grupo."));
 
             return Resultado<Gasto>.Success(gasto);
         }
-
     }
 }

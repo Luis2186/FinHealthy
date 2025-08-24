@@ -29,6 +29,7 @@ namespace Repositorio
             ConfigurarBuilderGrupo(builder);
             ConfigurarBuilderCategoria(builder);
             ConfigurarBuilderSubCategoria(builder);
+            ConfigurarBuilderGrupoSubCategoria(builder);
             ConfigurarBuilderMetodoDePago(builder);
             ConfigurarBuilderMoneda(builder);
             ConfigurarBuilderTipoDeDocumento(builder);
@@ -137,15 +138,14 @@ namespace Repositorio
         {
             builder.Entity<Grupo>(entity =>
             {
-                // Configuración de clave primaria
+                // Clave primaria
                 entity.HasKey(g => g.Id);
 
                 // Relación con UsuarioAdministrador (uno a uno)
-                entity.HasOne(g => g.UsuarioAdministrador) // Relación con Usuario
-                      .WithMany() // Relación uno a uno
-                      .HasForeignKey(g => g.UsuarioAdministradorId)  // Clave foránea explícita
-                      .OnDelete(DeleteBehavior.Restrict); // No permite eliminar al administrador si el grupo está activo
-                                                          // Relación muchos a muchos: Un grupo puede tener muchos miembros
+                entity.HasOne(g => g.UsuarioAdministrador)
+                      .WithMany()
+                      .HasForeignKey(g => g.UsuarioAdministradorId)
+                      .OnDelete(DeleteBehavior.Restrict);
 
                 // Relación muchos a muchos entre Usuario y Grupo
                 entity.HasMany(g => g.MiembrosGrupoGasto)
@@ -163,11 +163,11 @@ namespace Repositorio
                                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
                           });
 
-                // Relación con UsuarioAdministrador (uno a uno)
-                entity.HasMany(g => g.SubCategorias) // Relación con Usuario
-                      .WithOne() // Relación uno a uno
-                      .HasForeignKey(g => g.GrupoId) // Clave foránea explícita
-                      .OnDelete(DeleteBehavior.Restrict); 
+                // Relación uno a muchos: Grupo → GrupoSubCategoria
+                entity.HasMany(g => g.GrupoSubCategorias)
+                      .WithOne(gsc => gsc.Grupo)
+                      .HasForeignKey(gsc => gsc.GrupoId)
+                      .OnDelete(DeleteBehavior.Cascade);
 
                 // Configuración de propiedades adicionales
                 entity.Property(g => g.Nombre)
@@ -176,12 +176,12 @@ namespace Repositorio
                 entity.Property(g => g.Descripcion)
                       .HasMaxLength(250);
 
-                entity.HasIndex(user => user.Nombre).IsUnique();
+                entity.HasIndex(g => g.Nombre).IsUnique();
 
                 entity.Property(g => g.FechaDeCreacion)
                       .HasDefaultValueSql("GETUTCDATE()");
             });
-        
+
         }
         protected private void ConfigurarBuilderGasto(ModelBuilder builder)
         {
@@ -268,22 +268,47 @@ namespace Repositorio
             builder.Entity<SubCategoria>(entity =>
             {
                 // Clave primaria
-                entity.HasKey(c => c.Id);
+                entity.HasKey(s => s.Id);
 
-                // Relación entre Subcategoría y Grupo (una subcategoría pertenece a un grupo)
-                    entity
-                    .HasOne(s => s.GrupoGasto)
-                    .WithMany(f => f.SubCategorias)
-                    .HasForeignKey(s => s.GrupoId);
+                // Relación entre SubCategoria y Categoria (una subcategoría pertenece a una categoría principal)
+                entity
+                    .HasOne(s => s.Categoria)
+                    .WithMany()
+                    .HasForeignKey(s => s.CategoriaId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                // Relación entre Subcategoría y Categoría Principal (una subcategoría pertenece a una categoría principal)
-                //entity
-                //     .HasOne(s => s.Categoria)
-                //    .WithMany(c => c.SubCategorias)
-                //    .HasForeignKey(s => s.CategoriaId);
-
+                // Índice único por nombre
                 entity.HasIndex(s => s.Nombre).IsUnique();
+
+                // Configuración de propiedades adicionales si aplica
+                entity.Property(s => s.Nombre)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(s => s.Descripcion)
+                      .HasMaxLength(250);
             });
+        }
+        protected private void ConfigurarBuilderGrupoSubCategoria(ModelBuilder modelBuilder)
+        {
+            // Relación Grupo - GrupoSubCategoria (uno a muchos)
+            modelBuilder.Entity<GrupoSubCategoria>()
+                .HasOne(gsc => gsc.Grupo)
+                .WithMany(g => g.GrupoSubCategorias)
+                .HasForeignKey(gsc => gsc.GrupoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación SubCategoria - GrupoSubCategoria (uno a muchos)
+            modelBuilder.Entity<GrupoSubCategoria>()
+                .HasOne(gsc => gsc.SubCategoria)
+                .WithMany()
+                .HasForeignKey(gsc => gsc.SubCategoriaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Índice único para evitar duplicados por grupo y subcategoría
+            modelBuilder.Entity<GrupoSubCategoria>()
+                .HasIndex(gsc => new { gsc.GrupoId, gsc.SubCategoriaId })
+                .IsUnique();
         }
         protected private void ConfigurarBuilderMoneda(ModelBuilder builder)
         {
@@ -348,6 +373,7 @@ namespace Repositorio
         public DbSet<UsuarioGrupo> UsuarioGrupos { get; set; }  // Tabla intermedia
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<SubCategoria> SubCategorias { get; set; }
+        public DbSet<GrupoSubCategoria> GrupoSubCategorias { get; set; }
         public DbSet<Moneda> Monedas { get; set; }
         public DbSet<TipoDeDocumento> TipoDeDocumentos { get; set; }
         public DbSet<MetodoDePago> MetodosDePago { get; set; }

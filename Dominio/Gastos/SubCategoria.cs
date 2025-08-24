@@ -19,10 +19,6 @@ namespace Dominio.Gastos
         [Required]
         public Categoria Categoria { get; set; }
         
-        public int GrupoId { get; set; }
-        [JsonIgnore]
-        public Grupo GrupoGasto { get; set; }
-
         public SubCategoria()
         {
         }

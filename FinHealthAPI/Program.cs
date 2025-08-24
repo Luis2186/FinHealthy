@@ -35,6 +35,7 @@ using Servicio.S_TipoDeDocumento;
 using Repositorio.Repositorios.R_Gastos.R_TipoDeDocumento;
 using Repositorio.Repositorios.R_Gastos.R_TipoDeCambios;
 using Servicio.S_MetodosDePago;
+using Dominio.Grupos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -137,6 +138,7 @@ builder.Services.AddScoped<IServicioGasto, ServicioGasto>();
 builder.Services.AddScoped<IServicioTipoDeDocumento, ServicioTipoDeDocumento>();
 builder.Services.AddScoped<IServicioMetodoDePago, ServicioMetodoDePago>();
 builder.Services.AddScoped<IServicioMonedas, ServicioMonedas>();
+builder.Services.AddScoped<IServicioGrupoSubCategoria, ServicioGrupoSubCategoria>();
 
 builder.Services.AddScoped<IRepositorioRefreshToken, RepositorioRefreshToken>();
 builder.Services.AddScoped<IRepositorioMoneda, RepositorioMoneda>();
@@ -146,10 +148,12 @@ builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacion>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
 builder.Services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
 builder.Services.AddScoped<IRepositorioSubCategoria, RepositorioSubCategoria>();
+builder.Services.AddScoped<IRepositorioGrupoSubCategoria, RepositorioGrupoSubCategoria>();
 builder.Services.AddScoped<IRepositorioGasto, RepositorioGasto>();
 builder.Services.AddScoped<IRepositorioMetodoDePago, RepositorioMetodoDePago>();
 builder.Services.AddScoped<IRepositorioTipoDeDocumento, RepositorioTipoDeDocumento>();
 
+builder.Services.AddScoped<IValidacion<GrupoSubCategoria>, ValidadorDataAnnotations<GrupoSubCategoria>>();
 builder.Services.AddScoped<ProveedorToken>();
 var app = builder.Build();
 

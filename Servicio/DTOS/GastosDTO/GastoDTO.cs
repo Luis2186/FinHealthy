@@ -33,8 +33,8 @@ namespace Servicio.DTOS.GastosDTO
         public Documento? DocumentoAsociado { get; set; }
         public Moneda Moneda { get; set; }
         public int GrupoId { get; set; }
-        public GrupoDTO Grupo { get; set; }
+        //public GrupoDTO Grupo { get; set; }
         public string UsuarioCreadorId { get; set; }
-        public UsuarioDTO UsuarioCreador { get; set; }
+        //public UsuarioDTO UsuarioCreador { get; set; }
     }
 }

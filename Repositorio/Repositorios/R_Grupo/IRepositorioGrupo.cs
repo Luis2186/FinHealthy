@@ -16,5 +16,6 @@ namespace Repositorio.Repositorios.R_Grupo
         Task<Resultado<List<Grupo>>> ObtenerGruposPorUsuario(string usuarioId);
         Task<Resultado<Grupo>> ObtenerGrupoPorIdAdministrador(string usuarioAdminId);
         Task<Resultado<Grupo>> ObtenerGrupoPorIdAdministrador(string usuarioAdminId, CancellationToken cancellationToken);
+        Task<Resultado<Grupo>> ObtenerGrupoPorIdConUsuariosYSubcategorias(int grupoId, CancellationToken cancellationToken);
     }
 }

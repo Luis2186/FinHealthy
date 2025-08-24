@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿using Dominio.Abstracciones;
 using Dominio;
 using Dominio.Gastos;
 using Dominio.Grupos;
@@ -19,7 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
-using Dominio.Abstracciones;
+using AutoMapper;
 using Repositorio.Repositorios.R_Grupo;
 
 namespace Servicio.S_Gastos
@@ -32,11 +32,13 @@ namespace Servicio.S_Gastos
         private readonly IRepositorioUsuario _repoUsuarios;
         private readonly IRepositorioGasto _repoGastos;
         private readonly IRepositorioGrupo _repoGrupo;
+        private readonly IRepositorioGrupoSubCategoria _repoGrupoSubCategoria;
         private readonly IMapper _mapper;
 
         public ServicioGasto(IRepositorioSubCategoria repoSubCategoria, IRepositorioMoneda repoMoneda,
             IRepositorioMetodoDePago repoMetodoDePago, IRepositorioUsuario repoUsuario,
-            IRepositorioGasto repoGastos, IMapper mapper, IRepositorioGrupo repoGrupo)
+            IRepositorioGasto repoGastos, IMapper mapper, IRepositorioGrupo repoGrupo,
+            IRepositorioGrupoSubCategoria repoGrupoSubCategoria)
         {
             _repoSubCategoria = repoSubCategoria;
             _repoMoneda = repoMoneda;
@@ -45,6 +47,7 @@ namespace Servicio.S_Gastos
             _repoGastos = repoGastos;
             _mapper = mapper;
             _repoGrupo = repoGrupo;
+            _repoGrupoSubCategoria = repoGrupoSubCategoria;
         }
 
         public async Task<Resultado<GastoDTO>> CrearGasto(CrearGastoDTO gastoCreacionDTO,
@@ -64,7 +67,6 @@ namespace Servicio.S_Gastos
             var gastoDto = _mapper.Map<GastoDTO>(resultado.Valor);
             return gastoDto;
         }
-
 
         public async Task<Resultado<GastoDTO>> ActualizarGasto(ActualizarGastoDTO gastoActualizacionDTO,
            string usuarioActualId, CancellationToken cancellationToken)
@@ -101,7 +103,7 @@ namespace Servicio.S_Gastos
             string tipoCrud = gastoExistente != null ? "actualizar" : "crear";
 
             // 1. Validar que el grupo existe
-            var grupoResult = await _repoGrupo.ObtenerPorIdAsync(dto.GrupoId, cancellationToken);
+            var grupoResult = await _repoGrupo.ObtenerGrupoPorIdConUsuariosYSubcategorias(dto.GrupoId, cancellationToken);
             if (grupoResult.TieneErrores) return Resultado<Gasto>.Failure(grupoResult.Errores);
             var grupo = grupoResult.Valor;
             if (grupo == null)
@@ -111,11 +113,13 @@ namespace Servicio.S_Gastos
             if (!grupo.MiembrosGrupoGasto.Any(u => u.Id == usuarioActualId))
                 return Resultado<Gasto>.Failure(new Error("Permiso denegado", $"Solo los miembros del grupo pueden {tipoCrud} gastos en él."));
 
-            // 3. Validar que la subcategoría pertenece al grupo
-            var subCategoriaResult = await _repoSubCategoria.ObtenerPorIdAsync(dto.SubCategoriaId, cancellationToken);
-            if (subCategoriaResult.TieneErrores) return Resultado<Gasto>.Failure(subCategoriaResult.Errores);
-            if (subCategoriaResult.Valor.GrupoId != grupo.Id)
-                return Resultado<Gasto>.Failure(new Error("Permiso denegado", "La subcategoría no pertenece al grupo seleccionado."));
+            // 3. Validar que la subcategoría está habilitada para el grupo
+            var grupoSubCategoriaResult = await _repoGrupoSubCategoria.ObtenerPorGrupoYSubCategoriaAsync(dto.GrupoId, dto.SubCategoriaId, cancellationToken);
+            if (grupoSubCategoriaResult.TieneErrores)
+                return Resultado<Gasto>.Failure(grupoSubCategoriaResult.Errores);
+            var grupoSubCategoria = grupoSubCategoriaResult.Valor;
+            if (grupoSubCategoria == null || !grupoSubCategoria.Activo)
+                return Resultado<Gasto>.Failure(new Error("Permiso denegado", "La subcategoría no está habilitada para este grupo."));
 
             // 4. Validar que el usuario actual es el creador del gasto
             if (dto.UsuarioCreadorId != usuarioActualId)
@@ -131,7 +135,7 @@ namespace Servicio.S_Gastos
             if (usuarioCreadorResult.TieneErrores) return Resultado<Gasto>.Failure(usuarioCreadorResult.Errores);
 
             MetodoDePago metodoDePagoElegido = metodoDePagoResult.Valor;
-            SubCategoria subCategoriaElegida = subCategoriaResult.Valor;
+            SubCategoria subCategoriaElegida = grupoSubCategoria.SubCategoria;
             Moneda monedaElegida = monedaResult.Valor;
             Usuario usuarioCreador = usuarioCreadorResult.Valor;
 

@@ -15,18 +15,15 @@ namespace Servicio.S_Categorias.S_SubCategorias
 {
     public class ServicioSubCategoria : ServicioCrud<CrearSubCategoriaDTO, ActualizarCategoriaDTO, SubCategoriaDTO, SubCategoria>, IServicioSubCategoria
     {
-        private readonly IRepositorioGrupo _repoGrupo;
         private readonly IRepositorioCategoria _repoCategoria;
         private readonly IRepositorioSubCategoria _repoSubCategoria;
         public ServicioSubCategoria(
             IRepositorioSubCategoria repo,
             IMapper mapper,
             IRepositorioCategoria repoCategoria,
-            IRepositorioGrupo repoGrupo,
             IRepositorioSubCategoria repoSubCategoria)
             : base(repo, mapper)
         {
-            _repoGrupo = repoGrupo;
             _repoCategoria = repoCategoria;
             _repoSubCategoria = repoSubCategoria;
         }
@@ -34,17 +31,9 @@ namespace Servicio.S_Categorias.S_SubCategorias
         public override async Task<Resultado<SubCategoriaDTO>> CrearAsync(CrearSubCategoriaDTO dto, CancellationToken cancellationToken)
         {
             var subCategoria = _mapper.Map<SubCategoria>(dto);
-            var resultadoGrupo = await _repoGrupo.ObtenerPorIdAsync(subCategoria.GrupoId, cancellationToken);
             var resultadoCategoria = await _repoCategoria.ObtenerPorIdAsync(subCategoria.CategoriaId, cancellationToken);
-            if (resultadoGrupo.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultadoGrupo.Errores);
             if (resultadoCategoria.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultadoCategoria.Errores);
-            subCategoria.GrupoGasto = resultadoGrupo.Valor;
             subCategoria.Categoria = resultadoCategoria.Valor;
-
-            // Validación de unicidad usando el método de dominio
-            var resultadoUnicidad = resultadoGrupo.Valor.AgregarSubCategoria(subCategoria);
-            if (!resultadoUnicidad.EsCorrecto)
-                return Resultado<SubCategoriaDTO>.Failure(resultadoUnicidad.Errores);
 
             var resultado = await _repoSubCategoria.CrearAsync(subCategoria, cancellationToken);
             if (resultado.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultado.Errores);

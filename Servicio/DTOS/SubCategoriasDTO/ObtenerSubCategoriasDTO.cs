@@ -8,7 +8,6 @@ namespace Servicio.DTOS.SubCategoriasDTO
 {
     public class ObtenerSubCategoriasDTO
     {
-        public int FamiliaId { get; set; }
         public int CategoriaId { get; set; }
     }
 }

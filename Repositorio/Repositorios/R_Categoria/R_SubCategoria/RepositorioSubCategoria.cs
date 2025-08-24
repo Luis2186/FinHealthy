@@ -29,7 +29,6 @@ namespace Repositorio.Repositorios.R_Categoria.R_SubCategoria
             {
                 var entidad = await _dbContext.SubCategorias
                     .Include(sub => sub.Categoria)
-                    .Include(sub => sub.GrupoGasto)
                     .FirstOrDefaultAsync(subC => subC.Id == id, cancellationToken);
                 return entidad == null
                     ? Resultado<SubCategoria>.Failure(ErroresCrud.ErrorDeCreacion(typeof(SubCategoria).Name))
@@ -46,9 +45,7 @@ namespace Repositorio.Repositorios.R_Categoria.R_SubCategoria
             try
             {
                 var subcategorias = _dbContext.SubCategorias
-                    .Include(cat => cat.GrupoGasto)
-                    .Include(cat => cat.Categoria)
-                    .Where(cat => cat.GrupoId == grupoId && cat.CategoriaId == categoriaId).ToList();
+                    .Include(cat => cat.Categoria);
                 return Resultado<IEnumerable<SubCategoria>>.Success(subcategorias);
             }
             catch (Exception ex)

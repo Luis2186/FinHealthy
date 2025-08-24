@@ -20,16 +20,19 @@ namespace Servicio.S_Grupos
         private readonly IRepositorioUsuario _repoUsuarios;
         private readonly IRepositorioGrupo _repoGrupo;
         private readonly IRepositorioSolicitud _repositorioSolicitud;
+        private readonly IServicioGrupoSubCategoria _servicioGrupoSubCat;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         public ServicioGrupos(IRepositorioGrupo repoGrupo,
                                IRepositorioUsuario repositorioUsuario,
                                IRepositorioSolicitud repositorioSolicitud,
+                               IServicioGrupoSubCategoria servicioGrupoSubCat,
                                IUnitOfWork unitOfWork, IMapper mapper)
         {
             _repoGrupo = repoGrupo;
             _repoUsuarios = repositorioUsuario;
             _repositorioSolicitud = repositorioSolicitud;
+            _servicioGrupoSubCat = servicioGrupoSubCat;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -112,6 +115,8 @@ namespace Servicio.S_Grupos
                 usuarioAdm.UnirseAGrupo(grupo);
 
                 var resultado = await _repoGrupo.CrearAsync(grupo, cancellationToken);
+
+                await _servicioGrupoSubCat.AsignarSubcategoriasBaseAlGrupoAsync(resultado.Valor.Id, cancellationToken);
 
                 await _repoUsuarios.ActualizarAsync(usuarioAdm, cancellationToken);
 
