@@ -16,12 +16,12 @@ using Servicio.DTOS.NotificacionesDTO;
 using Servicio.DTOS.TipoDeDocumentoDTO;
 using Servicio.DTOS.MonedasDTO;
 using Servicio.DTOS.Common;
+using Servicio.DTOS.MetodosDePagoDTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Servicio.DTOS.MetodosDePagoDTO;
 
 namespace Servicio.Automapper
 {
@@ -39,7 +39,6 @@ namespace Servicio.Automapper
             MapearGastos();
             MapearTipoDeDocumento();
             MapearMonedas();
-            MapearMetodosDePago();
         }
 
         private int CalcularEdad(DateTime fechaNacimiento)
@@ -167,6 +166,10 @@ namespace Servicio.Automapper
                 .ForMember(gasto => gasto.MetodoDePago, opt => opt.MapFrom(src => src.MetodoDePago))
                 .ForMember(gasto => gasto.Cuotas, opt => opt.MapFrom(src => src.Cuotas))
                 .ForMember(gasto => gasto.CompartidoCon, opt => opt.MapFrom(src => src.CompartidoCon))
+                .ForMember(gasto => gasto.GrupoId, opt => opt.MapFrom(src => src.GrupoId))
+                .ForMember(gasto => gasto.Grupo, opt => opt.MapFrom(src => src.Grupo))
+                .ForMember(gasto => gasto.UsuarioCreadorId, opt => opt.MapFrom(src => src.UsuarioCreadorId))
+                .ForMember(gasto => gasto.UsuarioCreador, opt => opt.MapFrom(src => src.UsuarioCreador))
                 .ReverseMap();
 
             CreateMap<CrearGastoDTO, Gasto>().ReverseMap();

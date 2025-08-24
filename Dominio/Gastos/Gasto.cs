@@ -2,6 +2,7 @@
 using Dominio.Documentos;
 using Dominio.Gastos.IGastos;
 using Dominio.Usuarios;
+using Dominio.Grupos;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -38,11 +39,15 @@ namespace Dominio.Gastos
         public bool EsCompartido { get; private set; }
         public List<GastoCompartido> CompartidoCon { get; private set; }
         public decimal Monto { get; private set; }
+        public int GrupoId { get; private set; }
+        public Grupo Grupo { get; private set; }
+        public string UsuarioCreadorId { get; private set; }
+        public Usuario UsuarioCreador { get; private set; }
 
         public Gasto(){}
         public Gasto(SubCategoria categoria, MetodoDePago metodoDePago, Moneda moneda, DateTime fecha,
                      string descripcion, string etiqueta,string lugar,bool esFinanciado,bool esCompartido, decimal monto, 
-                     int cantidadCuotas)
+                     int cantidadCuotas, Grupo grupo, Usuario usuarioCreador)
         {
             SubCategoria = categoria;
             MetodoDePago = metodoDePago;
@@ -58,6 +63,10 @@ namespace Dominio.Gastos
             Cuotas = new List<Cuota>();
             CantidadDeCuotas = cantidadCuotas;
             Estado = true;
+            Grupo = grupo;
+            GrupoId = grupo?.Id ?? 0;
+            UsuarioCreador = usuarioCreador;
+            UsuarioCreadorId = usuarioCreador?.Id;
         }
 
         public Resultado<Gasto> EsValido(List<Usuario> usuariosParaCompartirGasto = null)
@@ -125,29 +134,46 @@ namespace Dominio.Gastos
 
         public Resultado<Gasto> CompartirGastoConUsuarios(List<Usuario> usuarios)
         {
-            if (usuarios == null || usuarios.Count == 0)
-                return Resultado<Gasto>.Failure(new Error("Debe haber al menos un usuario para compartir el gasto."));
+            var usuariosValidos = FiltrarUsuariosValidosDelGrupo(usuarios);
+            if (!usuariosValidos.Any())
+                return Resultado<Gasto>.Failure(new Error("Ningún usuario seleccionado pertenece al grupo."));
 
-            var cantidadUsuarios = usuarios.Count;
-            var porcentajePorUsuario = Math.Round(100m / cantidadUsuarios, 2); // Redondeamos a 2 decimales
-            var montoPorUsuario = Math.Round(this.Monto / cantidadUsuarios, 2);
+            var asignaciones = CalcularAsignacionesCompartidas(usuariosValidos, Monto);
+            CompartidoCon = asignaciones;
+            return this;
+        }
 
-            var gastosCompartidos = new List<GastoCompartido>();
+        /// <summary>
+        /// Filtra los usuarios que realmente pertenecen al grupo y elimina duplicados.
+        /// </summary>
+        private List<Usuario> FiltrarUsuariosValidosDelGrupo(List<Usuario> usuarios)
+        {
+            if (usuarios == null) return new();
+            var miembrosGrupo = Grupo.MiembrosGrupoGasto.Select(u => u.Id).ToHashSet();
+            return usuarios.Where(u => miembrosGrupo.Contains(u.Id)).Distinct().ToList();
+        }
 
-            foreach (var usuario in usuarios)
+        /// <summary>
+        /// Calcula el monto y porcentaje asignado a cada usuario, ajustando el último para evitar diferencias por redondeo.
+        /// </summary>
+        private List<GastoCompartido> CalcularAsignacionesCompartidas(List<Usuario> usuarios, decimal montoTotal)
+        {
+            var cantidad = usuarios.Count;
+            var porcentajePorUsuario = Math.Round(100m / cantidad, 2);
+            var montoPorUsuario = Math.Floor(montoTotal / cantidad * 100) / 100;
+            var montoRestante = montoTotal - (montoPorUsuario * (cantidad - 1));
+
+            var asignaciones = new List<GastoCompartido>();
+            for (int i = 0; i < cantidad; i++)
             {
-                var gastoCompartido = new GastoCompartido(this, usuario)
+                var montoAsignado = (i == cantidad - 1) ? montoRestante : montoPorUsuario;
+                asignaciones.Add(new GastoCompartido(this, usuarios[i])
                 {
                     Porcentaje = porcentajePorUsuario,
-                    MontoAsignado = montoPorUsuario
-                };
-
-                gastosCompartidos.Add(gastoCompartido);
+                    MontoAsignado = montoAsignado
+                });
             }
-
-            CompartidoCon = gastosCompartidos;
-            
-            return this;
+            return asignaciones;
         }
 
     }

@@ -33,6 +33,7 @@ namespace Repositorio
             ConfigurarBuilderMoneda(builder);
             ConfigurarBuilderTipoDeDocumento(builder);
             ConfigurarBuilderGastoCompartido(builder);
+            ConfigurarBuilderGasto(builder);
         }
 
         protected private void ConfigurarBuilderNotificacion(ModelBuilder builder)
@@ -182,7 +183,21 @@ namespace Repositorio
             });
         
         }
+        protected private void ConfigurarBuilderGasto(ModelBuilder builder)
+        {
+            builder.Entity<Gasto>(entity =>
+            {
+                entity.HasOne(g => g.Grupo)
+                      .WithMany() // No agregues .WithMany(gr => gr.Gastos)
+                      .HasForeignKey(g => g.GrupoId)
+                      .OnDelete(DeleteBehavior.Cascade);
 
+                entity.HasOne(g => g.UsuarioCreador)
+                      .WithMany()
+                      .HasForeignKey(g => g.UsuarioCreadorId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
         protected private void ConfigurarBuilderGastoCompartido(ModelBuilder builder)
         {
             builder.Entity<GastoCompartido>()

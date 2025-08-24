@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Dominio;
 using Dominio.Gastos;
+using Dominio.Grupos;
+using Dominio.Usuarios;
 using Repositorio.Repositorios.R_Gastos.R_Monedas;
 using Repositorio.Repositorios.R_Categoria;
 using Repositorio.Repositorios.R_Categoria.R_SubCategoria;
@@ -52,13 +54,18 @@ namespace Servicio.S_Gastos
             var monedaResult = await _repoMoneda.ObtenerPorCodigoAsync(gastoCreacionDTO.MonedaId, cancellationToken);
             if (monedaResult.TieneErrores) return Resultado<GastoDTO>.Failure(monedaResult.Errores);
 
+            var usuarioCreadorResult = await _repoUsuarios.ObtenerPorIdAsync(gastoCreacionDTO.UsuarioCreadorId, cancellationToken);
+            if (usuarioCreadorResult.TieneErrores) return Resultado<GastoDTO>.Failure(usuarioCreadorResult.Errores);
+            
             MetodoDePago metodoDePagoElegido = metodoDePagoResult.Valor;
             SubCategoria subCategoriaElegida = categoriaResult.Valor;
             Moneda monedaElegida = monedaResult.Valor;
+            Usuario usuarioCreador = usuarioCreadorResult.Valor;
   
             Gasto nuevoGasto = new Gasto(subCategoriaElegida, metodoDePagoElegido, monedaElegida, gastoCreacionDTO.FechaDeGasto,
-                gastoCreacionDTO.Descripcion, gastoCreacionDTO.Etiqueta,gastoCreacionDTO.Lugar, gastoCreacionDTO.EsFinanciado,
-                gastoCreacionDTO.EsCompartido, gastoCreacionDTO.Monto, gastoCreacionDTO.CantidadDeCuotas);
+                gastoCreacionDTO.Descripcion, gastoCreacionDTO.Etiqueta, gastoCreacionDTO.Lugar, gastoCreacionDTO.EsFinanciado,
+                gastoCreacionDTO.EsCompartido, gastoCreacionDTO.Monto, gastoCreacionDTO.CantidadDeCuotas,
+                new Grupo { Id = gastoCreacionDTO.GrupoId }, usuarioCreador);
 
             if (gastoCreacionDTO.EsCompartido)
             {

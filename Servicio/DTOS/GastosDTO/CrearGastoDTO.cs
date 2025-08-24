@@ -32,7 +32,10 @@ namespace Servicio.DTOS.GastosDTO
         [Required(ErrorMessage = "La moneda es obligatoria")]
         public string MonedaId { get; set; }
         public int? DocumentoAsociadoId { get; set; }
-
+        [Required(ErrorMessage = "El grupo es obligatorio")]
+        public int GrupoId { get; set; }
+        [Required(ErrorMessage = "El usuario creador es obligatorio")]
+        public string UsuarioCreadorId { get; set; }
 
 
 

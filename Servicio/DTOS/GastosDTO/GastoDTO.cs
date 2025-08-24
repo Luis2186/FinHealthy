@@ -8,6 +8,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Servicio.DTOS.GruposDTO;
+using Servicio.DTOS.UsuariosDTO;
 
 namespace Servicio.DTOS.GastosDTO
 {
@@ -30,5 +32,9 @@ namespace Servicio.DTOS.GastosDTO
         public MetodoDePago MetodoDePago { get; set; }
         public Documento? DocumentoAsociado { get; set; }
         public Moneda Moneda { get; set; }
+        public int GrupoId { get; set; }
+        public GrupoDTO Grupo { get; set; }
+        public string UsuarioCreadorId { get; set; }
+        public UsuarioDTO UsuarioCreador { get; set; }
     }
 }
