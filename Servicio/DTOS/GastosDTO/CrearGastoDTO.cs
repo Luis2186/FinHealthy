@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Servicio.DTOS.GastosDTO
 {
-    public class CrearGastoDTO
+    public class CrearGastoDTO : IFormarGastoDTO
     {
         [Required(ErrorMessage = "La fecha en que fue efectuado el gasto es obligatoria")]
         public DateTime FechaDeGasto { get; set; }
@@ -33,10 +33,10 @@ namespace Servicio.DTOS.GastosDTO
         public string MonedaId { get; set; }
         public int? DocumentoAsociadoId { get; set; }
         [Required(ErrorMessage = "El grupo es obligatorio")]
+        [Range(1, int.MaxValue, ErrorMessage = "El identificador del grupo es obligatorio")]
         public int GrupoId { get; set; }
         [Required(ErrorMessage = "El usuario creador es obligatorio")]
         public string UsuarioCreadorId { get; set; }
-
 
 
 

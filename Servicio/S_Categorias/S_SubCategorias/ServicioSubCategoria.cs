@@ -17,16 +17,18 @@ namespace Servicio.S_Categorias.S_SubCategorias
     {
         private readonly IRepositorioGrupo _repoGrupo;
         private readonly IRepositorioCategoria _repoCategoria;
-
+        private readonly IRepositorioSubCategoria _repoSubCategoria;
         public ServicioSubCategoria(
             IRepositorioSubCategoria repo,
             IMapper mapper,
             IRepositorioCategoria repoCategoria,
-            IRepositorioGrupo repoGrupo)
+            IRepositorioGrupo repoGrupo,
+            IRepositorioSubCategoria repoSubCategoria)
             : base(repo, mapper)
         {
             _repoGrupo = repoGrupo;
             _repoCategoria = repoCategoria;
+            _repoSubCategoria = repoSubCategoria;
         }
 
         public override async Task<Resultado<SubCategoriaDTO>> CrearAsync(CrearSubCategoriaDTO dto, CancellationToken cancellationToken)
@@ -38,7 +40,13 @@ namespace Servicio.S_Categorias.S_SubCategorias
             if (resultadoCategoria.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultadoCategoria.Errores);
             subCategoria.GrupoGasto = resultadoGrupo.Valor;
             subCategoria.Categoria = resultadoCategoria.Valor;
-            var resultado = await (_repo as IRepositorioSubCategoria).CrearAsync(subCategoria, cancellationToken);
+
+            // Validación de unicidad usando el método de dominio
+            var resultadoUnicidad = resultadoGrupo.Valor.AgregarSubCategoria(subCategoria);
+            if (!resultadoUnicidad.EsCorrecto)
+                return Resultado<SubCategoriaDTO>.Failure(resultadoUnicidad.Errores);
+
+            var resultado = await _repoSubCategoria.CrearAsync(subCategoria, cancellationToken);
             if (resultado.TieneErrores) return Resultado<SubCategoriaDTO>.Failure(resultado.Errores);
             var subCategoriaDTO = _mapper.Map<SubCategoriaDTO>(resultado.Valor);
             return subCategoriaDTO;
@@ -61,7 +69,7 @@ namespace Servicio.S_Categorias.S_SubCategorias
 
         public async Task<Resultado<IEnumerable<SubCategoriaDTO>>> ObtenerSubCategorias(int grupoId, int categoriaId, CancellationToken cancellationToken)
         {
-            var subCategorias = await (_repo as IRepositorioSubCategoria).ObtenerTodasPorGrupoYCategoria(grupoId, categoriaId, cancellationToken);
+            var subCategorias = await _repoSubCategoria.ObtenerTodasPorGrupoYCategoria(grupoId, categoriaId, cancellationToken);
             if (subCategorias.TieneErrores) return Resultado<IEnumerable<SubCategoriaDTO>>.Failure(subCategorias.Errores);
             var subCategoriasDTO = _mapper.Map<IEnumerable<SubCategoriaDTO>>(subCategorias.Valor);
             return Resultado<IEnumerable<SubCategoriaDTO>>.Success(subCategoriasDTO);

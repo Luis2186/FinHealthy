@@ -1,4 +1,5 @@
-﻿using Dominio.Errores;
+﻿using Dominio.Abstracciones;
+using Dominio.Errores;
 using Dominio.Gastos;
 using Dominio.Usuarios;
 using System.ComponentModel.DataAnnotations;
@@ -94,6 +95,30 @@ namespace Dominio.Grupos
             this.UsuarioAdministradorId = admin.Id;
 
             return Resultado<bool>.Success(UsuarioAdministrador != null && UsuarioAdministradorId != "");
+        }
+
+        public Resultado<bool> AgregarSubCategoria(SubCategoria subCategoria)
+        {
+            if (subCategoria == null || string.IsNullOrWhiteSpace(subCategoria.Nombre))
+                return Resultado<bool>.Failure(new Error("Grupo.AgregarSubCategoria", "La subcategoría es nula o su nombre es inválido."));
+
+            bool existe = SubCategorias.Any(sc => sc.Nombre != null && sc.Nombre.Trim().Equals(subCategoria.Nombre.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (existe)
+                return Resultado<bool>.Failure(new Error("Grupo.AgregarSubCategoria", $"Ya existe una subcategoría con el nombre '{subCategoria.Nombre}' en el grupo."));
+
+            SubCategorias.Add(subCategoria);
+            return Resultado<bool>.Success(true);
+        }
+
+        public Resultado<Gasto> ValidarConsistenciaSubcategoria(Gasto gasto)
+        {
+            if (gasto == null || gasto.SubCategoria == null)
+                return Resultado<Gasto>.Failure(new Error("Grupo.ValidarConsistenciaSubcategoria", "El gasto o la subcategoría es nula."));
+
+            if (gasto.GrupoId != gasto.SubCategoria.GrupoId)
+                return Resultado<Gasto>.Failure(new Error("Grupo.ValidarConsistenciaSubcategoria", "La subcategoría seleccionada no pertenece al mismo grupo que el gasto."));
+
+            return Resultado<Gasto>.Success(gasto);
         }
 
     }

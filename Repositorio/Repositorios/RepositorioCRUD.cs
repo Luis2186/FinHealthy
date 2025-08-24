@@ -27,7 +27,7 @@ namespace Repositorio.Repositorios
             {
                 var entidad = await _dbContext.Set<T>().FindAsync(new object[] { id }, cancellationToken);
                 return entidad == null
-                    ? Resultado<T>.Failure(ErroresCrud.ErrorDeCreacion(typeof(T).Name))
+                    ? Resultado<T>.Failure(ErroresCrud.ErrorBuscarPorId(typeof(T).Name))
                     : Resultado<T>.Success(entidad);
             }
             catch (Exception ex)

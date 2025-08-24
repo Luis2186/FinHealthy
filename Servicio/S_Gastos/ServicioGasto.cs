@@ -19,6 +19,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using Dominio.Abstracciones;
+using Repositorio.Repositorios.R_Grupo;
 
 namespace Servicio.S_Gastos
 {
@@ -29,11 +31,12 @@ namespace Servicio.S_Gastos
         private readonly IRepositorioMetodoDePago _repoMetodoDePago;
         private readonly IRepositorioUsuario _repoUsuarios;
         private readonly IRepositorioGasto _repoGastos;
+        private readonly IRepositorioGrupo _repoGrupo;
         private readonly IMapper _mapper;
 
         public ServicioGasto(IRepositorioSubCategoria repoSubCategoria, IRepositorioMoneda repoMoneda,
             IRepositorioMetodoDePago repoMetodoDePago, IRepositorioUsuario repoUsuario,
-            IRepositorioGasto repoGastos, IMapper mapper)
+            IRepositorioGasto repoGastos, IMapper mapper, IRepositorioGrupo repoGrupo)
         {
             _repoSubCategoria = repoSubCategoria;
             _repoMoneda = repoMoneda;
@@ -41,53 +44,133 @@ namespace Servicio.S_Gastos
             _repoUsuarios = repoUsuario;
             _repoGastos = repoGastos;
             _mapper = mapper;
+            _repoGrupo = repoGrupo;
         }
 
-        public async Task<Resultado<GastoDTO>> CrearGasto(CrearGastoDTO gastoCreacionDTO, CancellationToken cancellationToken)
+        public async Task<Resultado<GastoDTO>> CrearGasto(CrearGastoDTO gastoCreacionDTO,
+            string usuarioActualId, CancellationToken cancellationToken)
         {
-            var metodoDePagoResult = await _repoMetodoDePago.ObtenerPorIdAsync(gastoCreacionDTO.MetodoDePagoId, cancellationToken);
-            if (metodoDePagoResult.TieneErrores) return Resultado<GastoDTO>.Failure(metodoDePagoResult.Errores);
-
-            var categoriaResult = await _repoSubCategoria.ObtenerPorIdAsync(gastoCreacionDTO.SubCategoriaId, cancellationToken);
-            if (categoriaResult.TieneErrores) return Resultado<GastoDTO>.Failure(categoriaResult.Errores);
-
-            var monedaResult = await _repoMoneda.ObtenerPorCodigoAsync(gastoCreacionDTO.MonedaId, cancellationToken);
-            if (monedaResult.TieneErrores) return Resultado<GastoDTO>.Failure(monedaResult.Errores);
-
-            var usuarioCreadorResult = await _repoUsuarios.ObtenerPorIdAsync(gastoCreacionDTO.UsuarioCreadorId, cancellationToken);
-            if (usuarioCreadorResult.TieneErrores) return Resultado<GastoDTO>.Failure(usuarioCreadorResult.Errores);
             
-            MetodoDePago metodoDePagoElegido = metodoDePagoResult.Valor;
-            SubCategoria subCategoriaElegida = categoriaResult.Valor;
-            Moneda monedaElegida = monedaResult.Valor;
-            Usuario usuarioCreador = usuarioCreadorResult.Valor;
-  
-            Gasto nuevoGasto = new Gasto(subCategoriaElegida, metodoDePagoElegido, monedaElegida, gastoCreacionDTO.FechaDeGasto,
-                gastoCreacionDTO.Descripcion, gastoCreacionDTO.Etiqueta, gastoCreacionDTO.Lugar, gastoCreacionDTO.EsFinanciado,
-                gastoCreacionDTO.EsCompartido, gastoCreacionDTO.Monto, gastoCreacionDTO.CantidadDeCuotas,
-                new Grupo { Id = gastoCreacionDTO.GrupoId }, usuarioCreador);
+            var resultadoNuevoGasto = await FormarGasto(gastoCreacionDTO, usuarioActualId, cancellationToken);
 
-            if (gastoCreacionDTO.EsCompartido)
-            {
-                var usuariosCompartidosResult = await _repoUsuarios.BuscarUsuarios(gastoCreacionDTO.UsuariosCompartidosIds, cancellationToken);
-                if (usuariosCompartidosResult.TieneErrores) return Resultado<GastoDTO>.Failure(usuariosCompartidosResult.Errores);
-                
-                var resultadoIngreso = nuevoGasto.IngresarGastoCompartido(usuariosCompartidosResult.Valor.ToList());
-                if(resultadoIngreso.TieneErrores) return Resultado<GastoDTO>.Failure(resultadoIngreso.Errores);
+            if(resultadoNuevoGasto.TieneErrores) return Resultado<GastoDTO>.Failure(resultadoNuevoGasto.Errores);
 
-            } else
-            {
-                var resultadoIngreso = nuevoGasto.IngresarGastoPersonal();
-                if (resultadoIngreso.TieneErrores) return Resultado<GastoDTO>.Failure(resultadoIngreso.Errores);
-            }
-
+            var nuevoGasto = resultadoNuevoGasto.Valor;
+      
             var resultado = await _repoGastos.CrearAsync(nuevoGasto, cancellationToken);
 
             if (resultado.TieneErrores) return Resultado<GastoDTO>.Failure(resultado.Errores);
 
             var gastoDto = _mapper.Map<GastoDTO>(resultado.Valor);
+            return gastoDto;
+        }
+
+
+        public async Task<Resultado<GastoDTO>> ActualizarGasto(ActualizarGastoDTO gastoActualizacionDTO,
+           string usuarioActualId, CancellationToken cancellationToken)
+        {
+            // 1. Buscar el gasto existente
+            var gastoResult = await _repoGastos.ObtenerPorIdAsync(gastoActualizacionDTO.Id, cancellationToken);
+            
+            if (gastoResult.TieneErrores)
+                return Resultado<GastoDTO>.Failure(gastoResult.Errores);
+
+            var gastoEncontrado = gastoResult.Valor;
+
+            var resultadoActualizacionGasto = await FormarGasto(gastoActualizacionDTO,
+                usuarioActualId, cancellationToken, gastoEncontrado);
+
+            if (resultadoActualizacionGasto.TieneErrores) return Resultado<GastoDTO>.Failure(resultadoActualizacionGasto.Errores);
+
+            var gastoActualizado = resultadoActualizacionGasto.Valor;
+
+            var resultadoActualizacion = await _repoGastos.ActualizarAsync(gastoActualizado, cancellationToken);
+
+            if (resultadoActualizacion.TieneErrores) return Resultado<GastoDTO>.Failure(resultadoActualizacion.Errores);
+
+            var gastoDto = _mapper.Map<GastoDTO>(resultadoActualizacion.Valor);
 
             return gastoDto;
         }
+
+
+        private async Task<Resultado<Gasto>> FormarGasto(IFormarGastoDTO dto,
+            string usuarioActualId, CancellationToken cancellationToken,
+             Gasto gastoExistente = null)
+        {
+            string tipoCrud = gastoExistente != null ? "actualizar" : "crear";
+
+            // 1. Validar que el grupo existe
+            var grupoResult = await _repoGrupo.ObtenerPorIdAsync(dto.GrupoId, cancellationToken);
+            if (grupoResult.TieneErrores) return Resultado<Gasto>.Failure(grupoResult.Errores);
+            var grupo = grupoResult.Valor;
+            if (grupo == null)
+                return Resultado<Gasto>.Failure(new Error("Grupo no encontrado", "No se encontró el grupo especificado."));
+
+            // 2. Validar que el usuario actual es miembro del grupo
+            if (!grupo.MiembrosGrupoGasto.Any(u => u.Id == usuarioActualId))
+                return Resultado<Gasto>.Failure(new Error("Permiso denegado", $"Solo los miembros del grupo pueden {tipoCrud} gastos en él."));
+
+            // 3. Validar que la subcategoría pertenece al grupo
+            var subCategoriaResult = await _repoSubCategoria.ObtenerPorIdAsync(dto.SubCategoriaId, cancellationToken);
+            if (subCategoriaResult.TieneErrores) return Resultado<Gasto>.Failure(subCategoriaResult.Errores);
+            if (subCategoriaResult.Valor.GrupoId != grupo.Id)
+                return Resultado<Gasto>.Failure(new Error("Permiso denegado", "La subcategoría no pertenece al grupo seleccionado."));
+
+            // 4. Validar que el usuario actual es el creador del gasto
+            if (dto.UsuarioCreadorId != usuarioActualId)
+                return Resultado<Gasto>.Failure(new Error("Permiso denegado", $"Solo puedes {tipoCrud} gastos personales para ti mismo."));
+
+            var metodoDePagoResult = await _repoMetodoDePago.ObtenerPorIdAsync(dto.MetodoDePagoId, cancellationToken);
+            if (metodoDePagoResult.TieneErrores) return Resultado<Gasto>.Failure(metodoDePagoResult.Errores);
+
+            var monedaResult = await _repoMoneda.ObtenerPorCodigoAsync(dto.MonedaId, cancellationToken);
+            if (monedaResult.TieneErrores) return Resultado<Gasto>.Failure(monedaResult.Errores);
+
+            var usuarioCreadorResult = await _repoUsuarios.ObtenerPorIdAsync(dto.UsuarioCreadorId, cancellationToken);
+            if (usuarioCreadorResult.TieneErrores) return Resultado<Gasto>.Failure(usuarioCreadorResult.Errores);
+
+            MetodoDePago metodoDePagoElegido = metodoDePagoResult.Valor;
+            SubCategoria subCategoriaElegida = subCategoriaResult.Valor;
+            Moneda monedaElegida = monedaResult.Valor;
+            Usuario usuarioCreador = usuarioCreadorResult.Valor;
+
+            Gasto nuevoGasto = new Gasto(subCategoriaElegida, metodoDePagoElegido, monedaElegida, dto.FechaDeGasto,
+                dto.Descripcion, dto.Etiqueta, dto.Lugar, dto.EsFinanciado,
+                dto.EsCompartido, dto.Monto, dto.CantidadDeCuotas,
+                grupo, usuarioCreador);
+
+            if (nuevoGasto.EsCompartido)
+            {
+                var usuariosCompartidosResult = await _repoUsuarios.BuscarUsuarios(dto.UsuariosCompartidosIds, cancellationToken);
+                if (usuariosCompartidosResult.TieneErrores) return Resultado<Gasto>.Failure(usuariosCompartidosResult.Errores);
+                var resultadoIngreso = nuevoGasto.IngresarGastoCompartido(usuariosCompartidosResult.Valor.ToList());
+                if (resultadoIngreso.TieneErrores) return Resultado<Gasto>.Failure(resultadoIngreso.Errores);
+            }
+            else
+            {
+                var resultadoIngreso = nuevoGasto.IngresarGastoPersonal();
+                if (resultadoIngreso.TieneErrores) return Resultado<Gasto>.Failure(resultadoIngreso.Errores);
+            }
+
+            // Validación de consistencia de subcategoría
+            var validacionConsistencia = grupo.ValidarConsistenciaSubcategoria(nuevoGasto);
+            if (!validacionConsistencia.EsCorrecto)
+                return Resultado<Gasto>.Failure(validacionConsistencia.Errores);
+
+            if (gastoExistente != null)
+            {
+                gastoExistente.ActualizarGasto(nuevoGasto);
+                return gastoExistente;
+            }
+
+            return nuevoGasto;
+        } 
+
+
+
+
+
+
     }
 }

@@ -175,6 +175,27 @@ namespace Dominio.Gastos
             }
             return asignaciones;
         }
+        public Gasto ActualizarGasto(Gasto datosNuevos)
+        {
+            SubCategoria = datosNuevos.SubCategoria;
+            MetodoDePago = datosNuevos.MetodoDePago;
+            Moneda = datosNuevos.Moneda;
+            FechaDeGasto = datosNuevos.FechaDeGasto;
+            Descripcion = datosNuevos.Descripcion;
+            Etiqueta = datosNuevos.Etiqueta;
+            Lugar = datosNuevos.Lugar;
+            EsFinanciado = datosNuevos.EsFinanciado;
+            EsCompartido = datosNuevos.EsCompartido;
+            Monto = datosNuevos.Monto;
+            CantidadDeCuotas = datosNuevos.CantidadDeCuotas;
+            Grupo = datosNuevos.Grupo;
+            GrupoId = datosNuevos.GrupoId;
+            UsuarioCreador = datosNuevos.UsuarioCreador;
+            UsuarioCreadorId = datosNuevos.UsuarioCreadorId;
+            // Si tienes lógica especial (por ejemplo, recalcular cuotas), puedes llamarla aquí.
+
+            return this;
+        }
 
     }
 }

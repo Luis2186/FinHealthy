@@ -12,6 +12,6 @@ namespace Servicio.S_Gastos
 {
     public interface IServicioGasto
     {
-        public Task<Resultado<GastoDTO>> CrearGasto(CrearGastoDTO gastoCreacionDTO, CancellationToken cancellationToken);
+        public Task<Resultado<GastoDTO>> CrearGasto(CrearGastoDTO gastoCreacionDTO, string usuarioActualId, CancellationToken cancellationToken);
     }
 }

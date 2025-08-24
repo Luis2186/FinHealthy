@@ -43,7 +43,7 @@ namespace FinHealthAPI.Controllers
         /// <response code="400">Si hay errores de validación.</response>
         /// <response code="404">Si ya existe un gasto con ese ID.</response>
         [HttpPost("crear")]
-        public async Task<ActionResult<GrupoDTO>> CrearGrupo([FromBody] CrearGastoDTO gastoCreacionDTO, CancellationToken cancellationToken)
+        public async Task<ActionResult<GastoDTO>> CrearGasto([FromBody] CrearGastoDTO gastoCreacionDTO, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -64,16 +64,20 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var resultado = await _servicioGasto.CrearGasto(gastoCreacionDTO, cancellationToken);
+            // Obtiene el usuario actual del token JWT
+            var usuarioActualId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(usuarioActualId))
+                return Unauthorized("No se pudo identificar el usuario actual.");
 
-            // En caso de que el usuario ya exista o haya un error, devolver BadRequest
-            if (resultado.TieneErrores)
+            var resultado = await _servicioGasto.CrearGasto(gastoCreacionDTO, usuarioActualId, cancellationToken);
+
+            if (!resultado.EsCorrecto)
             {
                 return Conflict(new ProblemDetails
                 {
                     Title = "Error al ingresar el gasto",
-                    Detail = "Ah ocurrido un error al intentar crear el grupo",
-                    Status = 404,
+                    Detail = "Ha ocurrido un error al intentar crear el gasto",
+                    Status = 400,
                     Instance = HttpContext.Request.Path,
                     Extensions = {
                         ["errors"] = resultado.Errores
@@ -81,7 +85,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            return Ok(new { gastoId = resultado.Valor });
+            return Ok(resultado.Valor);
         }
     }
 }
