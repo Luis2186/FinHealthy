@@ -146,9 +146,8 @@ namespace Servicio.S_Gastos
 
             if (nuevoGasto.EsCompartido)
             {
-                var usuariosCompartidosResult = await _repoUsuarios.BuscarUsuarios(dto.UsuariosCompartidosIds, cancellationToken);
-                if (usuariosCompartidosResult.TieneErrores) return Resultado<Gasto>.Failure(usuariosCompartidosResult.Errores);
-                var resultadoIngreso = nuevoGasto.IngresarGastoCompartido(usuariosCompartidosResult.Valor.ToList());
+                var usuariosGrupoIds = grupo.MiembrosGrupoGasto.ToList();
+                var resultadoIngreso = nuevoGasto.IngresarGastoCompartido(usuariosGrupoIds);
                 if (resultadoIngreso.TieneErrores) return Resultado<Gasto>.Failure(resultadoIngreso.Errores);
             }
             else

@@ -76,7 +76,7 @@ namespace Servicio.S_Grupos
         {
             try
             {
-                var grupoBuscado = await _repoGrupo.ObtenerPorIdAsync(grupoId, cancellationToken);
+                var grupoBuscado = await _repoGrupo.ObtenerGrupoPorIdConUsuariosYSubcategorias(grupoId, cancellationToken);
 
                 if (grupoBuscado.TieneErrores) return Resultado<GrupoDTO>.Failure(grupoBuscado.Errores);
 
@@ -191,7 +191,7 @@ namespace Servicio.S_Grupos
 
                 var usuario = resultadoUsuario.Valor;
 
-                var grupoBuscado = await _repoGrupo.ObtenerPorIdAsync(grupoId, cancellationToken);
+                var grupoBuscado = await _repoGrupo.ObtenerGrupoPorIdConUsuariosYSubcategorias(grupoId, cancellationToken);
 
                 if (grupoBuscado.TieneErrores) return Resultado<bool>.Failure(grupoBuscado.Errores);
 
@@ -224,7 +224,7 @@ namespace Servicio.S_Grupos
         {
             try
             {
-                var resultado = await _repoGrupo.ObtenerPorIdAsync(id, cancellationToken);
+                var resultado = await _repoGrupo.ObtenerGrupoPorIdConUsuariosYSubcategorias(id, cancellationToken);
 
                 if (resultado.TieneErrores) return Resultado<GrupoDTO>.Failure(resultado.Errores);
 
@@ -304,7 +304,7 @@ namespace Servicio.S_Grupos
         {
             try
             {
-                var grupo = await _repoGrupo.ObtenerPorIdAsync(acceso.GrupoGastoId, cancellationToken);
+                var grupo = await _repoGrupo.ObtenerGrupoPorIdConUsuariosYSubcategorias(acceso.GrupoGastoId, cancellationToken);
 
                 if (grupo.TieneErrores) return Resultado<bool>.Failure(grupo.Errores);
 

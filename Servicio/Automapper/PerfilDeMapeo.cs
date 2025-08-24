@@ -165,9 +165,9 @@ namespace Servicio.Automapper
                 .ForMember(gasto => gasto.Cuotas, opt => opt.MapFrom(src => src.Cuotas))
                 .ForMember(gasto => gasto.CompartidoCon, opt => opt.MapFrom(src => src.CompartidoCon))
                 .ForMember(gasto => gasto.GrupoId, opt => opt.MapFrom(src => src.GrupoId))
-                .ForMember(gasto => gasto.Grupo, opt => opt.MapFrom(src => src.Grupo))
+                //.ForMember(gasto => gasto.Grupo, opt => opt.MapFrom(src => src.Grupo))
                 .ForMember(gasto => gasto.UsuarioCreadorId, opt => opt.MapFrom(src => src.UsuarioCreadorId))
-                .ForMember(gasto => gasto.UsuarioCreador, opt => opt.MapFrom(src => src.UsuarioCreador))
+                //.ForMember(gasto => gasto.UsuarioCreador, opt => opt.MapFrom(src => src.UsuarioCreador))
                 .ReverseMap();
 
             CreateMap<CrearGastoDTO, Gasto>().ReverseMap();
