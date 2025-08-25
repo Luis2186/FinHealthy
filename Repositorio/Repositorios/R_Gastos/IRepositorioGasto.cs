@@ -7,10 +7,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using Dominio.Abstracciones;
 
 namespace Repositorio.Repositorios.R_Gastos
 {
     public interface IRepositorioGasto : IRepositorioCRUD<Gasto>
     {
+        Task<Resultado<List<Gasto>>> ObtenerGastosPorGrupoYUsuarioIncluyendoTodo(int grupoId, string usuarioId, CancellationToken cancellationToken);
     }
 }

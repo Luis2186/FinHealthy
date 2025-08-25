@@ -13,5 +13,6 @@ namespace Servicio.S_Gastos
     public interface IServicioGasto
     {
         public Task<Resultado<GastoDTO>> CrearGasto(CrearGastoDTO gastoCreacionDTO, string usuarioActualId, CancellationToken cancellationToken);
+        Task<Resultado<GastosSegmentadosDTO>> ObtenerGastosSegmentados(int grupoId, int? anio, int? mes, string usuarioActualId, CancellationToken cancellationToken);
     }
 }

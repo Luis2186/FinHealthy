@@ -87,5 +87,39 @@ namespace FinHealthAPI.Controllers
 
             return Ok(resultado.Valor);
         }
+
+        /// <summary>
+        /// Obtiene los gastos segmentados (fijos, compartidos, en cuotas) filtrados por año y mes.
+        /// </summary>
+        /// <param name="grupoId">Id del grupo.</param>
+        /// <param name="anio">Año (opcional).</param>
+        /// <param name="mes">Mes (opcional).</param>
+        /// <param name="cancellationToken">Token de cancelación.</param>
+        /// <returns>Gastos segmentados por tipo.</returns>
+        [HttpGet("segmentados")]
+        public async Task<ActionResult<GastosSegmentadosDTO>> ObtenerGastosSegmentados([FromQuery] int grupoId, [FromQuery] int? anio, [FromQuery] int? mes, CancellationToken cancellationToken)
+        {
+            var usuarioActualId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(usuarioActualId))
+                return Unauthorized("No se pudo identificar el usuario actual.");
+
+            var resultado = await _servicioGasto.ObtenerGastosSegmentados(grupoId, anio, mes, usuarioActualId, cancellationToken);
+
+            if (!resultado.EsCorrecto)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al obtener los gastos segmentados",
+                    Detail = "Ha ocurrido un error al intentar obtener los gastos segmentados",
+                    Status = 400,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = {
+                        ["errors"] = resultado.Errores
+                    }
+                });
+            }
+
+            return Ok(resultado.Valor);
+        }
     }
 }
