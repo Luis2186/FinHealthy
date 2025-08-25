@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Dominio;
+using Dominio.Gastos;
 using Dominio.Usuarios;
 using Servicio.DTOS.GastosDTO; // CrearGastoDTO
 using Servicio.DTOS.GruposDTO; // GrupoDTO
@@ -89,21 +90,25 @@ namespace FinHealthAPI.Controllers
         }
 
         /// <summary>
-        /// Obtiene los gastos segmentados (fijos, compartidos, en cuotas) filtrados por año y mes.
+        /// Obtiene los gastos segmentados (fijos, compartidos, en cuotas) filtrados por año, mes y tipo de gasto.
         /// </summary>
         /// <param name="grupoId">Id del grupo.</param>
         /// <param name="anio">Año (opcional).</param>
         /// <param name="mes">Mes (opcional).</param>
+        /// <param name="tipoGasto">Tipo de gasto: "fijo", "compartido", "cuota" o "todos".</param>
         /// <param name="cancellationToken">Token de cancelación.</param>
         /// <returns>Gastos segmentados por tipo.</returns>
         [HttpGet("segmentados")]
-        public async Task<ActionResult<GastosSegmentadosDTO>> ObtenerGastosSegmentados([FromQuery] int grupoId, [FromQuery] int? anio, [FromQuery] int? mes, CancellationToken cancellationToken)
+        public async Task<ActionResult<GastosSegmentadosDTO>> ObtenerGastosSegmentados(
+            [FromQuery] int grupoId, [FromQuery] int? anio, [FromQuery] int? mes,
+            [FromQuery] TipoGasto? tipoGasto, CancellationToken cancellationToken)
         {
             var usuarioActualId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(usuarioActualId))
                 return Unauthorized("No se pudo identificar el usuario actual.");
 
-            var resultado = await _servicioGasto.ObtenerGastosSegmentados(grupoId, anio, mes, usuarioActualId, cancellationToken);
+            var tipoGastoFinal = tipoGasto ?? TipoGasto.Todos;
+            var resultado = await _servicioGasto.ObtenerGastosSegmentados(grupoId, anio, mes, usuarioActualId, tipoGastoFinal, cancellationToken);
 
             if (!resultado.EsCorrecto)
             {
