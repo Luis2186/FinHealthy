@@ -9,8 +9,6 @@ using Servicio.DTOS.UsuariosDTO;
 using Servicio.Usuarios;
 using Servicio.Usuarios.Authentication;
 using Servicio.ServiciosExternos; // IServicioMonedas
-using Servicio.S_Pdf; // Pdf<T>
-using Servicio.DTOS.UsuariosDTO; // UsuarioPDFDTO
 using System.Configuration;
 using System.Net;
 
@@ -251,7 +249,7 @@ namespace FinHealthAPI.Controllers
 
             var usuarioDTO = _mapper.Map<UsuarioDTO>(usuarioActualizado.Valor);
 
-            return Ok(usuarioDTO);  // Devuelve el usuario actualizado con estado 200 OK
+            return Ok(usuarioDTO);  // Devuelve el usuario actualizado with estado 200 OK
         }
 
         /// <summary>

@@ -12,6 +12,7 @@ using Servicio.S_Gastos;
 using Servicio.Usuarios;
 using System.Configuration;
 using System.Net;
+using FinHealthAPI.Common;
 
 namespace FinHealthAPI.Controllers
 {
@@ -68,7 +69,7 @@ namespace FinHealthAPI.Controllers
                 });
             }
 
-            var usuarioActualId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var usuarioActualId = User.GetUserId();
             if (string.IsNullOrEmpty(usuarioActualId))
                 return Unauthorized(new ProblemDetails
                 {
@@ -113,7 +114,7 @@ namespace FinHealthAPI.Controllers
             [FromQuery] int grupoId, [FromQuery] int? anio, [FromQuery] int? mes,
             [FromQuery] TipoGasto? tipoGasto, CancellationToken cancellationToken)
         {
-            var usuarioActualId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var usuarioActualId = User.GetUserId();
             if (string.IsNullOrEmpty(usuarioActualId))
                 return Unauthorized(new ProblemDetails
                 {
