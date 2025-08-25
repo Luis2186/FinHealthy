@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace FinHealthAPI.Common
+namespace FinHealthAPI.Extensiones
 {
     public static class ClaimsPrincipalExtensions
     {

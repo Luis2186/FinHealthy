@@ -12,7 +12,7 @@ using Servicio.S_Gastos;
 using Servicio.Usuarios;
 using System.Configuration;
 using System.Net;
-using FinHealthAPI.Common;
+using FinHealthAPI.Extensiones;
 
 namespace FinHealthAPI.Controllers
 {
@@ -129,10 +129,22 @@ namespace FinHealthAPI.Controllers
 
             if (!resultado.EsCorrecto)
             {
+                // Si el error es por pertenencia al grupo, devolver Unauthorized
+                var error = resultado.Errores.FirstOrDefault(e => e.ToString().Contains("permisos para ver los gastos de este grupo"));
+                if (error != null)
+                {
+                    return Unauthorized(new ProblemDetails
+                    {
+                        Title = "Acceso denegado",
+                        Detail = error.ToString(),
+                        Status = StatusCodes.Status401Unauthorized,
+                        Instance = HttpContext.Request.Path
+                    });
+                }
                 return BadRequest(new ProblemDetails
                 {
                     Title = "Error al obtener los gastos segmentados",
-                    Detail = "Ha ocurrido un error al intentar obtener los gastos segmentados",
+                    Detail = resultado.ObtenerErroresComoString(),
                     Status = StatusCodes.Status400BadRequest,
                     Instance = HttpContext.Request.Path,
                     Extensions = {

@@ -178,6 +178,14 @@ namespace Servicio.S_Gastos
         public async Task<Resultado<GastosSegmentadosDTO>> ObtenerGastosSegmentados(
             int grupoId, int? anio, int? mes, string usuarioActualId, TipoGasto tipoGasto, CancellationToken cancellationToken)
         {
+            // Validación de pertenencia al grupo
+            var grupoResult = await _repoGrupo.ObtenerGrupoPorIdConUsuariosYSubcategorias(grupoId, cancellationToken);
+            if (grupoResult.TieneErrores || grupoResult.Valor == null)
+                return Resultado<GastosSegmentadosDTO>.Failure(grupoResult.Errores);
+            var grupo = grupoResult.Valor;
+            if (!grupo.MiembrosGrupoGasto.Any(u => u.Id == usuarioActualId))
+                return Resultado<GastosSegmentadosDTO>.Failure(new Error("Permiso denegado", "No tienes permisos para ver los gastos de este grupo."));
+
             var resultado = new GastosSegmentadosDTO
             {
                 GastosFijos = new List<GastoFijoDTO>(),
