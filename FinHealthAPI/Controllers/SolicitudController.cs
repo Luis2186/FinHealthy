@@ -39,46 +39,24 @@ namespace FinHealthAPI.Controllers
         /// <param name="solicitudes">Objeto que contiene el id del administrador y el estado de las solicitudes.</param>
         /// <returns>Lista de solicitudes del administrador.</returns>
         [HttpGet("porAdmin")]
-        public async Task<ActionResult<SolicitudDTO>> ObtenerSolicitudesPorAdministrador([FromBody] PaginacionSolicitudDTO solicitudes)
+        [ProducesResponseType(typeof(IEnumerable<SolicitudDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<SolicitudDTO>>> ObtenerSolicitudesPorAdministrador([FromBody] PaginacionSolicitudDTO solicitudes, CancellationToken cancellationToken)
         {
-            var resultado = await _servicioGrupo.ObtenerSolicitudesPorAdministrador(solicitudes.IdAdministrador, solicitudes.Estado, HttpContext.RequestAborted);
+            var resultado = await _servicioGrupo.ObtenerSolicitudesPorAdministrador(solicitudes.IdAdministrador, solicitudes.Estado, cancellationToken);
 
-            if (resultado.TieneErrores) return NotFound(new ProblemDetails
-            {
-                Title = "Error solicitudes por administrador",
-                Detail = "Hubo un error al intentar obtener las solicitudes por administrador",
-                Status = 404,
-                Instance = HttpContext.Request.Path,
-                Extensions = {
-                        ["errors"] = resultado.Errores
-                    }
-            });
+            if (resultado.TieneErrores)
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error solicitudes por administrador",
+                    Detail = "Hubo un error al intentar obtener las solicitudes por administrador",
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = { ["errors"] = resultado.Errores }
+                });
 
-            return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
+            return Ok(resultado.Valor);
         }
-
-        // Obtener un usuario por su ID
-        //[HttpGet("obtener/{solicitudId}")]
-        //public async Task<ActionResult<GrupoDTO>> ObtenerSolicitudPorId(int solicitudId)
-        //{
-        //    var resultado = await _servicioGrupo.ObtenerGrupoPorId(grupoId);
-
-        //    if (resultado.TieneErrores)
-        //    {
-        //        return NotFound(new ProblemDetails
-        //        {
-        //            Title = "Error al obtener usuario por id",
-        //            Detail = "Hubo un error al obtener el usuario por id",
-        //            Status = 404,
-        //            Instance = HttpContext.Request.Path,
-        //            Extensions = {
-        //                ["errors"] = resultado.Errores
-        //            }
-        //        });  // Devuelve 404 si no se encuentra la grupo
-        //    }
-
-        //    return Ok(resultado.Valor);  // Devuelve el usuario con estado 200 OK
-        //}
 
         // Crear un nuevo usuario
         /// <summary>
@@ -87,45 +65,42 @@ namespace FinHealthAPI.Controllers
         /// <param name="enviarSolicitudDTO">Objeto que contiene la información de la solicitud.</param>
         /// <returns>El ID de la solicitud creada.</returns>
         [HttpPost("enviar")]
-        public async Task<ActionResult<GrupoDTO>> EnviarSolicitud([FromBody] EnviarSolicitudDTO enviarSolicitudDTO)
+        [ProducesResponseType(typeof(SolicitudDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SolicitudDTO>> EnviarSolicitud([FromBody] EnviarSolicitudDTO enviarSolicitudDTO, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new ProblemDetails
                 {
-                    Status = 400,
-                    Title = "Error de validacion",
-                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Error de validación",
+                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = ModelState.Keys
-                                .SelectMany(key => ModelState[key].Errors.Select(error => new
-                                {
-                                    Code = key, // Aquí puedes ajustar el código como desees
-                                    Description = error.ErrorMessage
-                                }))
-                    }
+                    Extensions = { ["errors"] = ModelState.Keys
+                        .SelectMany(key => ModelState[key].Errors.Select(error => new
+                        {
+                            Code = key,
+                            Description = error.ErrorMessage
+                        })) }
                 });
             }
 
-            var resultado = await _servicioGrupo.EnviarSolicitudIngresoAGrupo(enviarSolicitudDTO, HttpContext.RequestAborted);
+            var resultado = await _servicioGrupo.EnviarSolicitudIngresoAGrupo(enviarSolicitudDTO, cancellationToken);
 
-            // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
             {
-                return Conflict(new ProblemDetails
+                return BadRequest(new ProblemDetails
                 {
                     Title = "Error al enviar la solicitud",
                     Detail = "Ah ocurrido un error cuando se intento enviar la solicitud",
-                    Status = 404,
+                    Status = StatusCodes.Status400BadRequest,
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = resultado.Errores
-                    }
+                    Extensions = { ["errors"] = resultado.Errores }
                 });
             }
 
-            return Ok(new { solicitudId = resultado.Valor.Id });
+            return CreatedAtAction(nameof(EnviarSolicitud), new { id = resultado.Valor.Id }, resultado.Valor);
         }
 
         // Crear un nuevo usuario
@@ -135,45 +110,25 @@ namespace FinHealthAPI.Controllers
         /// <param name="idSolicitud">ID de la solicitud a aceptar.</param>
         /// <returns>Indica si la aceptación fue exitosa.</returns>
         [HttpPost("aceptar/{idSolicitud}")]
-        public async Task<ActionResult<bool>> AceptarSolicitudDeUnionGrupo(int idSolicitud)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> AceptarSolicitudDeUnionGrupo(int idSolicitud, CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid)
+            var resultado = await _servicioGrupo.AceptarSolicitudIngresoAGrupo(idSolicitud, cancellationToken);
+
+            if (resultado.TieneErrores)
             {
                 return BadRequest(new ProblemDetails
                 {
-                    Status = 400,
-                    Title = "Error de validacion",
-                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
-                    Instance = HttpContext.Request.Path,
-                    Extensions = {
-                       ["errors"] = ModelState.Keys
-                            .SelectMany(key => ModelState[key].Errors.Select(error => new
-                            {
-                                Code = key, // Aquí puedes ajustar el código como desees
-                                Description = error.ErrorMessage
-                            }))
-                    }
-                });
-            }
-
-            var resultado = await _servicioGrupo.AceptarSolicitudIngresoAGrupo(idSolicitud, HttpContext.RequestAborted);
-
-            // En caso de que el usuario ya exista o haya un error, devolver BadRequest
-            if (resultado.TieneErrores)
-            {
-                return Conflict(new ProblemDetails
-                {
                     Title = "Error al aceptar la solicitud",
                     Detail = "Ah ocurrido un error cuando se intento aceptar la solicitud",
-                    Status = 404,
+                    Status = StatusCodes.Status400BadRequest,
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = resultado.Errores
-                    }
+                    Extensions = { ["errors"] = resultado.Errores }
                 });
             }
 
-            return NoContent(); 
+            return NoContent();
         }
 
         // Crear un nuevo usuario
@@ -183,41 +138,38 @@ namespace FinHealthAPI.Controllers
         /// <param name="solicitud">Objeto que contiene la información para unirse al grupo.</param>
         /// <returns>Indica si la unión al grupo fue exitosa.</returns>
         [HttpPost("porCodigo")]
-        public async Task<ActionResult<bool>> UnirseConCodigoAGrupo([FromBody] UnirseAGrupoDTO solicitud)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> UnirseConCodigoAGrupo([FromBody] UnirseAGrupoDTO solicitud, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new ProblemDetails
                 {
-                    Status = 400,
-                    Title = "Error de validacion",
-                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Error de validación",
+                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                       ["errors"] = ModelState.Keys
-                            .SelectMany(key => ModelState[key].Errors.Select(error => new
-                            {
-                                Code = key, // Aquí puedes ajustar el código como desees
-                                Description = error.ErrorMessage
-                            }))
-                    }
+                    Extensions = { ["errors"] = ModelState.Keys
+                        .SelectMany(key => ModelState[key].Errors.Select(error => new
+                        {
+                            Code = key,
+                            Description = error.ErrorMessage
+                        })) }
                 });
             }
 
-            var resultado = await _servicioGrupo.IngresoAGrupoConCodigo(solicitud, HttpContext.RequestAborted);
+            var resultado = await _servicioGrupo.IngresoAGrupoConCodigo(solicitud, cancellationToken);
 
-            // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultado.TieneErrores)
             {
-                return Conflict(new ProblemDetails
+                return BadRequest(new ProblemDetails
                 {
-                    Title = "Error al unirse al grupo por medio del codigo",
-                    Detail = "Ah ocurrido un error al intentar unirse al grupo por medio del codigo",
-                    Status = 404,
+                    Title = "Error al unirse al grupo por medio del código",
+                    Detail = "Ah ocurrido un error al intentar unirse al grupo por medio del código",
+                    Status = StatusCodes.Status400BadRequest,
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = resultado.Errores
-                    }
+                    Extensions = { ["errors"] = resultado.Errores }
                 });
             }
 

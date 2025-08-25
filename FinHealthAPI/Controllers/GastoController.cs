@@ -44,49 +44,56 @@ namespace FinHealthAPI.Controllers
         /// <response code="400">Si hay errores de validación.</response>
         /// <response code="404">Si ya existe un gasto con ese ID.</response>
         [HttpPost("crear")]
+        [ProducesResponseType(typeof(GastoDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<GastoDTO>> CrearGasto([FromBody] CrearGastoDTO gastoCreacionDTO, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new ProblemDetails
                 {
-                    Status = 400,
-                    Title = "Error de validacion",
-                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Error de validación",
+                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
                     Instance = HttpContext.Request.Path,
                     Extensions = {
-                      ["errors"] = ModelState.Keys
+                        ["errors"] = ModelState.Keys
                             .SelectMany(key => ModelState[key].Errors.Select(error => new
                             {
-                                Code = key, // Aquí puedes ajustar el código como desees
+                                Code = key,
                                 Description = error.ErrorMessage
                             }))
                     }
                 });
             }
 
-            // Obtiene el usuario actual del token JWT
             var usuarioActualId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(usuarioActualId))
-                return Unauthorized("No se pudo identificar el usuario actual.");
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "No autorizado",
+                    Detail = "No se pudo identificar el usuario actual.",
+                    Status = StatusCodes.Status401Unauthorized,
+                    Instance = HttpContext.Request.Path
+                });
 
             var resultado = await _servicioGasto.CrearGasto(gastoCreacionDTO, usuarioActualId, cancellationToken);
 
             if (!resultado.EsCorrecto)
             {
-                return Conflict(new ProblemDetails
+                return BadRequest(new ProblemDetails
                 {
                     Title = "Error al ingresar el gasto",
-                    Detail = "Ha ocurrido un error al intentar crear el gasto",
-                    Status = 400,
+                    Detail = "Ha ocurrido un error al intentar crear el gasto.",
+                    Status = StatusCodes.Status400BadRequest,
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = resultado.Errores
-                    }
+                    Extensions = { ["errors"] = resultado.Errores }
                 });
             }
 
-            return Ok(resultado.Valor);
+            // Devuelve 201 Created con la ubicación del recurso creado
+            return CreatedAtAction(nameof(CrearGasto), new { id = resultado.Valor.Id }, resultado.Valor);
         }
 
         /// <summary>
@@ -99,13 +106,22 @@ namespace FinHealthAPI.Controllers
         /// <param name="cancellationToken">Token de cancelación.</param>
         /// <returns>Gastos segmentados por tipo.</returns>
         [HttpGet("segmentados")]
+        [ProducesResponseType(typeof(GastosSegmentadosDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<GastosSegmentadosDTO>> ObtenerGastosSegmentados(
             [FromQuery] int grupoId, [FromQuery] int? anio, [FromQuery] int? mes,
             [FromQuery] TipoGasto? tipoGasto, CancellationToken cancellationToken)
         {
             var usuarioActualId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(usuarioActualId))
-                return Unauthorized("No se pudo identificar el usuario actual.");
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "No autorizado",
+                    Detail = "No se pudo identificar el usuario actual.",
+                    Status = StatusCodes.Status401Unauthorized,
+                    Instance = HttpContext.Request.Path
+                });
 
             var tipoGastoFinal = tipoGasto ?? TipoGasto.Todos;
             var resultado = await _servicioGasto.ObtenerGastosSegmentados(grupoId, anio, mes, usuarioActualId, tipoGastoFinal, cancellationToken);
@@ -116,7 +132,7 @@ namespace FinHealthAPI.Controllers
                 {
                     Title = "Error al obtener los gastos segmentados",
                     Detail = "Ha ocurrido un error al intentar obtener los gastos segmentados",
-                    Status = 400,
+                    Status = StatusCodes.Status400BadRequest,
                     Instance = HttpContext.Request.Path,
                     Extensions = {
                         ["errors"] = resultado.Errores

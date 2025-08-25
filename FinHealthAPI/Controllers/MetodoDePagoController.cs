@@ -31,11 +31,18 @@ namespace FinHealthAPI.Controllers
         /// <param name="ct">Token de cancelación.</param>
         /// <returns>Una lista de métodos de pago.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAll(CancellationToken ct)
+        [ProducesResponseType(typeof(IEnumerable<MetodoDePagoDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IEnumerable<MetodoDePagoDTO>>> GetAll(CancellationToken ct)
         {
             var result = await _servicio.ObtenerTodosAsync(ct);
             if (result.TieneErrores)
-                return Problem(detail: result.ObtenerErroresComoString(), statusCode: 400);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al obtener métodos de pago",
+                    Detail = result.ObtenerErroresComoString(),
+                    Status = StatusCodes.Status400BadRequest
+                });
             return Ok(result.Valor);
         }
 
@@ -46,11 +53,18 @@ namespace FinHealthAPI.Controllers
         /// <param name="ct">Token de cancelación.</param>
         /// <returns>El método de pago solicitado.</returns>
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id, CancellationToken ct)
+        [ProducesResponseType(typeof(MetodoDePagoDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<MetodoDePagoDTO>> GetById(int id, CancellationToken ct)
         {
             var result = await _servicio.ObtenerPorIdAsync(id, ct);
             if (result.TieneErrores)
-                return NotFound(result.ObtenerErroresComoString());
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Método de pago no encontrado",
+                    Detail = result.ObtenerErroresComoString(),
+                    Status = StatusCodes.Status404NotFound
+                });
             return Ok(result.Valor);
         }
 
@@ -61,13 +75,25 @@ namespace FinHealthAPI.Controllers
         /// <param name="ct">Token de cancelación.</param>
         /// <returns>El método de pago creado.</returns>
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CrearMetodoDePagoDTO dto, CancellationToken ct)
+        [ProducesResponseType(typeof(MetodoDePagoDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<MetodoDePagoDTO>> Create([FromBody] CrearMetodoDePagoDTO dto, CancellationToken ct)
         {
             if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error de validación",
+                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
+                    Status = StatusCodes.Status400BadRequest
+                });
             var result = await _servicio.CrearAsync(dto, ct);
             if (result.TieneErrores)
-                return Problem(detail: result.ObtenerErroresComoString(), statusCode: 400);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al crear método de pago",
+                    Detail = result.ObtenerErroresComoString(),
+                    Status = StatusCodes.Status400BadRequest
+                });
             return CreatedAtAction(nameof(GetById), new { id = result.Valor.Id }, result.Valor);
         }
 
@@ -79,13 +105,25 @@ namespace FinHealthAPI.Controllers
         /// <param name="ct">Token de cancelación.</param>
         /// <returns>El método de pago actualizado.</returns>
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] ActualizarMetodoDePagoDTO dto, CancellationToken ct)
+        [ProducesResponseType(typeof(MetodoDePagoDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<MetodoDePagoDTO>> Update(int id, [FromBody] ActualizarMetodoDePagoDTO dto, CancellationToken ct)
         {
             if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error de validación",
+                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
+                    Status = StatusCodes.Status400BadRequest
+                });
             var result = await _servicio.ActualizarAsync(id, dto, ct);
             if (result.TieneErrores)
-                return Problem(detail: result.ObtenerErroresComoString(), statusCode: 400);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al actualizar método de pago",
+                    Detail = result.ObtenerErroresComoString(),
+                    Status = StatusCodes.Status400BadRequest
+                });
             return Ok(result.Valor);
         }
 
@@ -96,11 +134,18 @@ namespace FinHealthAPI.Controllers
         /// <param name="ct">Token de cancelación.</param>
         /// <returns>No content si la eliminación fue exitosa.</returns>
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> Delete(int id, CancellationToken ct)
         {
             var result = await _servicio.EliminarAsync(id, ct);
             if (result.TieneErrores)
-                return Problem(detail: result.ObtenerErroresComoString(), statusCode: 400);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al eliminar método de pago",
+                    Detail = result.ObtenerErroresComoString(),
+                    Status = StatusCodes.Status400BadRequest
+                });
             return NoContent();
         }
     }

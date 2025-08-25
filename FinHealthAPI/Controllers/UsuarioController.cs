@@ -46,29 +46,24 @@ namespace FinHealthAPI.Controllers
         /// Obtener todos los usuarios con paginación
         /// </summary>
         [HttpGet("paginados")]
-        public async Task<ActionResult<Usuario>> ObtenerUsuariosPaginados()
+        [ProducesResponseType(typeof(IEnumerable<UsuarioDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<UsuarioDTO>>> ObtenerUsuariosPaginados(CancellationToken cancellationToken)
         {
-            var resultado = await _servicioUsuario.ObtenerTodos(HttpContext.RequestAborted);
+            var resultado = await _servicioUsuario.ObtenerTodos(cancellationToken);
 
-            if (resultado.TieneErrores) return NotFound(new ProblemDetails
-            {
-                Title = "Error al obtener usuarios paginados",
-                Detail = "Ah ocurrido un error cuando se intento obtener los usuarios",
-                Status = 404,
-                Instance = HttpContext.Request.Path,
-                Extensions = {
-                        ["errors"] = resultado.Errores
-                }
-            });
+            if (resultado.TieneErrores)
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al obtener usuarios paginados",
+                    Detail = "Ah ocurrido un error cuando se intento obtener los usuarios",
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = { ["errors"] = resultado.Errores }
+                });
 
             var usuariosDTOS = _mapper.Map<List<UsuarioDTO>>(resultado.Valor);
-            
-            //var usuariosPDFDTOS = _mapper.Map<List<UsuarioPDFDTO>>(resultado.Valor);
-
-            //var reporte = new Pdf<UsuarioPDFDTO>(usuariosPDFDTOS, "Listado de Usuarios");
-            //reporte.GeneratePdf("C:\\Users\\lilp_\\Desktop\\Usuarios.pdf");
-
-            return Ok(usuariosDTOS);  // Devuelve los datos con estado HTTP 200 OK
+            return Ok(usuariosDTOS);
         }
 
         /// <summary>
@@ -76,24 +71,24 @@ namespace FinHealthAPI.Controllers
         /// </summary>
         [HttpGet("obtener/{usuarioId}")]
         [AllowAnonymous]
-        public async Task<ActionResult<Usuario>> ObtenerUsuarioPorId(string usuarioId)
+        [ProducesResponseType(typeof(UsuarioDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<UsuarioDTO>> ObtenerUsuarioPorId(string usuarioId, CancellationToken cancellationToken)
         {
-            var usuario = await _servicioUsuario.ObtenerPorId(usuarioId, HttpContext.RequestAborted);
-            
-            if (usuario.TieneErrores) return NotFound(new ProblemDetails
-            {
-                Title = "Error al obtener usuario por id",
-                Detail = "Ah ocurrido un error al intentar obtener el usuario por id",
-                Status = 404,
-                Instance = HttpContext.Request.Path,
-                Extensions = {
-                        ["errors"] = usuario.Errores
-                }
-            }); 
+            var usuario = await _servicioUsuario.ObtenerPorId(usuarioId, cancellationToken);
+
+            if (usuario.TieneErrores)
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al obtener usuario por id",
+                    Detail = "Ah ocurrido un error al intentar obtener el usuario por id",
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = { ["errors"] = usuario.Errores }
+                });
 
             var usuarioDTO = _mapper.Map<UsuarioDTO>(usuario.Valor);
-
-            return Ok(usuarioDTO);  // Devuelve el usuario with estado 200 OK
+            return Ok(usuarioDTO);
         }
 
         /// <summary>
@@ -101,48 +96,44 @@ namespace FinHealthAPI.Controllers
         /// </summary>
         [HttpPost("registrar")]
         [AllowAnonymous]
-        public async Task<ActionResult<Usuario>> RegistrarUsuario([FromBody] CrearUsuarioDTO usuarioDto)
+        [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<object>> RegistrarUsuario([FromBody] CrearUsuarioDTO usuarioDto, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new ProblemDetails
                 {
-                    Status = 400,
-                    Title = "Error de validacion",
-                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Error de validación",
+                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = ModelState.Keys
-                            .SelectMany(key => ModelState[key].Errors.Select(error => new
-                            {
-                                Code = key, // Aquí puedes ajustar el código como desees
-                                Description = error.ErrorMessage
-                            }))
-                    }
+                    Extensions = { ["errors"] = ModelState.Keys
+                        .SelectMany(key => ModelState[key].Errors.Select(error => new
+                        {
+                            Code = key,
+                            Description = error.ErrorMessage
+                        })) }
                 });
             }
 
-            var usuarioCreado = await _servicioUsuario.Registrar(usuarioDto, HttpContext.RequestAborted);
-            
-            // En caso de que el usuario ya exista o haya un error, devolver BadRequest
+            var usuarioCreado = await _servicioUsuario.Registrar(usuarioDto, cancellationToken);
+
             if (usuarioCreado.TieneErrores)
             {
-                return Conflict(new ProblemDetails
+                return BadRequest(new ProblemDetails
                 {
                     Title = "Error al registrar usuario",
                     Detail = "Ah ocurrido un error cuando se intento registrar el usuario",
-                    Status = 409,
+                    Status = StatusCodes.Status400BadRequest,
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = usuarioCreado.Errores
-                    }
+                    Extensions = { ["errors"] = usuarioCreado.Errores }
                 });
             }
 
             (string accessToken, string refreshToken, string usuarioId) = usuarioCreado.Valor;
             AgregarTokensACookies(accessToken, refreshToken);
-
-            return Ok(new { mensaje = "Registro exitoso", id = usuarioId }) ;
+            return CreatedAtAction(nameof(RegistrarUsuario), new { id = usuarioId }, new { mensaje = "Registro exitoso", id = usuarioId });
         }
         /// <summary>
         /// Obtener un usuario por su ID

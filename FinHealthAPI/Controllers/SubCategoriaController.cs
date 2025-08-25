@@ -35,23 +35,23 @@ namespace FinHealthAPI.Controllers
         /// <param name="categoriaId">ID de la categoría.</param>
         /// <returns>Lista de subcategorías.</returns>
         [HttpGet("todas/{grupoId}/{categoriaId}")]
-        public async Task<ActionResult<SubCategoriaDTO>> ObtenerTodas(int grupoId, int categoriaId)
+        [ProducesResponseType(typeof(IEnumerable<SubCategoriaDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<SubCategoriaDTO>>> ObtenerTodas(int grupoId, int categoriaId, CancellationToken cancellationToken)
         {
-            var resultado = await _servicioSubCategoria.ObtenerSubCategorias(grupoId, categoriaId, HttpContext.RequestAborted);
+            var resultado = await _servicioSubCategoria.ObtenerSubCategorias(grupoId, categoriaId, cancellationToken);
 
-            if (resultado.TieneErrores) return NotFound(
-                new ProblemDetails
+            if (resultado.TieneErrores)
+                return NotFound(new ProblemDetails
                 {
-                    Title = "Error obtener categorias",
-                    Detail = "Ah ocurrido un error al intentar obtener todas las categorias",
-                    Status = 404,
+                    Title = "Error obtener subcategorías",
+                    Detail = "Ah ocurrido un error al intentar obtener todas las subcategorías",
+                    Status = StatusCodes.Status404NotFound,
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = resultado.Errores
-                }
+                    Extensions = { ["errors"] = resultado.Errores }
                 });
 
-            return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
+            return Ok(resultado.Valor);
         }
 
         // Obtener un usuario por su ID
@@ -61,25 +61,25 @@ namespace FinHealthAPI.Controllers
         /// <param name="subCategoriaId">ID de la subcategoría.</param>
         /// <returns>Datos de la subcategoría.</returns>
         [HttpGet("obtener/{subCategoriaId}")]
-        public async Task<ActionResult<SubCategoriaDTO>> ObtenerPorId(int subCategoriaId)
+        [ProducesResponseType(typeof(SubCategoriaDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<SubCategoriaDTO>> ObtenerPorId(int subCategoriaId, CancellationToken cancellationToken)
         {
-            var resultado = await _servicioSubCategoria.ObtenerPorId(subCategoriaId, HttpContext.RequestAborted);
+            var resultado = await _servicioSubCategoria.ObtenerPorId(subCategoriaId, cancellationToken);
 
             if (resultado.TieneErrores)
             {
                 return NotFound(new ProblemDetails
                 {
-                    Title = "Error obtener categoria por id",
-                    Detail = "Ah ocurrido un error al intentar al obtener la categoria por id",
-                    Status = 404,
+                    Title = "Error obtener subcategoría por id",
+                    Detail = "Ah ocurrido un error al intentar obtener la subcategoría por id",
+                    Status = StatusCodes.Status404NotFound,
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = resultado.Errores
-                }
+                    Extensions = { ["errors"] = resultado.Errores }
                 });
             }
 
-            return Ok(resultado.Valor);  // Devuelve el usuario with estado 200 OK
+            return Ok(resultado.Valor);
         }
 
         // Crear un nuevo usuario
@@ -89,35 +89,42 @@ namespace FinHealthAPI.Controllers
         /// <param name="subCategoriaCreacionDTO">Datos de la subcategoría a crear.</param>
         /// <returns>Datos de la subcategoría creada.</returns>
         [HttpPost("crear")]
-        public async Task<ActionResult<SubCategoriaDTO>> Crear([FromBody] CrearSubCategoriaDTO subCategoriaCreacionDTO)
+        [ProducesResponseType(typeof(SubCategoriaDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<SubCategoriaDTO>> Crear([FromBody] CrearSubCategoriaDTO subCategoriaCreacionDTO, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new ProblemDetails
                 {
-                    Status = 400,
-                    Title = "Error de validacion",
-                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Error de validación",
+                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                       ["errors"] = ModelState.Keys
-                            .SelectMany(key => ModelState[key].Errors.Select(error => new
-                            {
-                                Code = key,
-                                Description = error.ErrorMessage
-                            }))
-                    }
+                    Extensions = { ["errors"] = ModelState.Keys
+                        .SelectMany(key => ModelState[key].Errors.Select(error => new
+                        {
+                            Code = key,
+                            Description = error.ErrorMessage
+                        })) }
                 });
             }
 
-            var resultadoCreacion = await _servicioSubCategoria.Crear(subCategoriaCreacionDTO, HttpContext.RequestAborted);
+            var resultadoCreacion = await _servicioSubCategoria.Crear(subCategoriaCreacionDTO, cancellationToken);
 
             if (resultadoCreacion.TieneErrores)
             {
-                return Conflict(resultadoCreacion.Errores);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al crear subcategoría",
+                    Detail = "Ah ocurrido un error al intentar crear la subcategoría",
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = { ["errors"] = resultadoCreacion.Errores }
+                });
             }
 
-            return Ok(resultadoCreacion.Valor);
+            return CreatedAtAction(nameof(Crear), new { id = resultadoCreacion.Valor.Id }, resultadoCreacion.Valor);
         }
 
         // Actualizar un usuario
@@ -128,32 +135,40 @@ namespace FinHealthAPI.Controllers
         /// <param name="subCategoriaActDTO">Datos actualizados de la subcategoría.</param>
         /// <returns>Datos de la subcategoría actualizada.</returns>
         [HttpPut("actualizar/{categoriaId}")]
-        public async Task<ActionResult<SubCategoriaDTO>> Actualizar(int categoriaId, [FromBody] ActualizarCategoriaDTO subCategoriaActDTO)
+        [ProducesResponseType(typeof(SubCategoriaDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<SubCategoriaDTO>> Actualizar(int categoriaId, [FromBody] ActualizarCategoriaDTO subCategoriaActDTO, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new ProblemDetails
                 {
-                    Status = 400,
-                    Title = "Error de validacion",
-                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Error de validación",
+                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                     ["errors"] = ModelState.Keys
-                            .SelectMany(key => ModelState[key].Errors.Select(error => new
-                            {
-                                Code = key,
-                                Description = error.ErrorMessage
-                            }))
-                    }
+                    Extensions = { ["errors"] = ModelState.Keys
+                        .SelectMany(key => ModelState[key].Errors.Select(error => new
+                        {
+                            Code = key,
+                            Description = error.ErrorMessage
+                        })) }
                 });
             }
 
-            var resultadoActualizacion = await _servicioSubCategoria.Actualizar(categoriaId, subCategoriaActDTO, HttpContext.RequestAborted);
+            var resultadoActualizacion = await _servicioSubCategoria.Actualizar(categoriaId, subCategoriaActDTO, cancellationToken);
 
             if (resultadoActualizacion.TieneErrores)
             {
-                return NotFound(resultadoActualizacion.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al actualizar subcategoría",
+                    Detail = "Ah ocurrido un error al intentar actualizar la subcategoría",
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = { ["errors"] = resultadoActualizacion.Errores }
+                });
             }
             return Ok(resultadoActualizacion.Valor);
         }
@@ -165,27 +180,25 @@ namespace FinHealthAPI.Controllers
         /// <param name="subCategoriaId">ID de la subcategoría a eliminar.</param>
         /// <returns>Respuesta vacía si la eliminación fue exitosa.</returns>
         [HttpDelete("eliminar/{subCategoriaId}")]
-        public async Task<ActionResult> Eliminar(int subCategoriaId)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> Eliminar(int subCategoriaId, CancellationToken cancellationToken)
         {
-            var resultado = await _servicioSubCategoria.Eliminar(subCategoriaId, HttpContext.RequestAborted);
+            var resultado = await _servicioSubCategoria.Eliminar(subCategoriaId, cancellationToken);
 
             if (resultado.TieneErrores)
             {
                 return NotFound(new ProblemDetails
                 {
-                    Title = "Error al eliminar categoria",
-                    Detail = "Ah ocurrido un error al intentar eliminar la categoria",
-                    Status = 404,
+                    Title = "Error al eliminar subcategoría",
+                    Detail = "Ah ocurrido un error al intentar eliminar la subcategoría",
+                    Status = StatusCodes.Status404NotFound,
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = resultado.Errores
-                    }
+                    Extensions = { ["errors"] = resultado.Errores }
                 });
             }
 
-            return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
+            return NoContent();
         }
-
-
     }
 }

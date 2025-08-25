@@ -35,11 +35,18 @@ namespace FinHealthAPI.Controllers
         /// <param name="ct">Token de cancelación.</param>
         /// <returns>Lista de tipos de documento.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAll(CancellationToken ct)
+        [ProducesResponseType(typeof(IEnumerable<TipoDeDocumentoDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IEnumerable<TipoDeDocumentoDTO>>> GetAll(CancellationToken ct)
         {
             var result = await _servicio.ObtenerTodosAsync(ct);
             if (result.TieneErrores)
-                return Problem(detail: result.ObtenerErroresComoString(), statusCode: 400);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al obtener tipos de documento",
+                    Detail = result.ObtenerErroresComoString(),
+                    Status = StatusCodes.Status400BadRequest
+                });
             return Ok(result.Valor);
         }
 
@@ -50,11 +57,18 @@ namespace FinHealthAPI.Controllers
         /// <param name="ct">Token de cancelación.</param>
         /// <returns>Tipo de documento solicitado.</returns>
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id, CancellationToken ct)
+        [ProducesResponseType(typeof(TipoDeDocumentoDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<TipoDeDocumentoDTO>> GetById(int id, CancellationToken ct)
         {
             var result = await _servicio.ObtenerPorIdAsync(id, ct);
             if (result.TieneErrores)
-                return NotFound(result.ObtenerErroresComoString());
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Tipo de documento no encontrado",
+                    Detail = result.ObtenerErroresComoString(),
+                    Status = StatusCodes.Status404NotFound
+                });
             return Ok(result.Valor);
         }
 
@@ -65,13 +79,25 @@ namespace FinHealthAPI.Controllers
         /// <param name="ct">Token de cancelación.</param>
         /// <returns>Resultado de la creación del tipo de documento.</returns>
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CrearTipoDeDocumentoDTO dto, CancellationToken ct)
+        [ProducesResponseType(typeof(TipoDeDocumentoDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<TipoDeDocumentoDTO>> Create([FromBody] CrearTipoDeDocumentoDTO dto, CancellationToken ct)
         {
             if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error de validación",
+                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
+                    Status = StatusCodes.Status400BadRequest
+                });
             var result = await _servicio.CrearAsync(dto, ct);
             if (result.TieneErrores)
-                return Problem(detail: result.ObtenerErroresComoString(), statusCode: 400);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al crear tipo de documento",
+                    Detail = result.ObtenerErroresComoString(),
+                    Status = StatusCodes.Status400BadRequest
+                });
             return CreatedAtAction(nameof(GetById), new { id = result.Valor.Id }, result.Valor);
         }
 
@@ -83,13 +109,25 @@ namespace FinHealthAPI.Controllers
         /// <param name="ct">Token de cancelación.</param>
         /// <returns>Resultado de la actualización del tipo de documento.</returns>
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] ActualizarTipoDeDocumentoDTO dto, CancellationToken ct)
+        [ProducesResponseType(typeof(TipoDeDocumentoDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<TipoDeDocumentoDTO>> Update(int id, [FromBody] ActualizarTipoDeDocumentoDTO dto, CancellationToken ct)
         {
             if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error de validación",
+                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
+                    Status = StatusCodes.Status400BadRequest
+                });
             var result = await _servicio.ActualizarAsync(id, dto, ct);
             if (result.TieneErrores)
-                return Problem(detail: result.ObtenerErroresComoString(), statusCode: 400);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al actualizar tipo de documento",
+                    Detail = result.ObtenerErroresComoString(),
+                    Status = StatusCodes.Status400BadRequest
+                });
             return Ok(result.Valor);
         }
 
@@ -100,11 +138,18 @@ namespace FinHealthAPI.Controllers
         /// <param name="ct">Token de cancelación.</param>
         /// <returns>Resultado de la eliminación del tipo de documento.</returns>
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> Delete(int id, CancellationToken ct)
         {
             var result = await _servicio.EliminarAsync(id, ct);
             if (result.TieneErrores)
-                return Problem(detail: result.ObtenerErroresComoString(), statusCode: 400);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al eliminar tipo de documento",
+                    Detail = result.ObtenerErroresComoString(),
+                    Status = StatusCodes.Status400BadRequest
+                });
             return NoContent();
         }
     }

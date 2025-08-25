@@ -26,7 +26,9 @@ namespace FinHealthAPI.Controllers
         /// <response code="200">Lista de subcategorías del grupo.</response>
         /// <response code="404">No se encontraron subcategorías para el grupo.</response>
         [HttpGet]
-        public async Task<IActionResult> GetSubCategorias(int grupoId, CancellationToken cancellationToken)
+        [ProducesResponseType(typeof(IEnumerable<GrupoSubCategoriaDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<GrupoSubCategoriaDTO>>> GetSubCategorias(int grupoId, CancellationToken cancellationToken)
         {
             var resultado = await _servicioGrupoSubCategoria.ObtenerPorGrupoIdAsync(grupoId, cancellationToken);
             if (resultado.TieneErrores)
@@ -34,7 +36,7 @@ namespace FinHealthAPI.Controllers
                 {
                     Title = "Error al obtener subcategorías del grupo",
                     Detail = resultado.ObtenerErroresComoString(),
-                    Status = 404,
+                    Status = StatusCodes.Status404NotFound,
                     Instance = HttpContext.Request.Path,
                     Extensions = { ["errors"] = resultado.Errores }
                 });
@@ -51,17 +53,25 @@ namespace FinHealthAPI.Controllers
         /// <response code="201">Subcategoría creada correctamente.</response>
         /// <response code="400">Datos inválidos o error de negocio.</response>
         [HttpPost]
-        public async Task<IActionResult> CrearSubCategoria(int grupoId, [FromBody] CrearGrupoSubCategoriaDTO dto, CancellationToken cancellationToken)
+        [ProducesResponseType(typeof(GrupoSubCategoriaDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<GrupoSubCategoriaDTO>> CrearSubCategoria(int grupoId, [FromBody] CrearGrupoSubCategoriaDTO dto, CancellationToken cancellationToken)
         {
             if (dto == null || dto.SubCategoriaId <= 0)
-                return BadRequest("Datos de subcategoría inválidos.");
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Datos de subcategoría inválidos",
+                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path
+                });
             var resultado = await _servicioGrupoSubCategoria.CrearAsync(grupoId, dto, cancellationToken);
             if (resultado.TieneErrores)
                 return BadRequest(new ProblemDetails
                 {
                     Title = "Error al crear subcategoría en grupo",
                     Detail = resultado.ObtenerErroresComoString(),
-                    Status = 400,
+                    Status = StatusCodes.Status400BadRequest,
                     Instance = HttpContext.Request.Path,
                     Extensions = { ["errors"] = resultado.Errores }
                 });
@@ -79,7 +89,9 @@ namespace FinHealthAPI.Controllers
         /// <response code="200">Subcategoría actualizada correctamente.</response>
         /// <response code="400">Error de validación o negocio.</response>
         [HttpPut("{id}")]
-        public async Task<IActionResult> ActualizarSubCategoria(int grupoId, int id, [FromBody] ActualizarGrupoSubCategoriaDTO dto, CancellationToken cancellationToken)
+        [ProducesResponseType(typeof(GrupoSubCategoriaDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<GrupoSubCategoriaDTO>> ActualizarSubCategoria(int grupoId, int id, [FromBody] ActualizarGrupoSubCategoriaDTO dto, CancellationToken cancellationToken)
         {
             var resultado = await _servicioGrupoSubCategoria.ActualizarAsync(grupoId, id, dto, cancellationToken);
             if (resultado.TieneErrores)
@@ -87,7 +99,7 @@ namespace FinHealthAPI.Controllers
                 {
                     Title = "Error al actualizar subcategoría en grupo",
                     Detail = resultado.ObtenerErroresComoString(),
-                    Status = 400,
+                    Status = StatusCodes.Status400BadRequest,
                     Instance = HttpContext.Request.Path,
                     Extensions = { ["errors"] = resultado.Errores }
                 });
@@ -104,7 +116,9 @@ namespace FinHealthAPI.Controllers
         /// <response code="204">Eliminación exitosa.</response>
         /// <response code="400">Error de negocio.</response>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> EliminarSubCategoria(int grupoId, int id, CancellationToken cancellationToken)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> EliminarSubCategoria(int grupoId, int id, CancellationToken cancellationToken)
         {
             var resultado = await _servicioGrupoSubCategoria.EliminarAsync(grupoId, id, cancellationToken);
             if (resultado.TieneErrores)
@@ -112,7 +126,7 @@ namespace FinHealthAPI.Controllers
                 {
                     Title = "Error al eliminar subcategoría en grupo",
                     Detail = resultado.ObtenerErroresComoString(),
-                    Status = 400,
+                    Status = StatusCodes.Status400BadRequest,
                     Instance = HttpContext.Request.Path,
                     Extensions = { ["errors"] = resultado.Errores }
                 });

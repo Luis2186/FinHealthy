@@ -29,30 +29,32 @@ namespace FinHealthAPI.Controllers
 
         // Obtener todos los usuarios con paginación
         [HttpGet("todas")]
-        public async Task<ActionResult<CategoriaDTO>> ObtenerTodas()
+        [ProducesResponseType(typeof(IEnumerable<CategoriaDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<CategoriaDTO>>> ObtenerTodas(CancellationToken cancellationToken)
         {
-            var resultado = await _servicioCategoria.ObtenerTodasLasCategorias(HttpContext.RequestAborted);
+            var resultado = await _servicioCategoria.ObtenerTodasLasCategorias(cancellationToken);
 
-            if (resultado.TieneErrores) return NotFound(
-                new ProblemDetails
+            if (resultado.TieneErrores)
+                return NotFound(new ProblemDetails
                 {
                     Title = "Error obtener categorias",
                     Detail = "Ah ocurrido un error al intentar obtener todas las categorias",
-                    Status = 404,
+                    Status = StatusCodes.Status404NotFound,
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = resultado.Errores
-                }
+                    Extensions = { ["errors"] = resultado.Errores }
                 });
 
-            return Ok(resultado.Valor);  // Devuelve los datos con estado HTTP 200 OK
+            return Ok(resultado.Valor);
         }
 
         // Obtener un usuario por su ID
         [HttpGet("obtener/{categoriaId}")]
-        public async Task<ActionResult<CategoriaDTO>> ObtenerPorId(int categoriaId)
+        [ProducesResponseType(typeof(CategoriaDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<CategoriaDTO>> ObtenerPorId(int categoriaId, CancellationToken cancellationToken)
         {
-            var resultado = await _servicioCategoria.ObtenerCategoriaPorId(categoriaId, HttpContext.RequestAborted);
+            var resultado = await _servicioCategoria.ObtenerCategoriaPorId(categoriaId, cancellationToken);
 
             if (resultado.TieneErrores)
             {
@@ -60,90 +62,102 @@ namespace FinHealthAPI.Controllers
                 {
                     Title = "Error obtener categoria por id",
                     Detail = "Ah ocurrido un error al intentar al obtener la categoria por id",
-                    Status = 404,
+                    Status = StatusCodes.Status404NotFound,
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = resultado.Errores
-                }
-                });  
+                    Extensions = { ["errors"] = resultado.Errores }
+                });
             }
 
-            return Ok(resultado.Valor);  // Devuelve el usuario con estado 200 OK
+            return Ok(resultado.Valor);
         }
 
         // Crear un nuevo usuario
         [HttpPost("crear")]
-        public async Task<ActionResult<CategoriaDTO>> Crear([FromBody] CrearCategoriaDTO categoriaCreacionDTO)
+        [ProducesResponseType(typeof(CategoriaDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<CategoriaDTO>> Crear([FromBody] CrearCategoriaDTO categoriaCreacionDTO, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new ProblemDetails
                 {
-                    Status = 400,  
-                    Title = "Error de validacion", 
-                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",  
-                    Instance = HttpContext.Request.Path, 
-                    Extensions = {
-                       ["errors"] = ModelState.Keys
-                            .SelectMany(key => ModelState[key].Errors.Select(error => new
-                            {
-                                Code = key, 
-                                Description = error.ErrorMessage
-                            }))
-                    }
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Error de validacion",
+                    Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
+                    Instance = HttpContext.Request.Path,
+                    Extensions = { ["errors"] = ModelState.Keys
+                        .SelectMany(key => ModelState[key].Errors.Select(error => new
+                        {
+                            Code = key,
+                            Description = error.ErrorMessage
+                        })) }
                 });
             }
 
-            var resultadoCreacion = await _servicioCategoria.CrearCategoria(categoriaCreacionDTO, HttpContext.RequestAborted);
+            var resultadoCreacion = await _servicioCategoria.CrearCategoria(categoriaCreacionDTO, cancellationToken);
 
-            // En caso de que el usuario ya exista o haya un error, devolver BadRequest
             if (resultadoCreacion.TieneErrores)
             {
-                return Conflict(resultadoCreacion.Errores);
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al crear categoria",
+                    Detail = "Ah ocurrido un error al intentar crear la categoria",
+                    Status = StatusCodes.Status400BadRequest,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = { ["errors"] = resultadoCreacion.Errores }
+                });
             }
 
-            return Ok(resultadoCreacion.Valor);
-            //return Ok(new { id = resultadoCreacion.Valor.Id });
+            return CreatedAtAction(nameof(Crear), new { id = resultadoCreacion.Valor.Id }, resultadoCreacion.Valor);
         }
 
         // Actualizar un usuario
         [HttpPut("actualizar/{categoriaId}")]
-        public async Task<ActionResult<CategoriaDTO>> Actualizar(int categoriaId, [FromBody] ActualizarCategoriaDTO categoriaActDTO)
+        [ProducesResponseType(typeof(CategoriaDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<CategoriaDTO>> Actualizar(int categoriaId, [FromBody] ActualizarCategoriaDTO categoriaActDTO, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new ProblemDetails
                 {
-                    Status = 400,
+                    Status = StatusCodes.Status400BadRequest,
                     Title = "Error de validacion",
                     Detail = "El cuerpo de la solicitud es invalido, contiene errores de validacion.",
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                     ["errors"] = ModelState.Keys
-                            .SelectMany(key => ModelState[key].Errors.Select(error => new
-                            {
-                                Code = key,
-                                Description = error.ErrorMessage
-                            }))
-                    }
+                    Extensions = { ["errors"] = ModelState.Keys
+                        .SelectMany(key => ModelState[key].Errors.Select(error => new
+                        {
+                            Code = key,
+                            Description = error.ErrorMessage
+                        })) }
                 });
             }
 
-            var resultadoActualizacion = await _servicioCategoria.ActualizarCategoria(categoriaId, categoriaActDTO, HttpContext.RequestAborted);
+            var resultadoActualizacion = await _servicioCategoria.ActualizarCategoria(categoriaId, categoriaActDTO, cancellationToken);
 
             if (resultadoActualizacion.TieneErrores)
             {
-                return NotFound(resultadoActualizacion.Errores);
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Error al actualizar categoria",
+                    Detail = "Ah ocurrido un error al intentar actualizar la categoria",
+                    Status = StatusCodes.Status404NotFound,
+                    Instance = HttpContext.Request.Path,
+                    Extensions = { ["errors"] = resultadoActualizacion.Errores }
+                });
             }
             return Ok(resultadoActualizacion.Valor);
-            //return Ok(resultadoActualizacion.Valor);  // Devuelve el usuario actualizado con estado 200 OK
         }
 
         // Eliminar un usuario
         [HttpDelete("eliminar/{categoriaId}")]
-        public async Task<ActionResult> Eliminar(int categoriaId)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> Eliminar(int categoriaId, CancellationToken cancellationToken)
         {
-            var resultado = await _servicioCategoria.EliminarCategoria(categoriaId, HttpContext.RequestAborted);
+            var resultado = await _servicioCategoria.EliminarCategoria(categoriaId, cancellationToken);
 
             if (resultado.TieneErrores)
             {
@@ -151,20 +165,19 @@ namespace FinHealthAPI.Controllers
                 {
                     Title = "Error al eliminar categoria",
                     Detail = "Ah ocurrido un error al intentar eliminar la categoria",
-                    Status = 404,
+                    Status = StatusCodes.Status404NotFound,
                     Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = resultado.Errores
-                    }
+                    Extensions = { ["errors"] = resultado.Errores }
                 });
             }
 
-            return NoContent();  // Devuelve 204 No Content si la eliminación fue exitosa
+            return NoContent();
         }
 
         // Obtener todos los usuarios con paginación
         [HttpGet("prueba")]
-        public async Task<ActionResult<Categoria>> ObtenerPrueba()
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        public async Task<ActionResult<string>> ObtenerPrueba()
         {
             var resultado = "Esto es una prueba de docker";
 
