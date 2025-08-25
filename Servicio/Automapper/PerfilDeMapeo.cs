@@ -158,18 +158,38 @@ namespace Servicio.Automapper
 
         public void MapearGastos()
         {
+            // Mapeo base para datos generales
             CreateMap<Gasto, GastoDTO>()
-                .ForMember(gasto => gasto.SubCategoria, opt => opt.MapFrom(src => src.SubCategoria))
-                .ForMember(gasto => gasto.Moneda, opt => opt.MapFrom(src => src.Moneda))
-                .ForMember(gasto => gasto.MetodoDePago, opt => opt.MapFrom(src => src.MetodoDePago))
-                .ForMember(gasto => gasto.Cuotas, opt => opt.MapFrom(src => src.Cuotas))
-                .ForMember(gasto => gasto.CompartidoCon, opt => opt.MapFrom(src => src.CompartidoCon))
-                .ForMember(gasto => gasto.GrupoId, opt => opt.MapFrom(src => src.GrupoId))
-                //.ForMember(gasto => gasto.Grupo, opt => opt.MapFrom(src => src.Grupo))
-                .ForMember(gasto => gasto.UsuarioCreadorId, opt => opt.MapFrom(src => src.UsuarioCreadorId))
-                //.ForMember(gasto => gasto.UsuarioCreador, opt => opt.MapFrom(src => src.UsuarioCreador))
-                .ReverseMap();
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.FechaDeGasto, opt => opt.MapFrom(src => src.FechaDeGasto))
+                .ForMember(dest => dest.Descripcion, opt => opt.MapFrom(src => src.Descripcion))
+                .ForMember(dest => dest.Monto, opt => opt.MapFrom(src => src.Monto))
+                .ForMember(dest => dest.Lugar, opt => opt.MapFrom(src => src.Lugar))
+                .ForMember(dest => dest.Etiqueta, opt => opt.MapFrom(src => src.Etiqueta))
+                .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.Estado))
+                .ForMember(dest => dest.GrupoId, opt => opt.MapFrom(src => src.GrupoId))
+                .ForMember(dest => dest.UsuarioCreadorId, opt => opt.MapFrom(src => src.UsuarioCreadorId));
 
+            // Mapeo para gasto fijo (hereda de GastoDTO, no requiere propiedades extra)
+            CreateMap<Gasto, GastoFijoDTO>().IncludeBase<Gasto, GastoDTO>();
+
+            // Mapeo para gasto compartido
+            CreateMap<Gasto, GastoCompartidoDTO>()
+                .IncludeBase<Gasto, GastoDTO>()
+                .ForMember(dest => dest.CompartidoCon, opt => opt.MapFrom(src => src.CompartidoCon));
+            CreateMap<GastoCompartido, GastoCompartidoDetalleDTO>()
+                .ForMember(dest => dest.UsuarioId, opt => opt.MapFrom(src => src.MiembroId))
+                .ForMember(dest => dest.NombreUsuario, opt => opt.MapFrom(src => src.Miembro != null ? src.Miembro.UserName : string.Empty))
+                .ForMember(dest => dest.MontoAsignado, opt => opt.MapFrom(src => src.MontoAsignado))
+                .ForMember(dest => dest.Porcentaje, opt => opt.MapFrom(src => src.Porcentaje));
+
+            // Mapeo para gasto en cuotas
+            CreateMap<Gasto, GastoCuotaDTO>()
+                .IncludeBase<Gasto, GastoDTO>()
+                .ForMember(dest => dest.CantidadDeCuotas, opt => opt.MapFrom(src => src.CantidadDeCuotas))
+                .ForMember(dest => dest.Cuotas, opt => opt.MapFrom(src => src.Cuotas));
+
+            CreateMap<Cuota, Cuota>().ReverseMap();
             CreateMap<CrearGastoDTO, Gasto>().ReverseMap();
         }
 

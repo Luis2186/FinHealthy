@@ -176,60 +176,69 @@ namespace Servicio.S_Gastos
         }
 
         public async Task<Resultado<GastosSegmentadosDTO>> ObtenerGastosSegmentados(
-            int grupoId, int? anio, int? mes, string usuarioActualId, CancellationToken cancellationToken)
+            int grupoId, int? anio, int? mes, string usuarioActualId, TipoGasto tipoGasto, CancellationToken cancellationToken)
         {
-            var resultadoGastos = await _repoGastos.ObtenerGastosPorGrupoYUsuarioIncluyendoTodo(grupoId, usuarioActualId, cancellationToken);
-            if (resultadoGastos.TieneErrores)
-                return Resultado<GastosSegmentadosDTO>.Failure(resultadoGastos.Errores);
-
-            var gastos = resultadoGastos.Valor
-                .Where(g => (!anio.HasValue || g.FechaDeGasto.Year == anio.Value) && (!mes.HasValue || g.FechaDeGasto.Month == mes.Value))
-                .ToList();
-
-            var gastosFijos = gastos
-                .Where(g => !g.EsCompartido && !g.EsFinanciado)
-                .Select(_mapper.Map<GastoDTO>)
-                .ToList();
-
-            var gastosCompartidos = gastos
-                .Where(g => g.EsCompartido)
-                .Select(g => new GastoCompartidoDTO
-                {
-                    Id = g.Id,
-                    FechaDeGasto = g.FechaDeGasto,
-                    Descripcion = g.Descripcion,
-                    Monto = g.Monto,
-                    CompartidoCon = g.CompartidoCon.Select(c => new GastoCompartidoDetalleDTO
-                    {
-                        UsuarioId = c.MiembroId,
-                        NombreUsuario = c.Miembro?.UserName ?? string.Empty,
-                        MontoAsignado = c.MontoAsignado,
-                        Porcentaje = c.Porcentaje
-                    }).ToList()
-                })
-                .ToList();
-
-            var gastosEnCuotas = gastos
-                .Where(g => g.EsFinanciado && g.CantidadDeCuotas > 1)
-                .Select(g => new GastoCuotaDTO
-                {
-                    Id = g.Id,
-                    FechaDeGasto = g.FechaDeGasto,
-                    Descripcion = g.Descripcion,
-                    Monto = g.Monto,
-                    CantidadDeCuotas = g.CantidadDeCuotas,
-                    Cuotas = g.Cuotas
-                })
-                .ToList();
-
             var resultado = new GastosSegmentadosDTO
             {
-                GastosFijos = gastosFijos,
-                GastosCompartidos = gastosCompartidos,
-                GastosEnCuotas = gastosEnCuotas
+                GastosFijos = new List<GastoFijoDTO>(),
+                GastosCompartidos = new List<GastoCompartidoDTO>(),
+                GastosEnCuotas = new List<GastoCuotaDTO>()
             };
+            List<Error> errores = new();
+
+            switch (tipoGasto)
+            {
+                case TipoGasto.Fijo:
+                    resultado.GastosFijos = await ObtenerGastosFijos(grupoId, anio, mes, usuarioActualId, cancellationToken);
+                    break;
+                case TipoGasto.Compartido:
+                    resultado.GastosCompartidos = await ObtenerGastosCompartidos(grupoId, anio, mes, usuarioActualId, cancellationToken);
+                    break;
+                case TipoGasto.Cuota:
+                    resultado.GastosEnCuotas = await ObtenerGastosEnCuotas(grupoId, anio, mes, usuarioActualId, cancellationToken);
+                    break;
+                case TipoGasto.Todos:
+                default:
+                    resultado.GastosFijos = await ObtenerGastosFijos(grupoId, anio, mes, usuarioActualId, cancellationToken);
+                    resultado.GastosCompartidos = await ObtenerGastosCompartidos(grupoId, anio, mes, usuarioActualId, cancellationToken);
+                    resultado.GastosEnCuotas = await ObtenerGastosEnCuotas(grupoId, anio, mes, usuarioActualId, cancellationToken);
+                    break;
+            }
 
             return resultado;
+        }
+
+        private async Task<List<GastoFijoDTO>> ObtenerGastosFijos(int grupoId, int? anio, int? mes, string usuarioActualId, CancellationToken cancellationToken)
+        {
+            var gastosFijosResult = await _repoGastos.ObtenerGastosFijosPorGrupoYUsuarioIncluyendoTodo(grupoId, usuarioActualId, cancellationToken);
+            if (gastosFijosResult.TieneErrores)
+                return new List<GastoFijoDTO>();
+            var gastosFiltrados = gastosFijosResult.Valor
+                .Where(g => (!anio.HasValue || g.FechaDeGasto.Year == anio.Value) && (!mes.HasValue || g.FechaDeGasto.Month == mes.Value))
+                .ToList();
+            return _mapper.Map<List<GastoFijoDTO>>(gastosFiltrados);
+        }
+
+        private async Task<List<GastoCompartidoDTO>> ObtenerGastosCompartidos(int grupoId, int? anio, int? mes, string usuarioActualId, CancellationToken cancellationToken)
+        {
+            var gastosCompartidosResult = await _repoGastos.ObtenerGastosCompartidosPorGrupoYUsuarioIncluyendoTodo(grupoId, usuarioActualId, cancellationToken);
+            if (gastosCompartidosResult.TieneErrores)
+                return new List<GastoCompartidoDTO>();
+            var gastosFiltrados = gastosCompartidosResult.Valor
+                .Where(g => (!anio.HasValue || g.FechaDeGasto.Year == anio.Value) && (!mes.HasValue || g.FechaDeGasto.Month == mes.Value))
+                .ToList();
+            return _mapper.Map<List<GastoCompartidoDTO>>(gastosFiltrados);
+        }
+
+        private async Task<List<GastoCuotaDTO>> ObtenerGastosEnCuotas(int grupoId, int? anio, int? mes, string usuarioActualId, CancellationToken cancellationToken)
+        {
+            var gastosEnCuotasResult = await _repoGastos.ObtenerGastosEnCuotasPorGrupoYUsuarioIncluyendoTodo(grupoId, usuarioActualId, cancellationToken);
+            if (gastosEnCuotasResult.TieneErrores)
+                return new List<GastoCuotaDTO>();
+            var gastosFiltrados = gastosEnCuotasResult.Valor
+                .Where(g => (!anio.HasValue || g.FechaDeGasto.Year == anio.Value) && (!mes.HasValue || g.FechaDeGasto.Month == mes.Value))
+                .ToList();
+            return _mapper.Map<List<GastoCuotaDTO>>(gastosFiltrados);
         }
     }
 }
