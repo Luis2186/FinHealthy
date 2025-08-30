@@ -2,7 +2,7 @@
 using Dominio;
 using Dominio.Gastos;
 using Dominio.Usuarios;
-using Servicio.DTOS.GastosDTO; // CrearGastoDTO
+using Servicio.DTOS.GastosDTO; // CrearGastoBaseDTO
 using Servicio.DTOS.GruposDTO; // GrupoDTO
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -31,70 +31,6 @@ namespace FinHealthAPI.Controllers
         {
             _servicioGasto = servicioGasto;
             _mapper = mapper;
-        }
-
-
-        // Crear un nuevo usuario
-        /// <summary>
-        /// Crea un nuevo gasto.
-        /// </summary>
-        /// <param name="gastoCreacionDTO">Datos del gasto a crear.</param>
-        /// <param name="cancellationToken">Token de cancelación.</param>
-        /// <returns>Un objeto GrupoDTO con los detalles del grupo creado.</returns>
-        /// <response code="200">Devuelve el ID del gasto creado.</response>
-        /// <response code="400">Si hay errores de validación.</response>
-        /// <response code="404">Si ya existe un gasto con ese ID.</response>
-        [HttpPost("crear")]
-        [ProducesResponseType(typeof(GastoDTO), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<GastoDTO>> CrearGasto([FromBody] CrearGastoDTO gastoCreacionDTO, CancellationToken cancellationToken)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Status = StatusCodes.Status400BadRequest,
-                    Title = "Error de validación",
-                    Detail = "El cuerpo de la solicitud es inválido, contiene errores de validación.",
-                    Instance = HttpContext.Request.Path,
-                    Extensions = {
-                        ["errors"] = ModelState.Keys
-                            .SelectMany(key => ModelState[key].Errors.Select(error => new
-                            {
-                                Code = key,
-                                Description = error.ErrorMessage
-                            }))
-                    }
-                });
-            }
-
-            var usuarioActualId = User.GetUserId();
-            if (string.IsNullOrEmpty(usuarioActualId))
-                return Unauthorized(new ProblemDetails
-                {
-                    Title = "No autorizado",
-                    Detail = "No se pudo identificar el usuario actual.",
-                    Status = StatusCodes.Status401Unauthorized,
-                    Instance = HttpContext.Request.Path
-                });
-
-            var resultado = await _servicioGasto.CrearGasto(gastoCreacionDTO, usuarioActualId, cancellationToken);
-
-            if (!resultado.EsCorrecto)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Error al ingresar el gasto",
-                    Detail = "Ha ocurrido un error al intentar crear el gasto.",
-                    Status = StatusCodes.Status400BadRequest,
-                    Instance = HttpContext.Request.Path,
-                    Extensions = { ["errors"] = resultado.Errores }
-                });
-            }
-
-            // Devuelve 201 Created con la ubicación del recurso creado
-            return CreatedAtAction(nameof(CrearGasto), new { id = resultado.Valor.Id }, resultado.Valor);
         }
 
         /// <summary>
@@ -154,6 +90,129 @@ namespace FinHealthAPI.Controllers
             }
 
             return Ok(resultado.Valor);
+        }
+
+        /// <summary>
+        /// Crea un nuevo gasto fijo.
+        /// </summary>
+        /// <param name="dto">Datos del gasto fijo a crear.</param>
+        /// <param name="cancellationToken">Token de cancelación.</param>
+        /// <returns>Un objeto GastoDTO con los detalles del gasto fijo creado.</returns>
+        /// <response code="201">Devuelve el gasto fijo creado.</response>
+        /// <response code="400">Si hay errores de validación.</response>
+        /// <response code="401">Si no se identifica el usuario.</response>
+        [HttpPost("crear-fijo")]
+        [ProducesResponseType(typeof(GastoDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<GastoDTO>> CrearGastoFijo([FromBody] CrearGastoFijoDTO dto, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error de validación",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "Errores de validación.",
+                    Extensions = { ["errors"] = ModelState }
+                });
+
+            var usuarioActualId = User.GetUserId();
+            if (string.IsNullOrEmpty(usuarioActualId))
+                return Unauthorized(new ProblemDetails
+                {
+                    Title = "No autorizado",
+                    Status = StatusCodes.Status401Unauthorized
+                });
+
+            var resultado = await _servicioGasto.CrearGasto(dto, usuarioActualId, cancellationToken);
+
+            if (!resultado.EsCorrecto)
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al ingresar el gasto",
+                    Status = StatusCodes.Status400BadRequest,
+                    Extensions = { ["errors"] = resultado.Errores }
+                });
+
+            return CreatedAtAction(nameof(CrearGastoFijo), new { id = resultado.Valor.Id }, resultado.Valor);
+        }
+
+        /// <summary>
+        /// Crea un nuevo gasto mensual.
+        /// </summary>
+        /// <param name="dto">Datos del gasto mensual a crear.</param>
+        /// <param name="cancellationToken">Token de cancelación.</param>
+        /// <returns>Un objeto GastoDTO con los detalles del gasto mensual creado.</returns>
+        /// <response code="201">Devuelve el gasto mensual creado.</response>
+        /// <response code="400">Si hay errores de validación.</response>
+        /// <response code="401">Si no se identifica el usuario.</response>
+        [HttpPost("crear-mensual")]
+        [ProducesResponseType(typeof(GastoDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<GastoDTO>> CrearGastoMensual([FromBody] CrearGastoMensualDTO dto, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ProblemDetails { Title = "Error de validación", Status = StatusCodes.Status400BadRequest, Detail = "Errores de validación.", Extensions = { ["errors"] = ModelState } });
+            var usuarioActualId = User.GetUserId();
+            if (string.IsNullOrEmpty(usuarioActualId))
+                return Unauthorized(new ProblemDetails { Title = "No autorizado", Status = StatusCodes.Status401Unauthorized });
+            var resultado = await _servicioGasto.CrearGasto(dto, usuarioActualId, cancellationToken);
+            if (!resultado.EsCorrecto)
+                return BadRequest(new ProblemDetails { Title = "Error al ingresar el gasto", Status = StatusCodes.Status400BadRequest, Extensions = { ["errors"] = resultado.Errores } });
+            return CreatedAtAction(nameof(CrearGastoMensual), new { id = resultado.Valor.Id }, resultado.Valor);
+        }
+
+        /// <summary>
+        /// Crea un nuevo gasto compartido.
+        /// </summary>
+        /// <param name="dto">Datos del gasto compartido a crear.</param>
+        /// <param name="cancellationToken">Token de cancelación.</param>
+        /// <returns>Un objeto GastoDTO con los detalles del gasto compartido creado.</returns>
+        /// <response code="201">Devuelve el gasto compartido creado.</response>
+        /// <response code="400">Si hay errores de validación.</response>
+        /// <response code="401">Si no se identifica el usuario.</response>
+        [HttpPost("crear-compartido")]
+        [ProducesResponseType(typeof(GastoDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<GastoDTO>> CrearGastoCompartido([FromBody] CrearGastoCompartidoDTO dto, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ProblemDetails { Title = "Error de validación", Status = StatusCodes.Status400BadRequest, Detail = "Errores de validación.", Extensions = { ["errors"] = ModelState } });
+            var usuarioActualId = User.GetUserId();
+            if (string.IsNullOrEmpty(usuarioActualId))
+                return Unauthorized(new ProblemDetails { Title = "No autorizado", Status = StatusCodes.Status401Unauthorized });
+            var resultado = await _servicioGasto.CrearGasto(dto, usuarioActualId, cancellationToken);
+            if (!resultado.EsCorrecto)
+                return BadRequest(new ProblemDetails { Title = "Error al ingresar el gasto", Status = StatusCodes.Status400BadRequest, Extensions = { ["errors"] = resultado.Errores } });
+            return CreatedAtAction(nameof(CrearGastoCompartido), new { id = resultado.Valor.Id }, resultado.Valor);
+        }
+
+        /// <summary>
+        /// Crea un nuevo gasto en cuotas.
+        /// </summary>
+        /// <param name="dto">Datos del gasto en cuotas a crear.</param>
+        /// <param name="cancellationToken">Token de cancelación.</param>
+        /// <returns>Un objeto GastoDTO con los detalles del gasto en cuotas creado.</returns>
+        /// <response code="201">Devuelve el gasto en cuotas creado.</response>
+        /// <response code="400">Si hay errores de validación.</response>
+        /// <response code="401">Si no se identifica el usuario.</response>
+        [HttpPost("crear-cuotas")]
+        [ProducesResponseType(typeof(GastoDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<GastoDTO>> CrearGastoEnCuotas([FromBody] CrearGastoEnCuotasDTO dto, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new ProblemDetails { Title = "Error de validación", Status = StatusCodes.Status400BadRequest, Detail = "Errores de validación.", Extensions = { ["errors"] = ModelState } });
+            var usuarioActualId = User.GetUserId();
+            if (string.IsNullOrEmpty(usuarioActualId))
+                return Unauthorized(new ProblemDetails { Title = "No autorizado", Status = StatusCodes.Status401Unauthorized });
+            var resultado = await _servicioGasto.CrearGasto(dto, usuarioActualId, cancellationToken);
+            if (!resultado.EsCorrecto)
+                return BadRequest(new ProblemDetails { Title = "Error al ingresar el gasto", Status = StatusCodes.Status400BadRequest, Extensions = { ["errors"] = resultado.Errores } });
+            return CreatedAtAction(nameof(CrearGastoEnCuotas), new { id = resultado.Valor.Id }, resultado.Valor);
         }
     }
 }
