@@ -132,5 +132,63 @@ namespace Repositorio.Repositorios.R_Gastos
                 return Resultado<List<Gasto>>.Failure(new Dominio.Abstracciones.Error("RepositorioGasto.ObtenerGastosPorGrupoYUsuarioIncluyendoTodo", ex.Message));
             }
         }
+
+        public async Task<Resultado<List<Gasto>>> ObtenerGastosPorGrupoYUsuarioPorTipo(int grupoId, string usuarioId, TipoGasto tipoGasto, int? anio, int? mes, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var query = _context.Gastos.AsQueryable();
+                query = query.Where(g => g.GrupoId == grupoId && g.UsuarioCreadorId == usuarioId);
+                if (anio.HasValue)
+                    query = query.Where(g => g.FechaDeGasto.Year == anio.Value);
+                if (mes.HasValue)
+                    query = query.Where(g => g.FechaDeGasto.Month == mes.Value);
+                switch (tipoGasto)
+                {
+                    case TipoGasto.Fijo:
+                        query = query.Where(g => g is GastoFijo);
+                        break;
+                    case TipoGasto.Mensual:
+                        query = query.Where(g => g is GastoMensual);
+                        break;
+                    case TipoGasto.Compartido:
+                        query = query.Where(g => g is GastoCompartidoPrincipal);
+                        break;
+                    case TipoGasto.Cuota:
+                        query = query.Where(g => g is GastoEnCuotas);
+                        break;
+                    case TipoGasto.Todos:
+                    default:
+                        // No filtrar por tipo
+                        break;
+                }
+                var gastos = await query.ToListAsync(cancellationToken);
+                foreach (var gasto in gastos)
+                {
+                    if (gasto is GastoCompartidoPrincipal compartido)
+                    {
+                        _context.Entry(compartido).Collection(x => x.CompartidoCon).Load();
+                        foreach (var detalle in compartido.CompartidoCon)
+                        {
+                            _context.Entry(detalle).Reference(x => x.Miembro).Load();
+                        }
+                    }
+                    if (gasto is GastoEnCuotas enCuotas)
+                    {
+                        _context.Entry(enCuotas).Collection(x => x.Cuotas).Load();
+                    }
+                    _context.Entry(gasto).Reference(x => x.SubCategoria).Load();
+                    _context.Entry(gasto).Reference(x => x.MetodoDePago).Load();
+                    _context.Entry(gasto).Reference(x => x.Moneda).Load();
+                    _context.Entry(gasto).Reference(x => x.Grupo).Load();
+                    _context.Entry(gasto).Reference(x => x.UsuarioCreador).Load();
+                }
+                return Resultado<List<Gasto>>.Success(gastos);
+            }
+            catch (Exception ex)
+            {
+                return Resultado<List<Gasto>>.Failure(new Dominio.Abstracciones.Error("RepositorioGasto.ObtenerGastosPorGrupoYUsuarioPorTipo", ex.Message));
+            }
+        }
     }
 }

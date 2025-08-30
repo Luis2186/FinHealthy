@@ -256,7 +256,7 @@ namespace Servicio.S_Gastos
                     break;
             }
 
-            return resultado;
+            return Resultado<GastosSegmentadosDTO>.Success(resultado);
         }
 
         private async Task<List<GastoFijoDTO>> ObtenerGastosFijos(int grupoId, int? anio, int? mes, string usuarioActualId, CancellationToken cancellationToken)
@@ -266,7 +266,14 @@ namespace Servicio.S_Gastos
                 return new List<GastoFijoDTO>();
             var gastosFiltrados = gastosFijosResult.Valor
                 .OfType<GastoFijo>()
-                .Where(g => (!anio.HasValue || g.FechaDeGasto.Year == anio.Value) && (!mes.HasValue || g.FechaDeGasto.Month == mes.Value))
+                .Where(g =>
+                    (!anio.HasValue || !mes.HasValue) ||
+                    (
+                        g.FechaInicio.HasValue && g.FechaFin.HasValue &&
+                        new DateTime(anio.Value, mes.Value, 1) >= g.FechaInicio.Value.Date &&
+                        new DateTime(anio.Value, mes.Value, 1) <= g.FechaFin.Value.Date
+                    )
+                )
                 .ToList();
             return _mapper.Map<List<GastoFijoDTO>>(gastosFiltrados);
         }
