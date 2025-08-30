@@ -17,7 +17,13 @@ public class GastoDTO
 
 public class GastoFijoDTO : GastoDTO
 {
-    // Propiedades específicas de gasto fijo (si las hay)
+    public bool EsFijo { get; set; }
+    // Ejemplo de propiedad específica: periodicidad (mensual, anual, etc.)
+    public string? Periodicidad { get; set; }
+    // Fecha de inicio del gasto fijo
+    public DateTime? FechaInicio { get; set; }
+    // Fecha de fin del gasto fijo (si aplica)
+    public DateTime? FechaFin { get; set; }
 }
 
 public class GastoCompartidoDTO : GastoDTO
@@ -42,6 +48,7 @@ public class GastoCuotaDTO : GastoDTO
 public class GastosSegmentadosDTO
 {
     public List<GastoFijoDTO> GastosFijos { get; set; } = new();
+    public List<GastoDTO> GastosMensuales { get; set; } = new();
     public List<GastoCompartidoDTO> GastosCompartidos { get; set; } = new();
     public List<GastoCuotaDTO> GastosEnCuotas { get; set; } = new();
 }

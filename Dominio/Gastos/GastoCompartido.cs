@@ -1,5 +1,4 @@
-﻿using Dominio.Gastos.IGastos;
-using Dominio.Usuarios;
+﻿using Dominio.Usuarios;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,10 +13,13 @@ namespace Dominio.Gastos
     {
         public int GastoId { get; set; }
         [JsonIgnore]
-        public  Gasto Gasto { get; set; }
+        public Gasto Gasto { get; set; }
+        public int GastoPrincipalId { get; set; } // FK explícita para navegación
+        [JsonIgnore]
+        public GastoCompartidoPrincipal GastoPrincipal { get; set; }
         public string MiembroId { get; set; }
         [JsonIgnore]
-        public  Usuario Miembro { get; set; }
+        public Usuario Miembro { get; set; }
         public decimal Porcentaje { get; set; }
         public decimal MontoAsignado { get; set; }
         

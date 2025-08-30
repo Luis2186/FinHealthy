@@ -13,8 +13,8 @@ namespace Repositorio.Repositorios.R_Gastos
 {
     public interface IRepositorioGasto : IRepositorioCRUD<Gasto>
     {
-        Task<Resultado<List<Gasto>>> ObtenerGastosFijosPorGrupoYUsuarioIncluyendoTodo(int grupoId, string usuarioId, CancellationToken cancellationToken);
-        Task<Resultado<List<Gasto>>> ObtenerGastosCompartidosPorGrupoYUsuarioIncluyendoTodo(int grupoId, string usuarioId, CancellationToken cancellationToken);
-        Task<Resultado<List<Gasto>>> ObtenerGastosEnCuotasPorGrupoYUsuarioIncluyendoTodo(int grupoId, string usuarioId, CancellationToken cancellationToken);
+        Task<Resultado<List<Gasto>>> ObtenerGastosPorGrupoYUsuario(int grupoId, string usuarioId, CancellationToken cancellationToken, bool esFijo = false);
+        Task<Resultado<List<Gasto>>> ObtenerGastosCompartidosPorGrupoYUsuario(int grupoId, string usuarioId, CancellationToken cancellationToken, bool esFijo = false);
+        Task<Resultado<List<Gasto>>> ObtenerGastosEnCuotasPorGrupoYUsuario(int grupoId, string usuarioId, CancellationToken cancellationToken);
     }
 }

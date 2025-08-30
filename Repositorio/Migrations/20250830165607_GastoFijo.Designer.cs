@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repositorio;
 
@@ -11,9 +12,11 @@ using Repositorio;
 namespace Repositorio.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250830165607_GastoFijo")]
+    partial class GastoFijo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,12 +155,24 @@ namespace Repositorio.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CantidadDeCuotas")
+                        .HasColumnType("int");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("DocumentoAsociadoId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("EsCompartido")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EsFijo")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EsFinanciado")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("Estado")
                         .HasColumnType("bit");
@@ -189,11 +204,6 @@ namespace Repositorio.Migrations
                     b.Property<int>("SubCategoriaId")
                         .HasColumnType("int");
 
-                    b.Property<string>("TipoGasto")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("nvarchar(13)");
-
                     b.Property<string>("UsuarioCreadorId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -213,22 +223,15 @@ namespace Repositorio.Migrations
                     b.HasIndex("UsuarioCreadorId");
 
                     b.ToTable("Gastos");
-
-                    b.HasDiscriminator<string>("TipoGasto").HasValue("Gasto");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Dominio.Gastos.GastoCompartido", b =>
                 {
-                    b.Property<int>("GastoPrincipalId")
+                    b.Property<int>("GastoId")
                         .HasColumnType("int");
 
                     b.Property<string>("MiembroId")
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("GastoId")
-                        .HasColumnType("int");
 
                     b.Property<decimal>("MontoAsignado")
                         .HasColumnType("decimal(18,2)");
@@ -236,11 +239,7 @@ namespace Repositorio.Migrations
                     b.Property<decimal>("Porcentaje")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("GastoPrincipalId", "MiembroId");
-
-                    b.HasIndex("GastoId");
-
-                    b.HasIndex("GastoPrincipalId");
+                    b.HasKey("GastoId", "MiembroId");
 
                     b.HasIndex("MiembroId");
 
@@ -785,49 +784,6 @@ namespace Repositorio.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Dominio.Gastos.GastoCompartidoPrincipal", b =>
-                {
-                    b.HasBaseType("Dominio.Gastos.Gasto");
-
-                    b.HasDiscriminator().HasValue("Compartido");
-                });
-
-            modelBuilder.Entity("Dominio.Gastos.GastoEnCuotas", b =>
-                {
-                    b.HasBaseType("Dominio.Gastos.Gasto");
-
-                    b.Property<int>("CantidadDeCuotas")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("EsFinanciado")
-                        .HasColumnType("bit");
-
-                    b.HasDiscriminator().HasValue("EnCuotas");
-                });
-
-            modelBuilder.Entity("Dominio.Gastos.GastoFijo", b =>
-                {
-                    b.HasBaseType("Dominio.Gastos.Gasto");
-
-                    b.Property<DateTime?>("FechaFin")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaInicio")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Periodicidad")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasDiscriminator().HasValue("Fijo");
-                });
-
-            modelBuilder.Entity("Dominio.Gastos.GastoMensual", b =>
-                {
-                    b.HasBaseType("Dominio.Gastos.Gasto");
-
-                    b.HasDiscriminator().HasValue("Mensual");
-                });
-
             modelBuilder.Entity("Dominio.Documentos.Documento", b =>
                 {
                     b.HasOne("Dominio.Documentos.TipoDeDocumento", "TipoDeDocumento")
@@ -841,7 +797,7 @@ namespace Repositorio.Migrations
 
             modelBuilder.Entity("Dominio.Gastos.Cuota", b =>
                 {
-                    b.HasOne("Dominio.Gastos.GastoEnCuotas", "Gasto")
+                    b.HasOne("Dominio.Gastos.Gasto", "Gasto")
                         .WithMany("Cuotas")
                         .HasForeignKey("GastoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -902,26 +858,18 @@ namespace Repositorio.Migrations
             modelBuilder.Entity("Dominio.Gastos.GastoCompartido", b =>
                 {
                     b.HasOne("Dominio.Gastos.Gasto", "Gasto")
-                        .WithMany()
-                        .HasForeignKey("GastoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Dominio.Gastos.GastoCompartidoPrincipal", "GastoPrincipal")
                         .WithMany("CompartidoCon")
-                        .HasForeignKey("GastoPrincipalId")
+                        .HasForeignKey("GastoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Dominio.Usuarios.Usuario", "Miembro")
                         .WithMany()
                         .HasForeignKey("MiembroId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Gasto");
-
-                    b.Navigation("GastoPrincipal");
 
                     b.Navigation("Miembro");
                 });
@@ -1084,6 +1032,13 @@ namespace Repositorio.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Dominio.Gastos.Gasto", b =>
+                {
+                    b.Navigation("CompartidoCon");
+
+                    b.Navigation("Cuotas");
+                });
+
             modelBuilder.Entity("Dominio.Grupos.Grupo", b =>
                 {
                     b.Navigation("GrupoSubCategorias");
@@ -1092,16 +1047,6 @@ namespace Repositorio.Migrations
             modelBuilder.Entity("Dominio.Usuarios.Usuario", b =>
                 {
                     b.Navigation("Notificaciones");
-                });
-
-            modelBuilder.Entity("Dominio.Gastos.GastoCompartidoPrincipal", b =>
-                {
-                    b.Navigation("CompartidoCon");
-                });
-
-            modelBuilder.Entity("Dominio.Gastos.GastoEnCuotas", b =>
-                {
-                    b.Navigation("Cuotas");
                 });
 #pragma warning restore 612, 618
         }

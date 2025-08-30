@@ -170,11 +170,20 @@ namespace Servicio.Automapper
                 .ForMember(dest => dest.GrupoId, opt => opt.MapFrom(src => src.GrupoId))
                 .ForMember(dest => dest.UsuarioCreadorId, opt => opt.MapFrom(src => src.UsuarioCreadorId));
 
-            // Mapeo para gasto fijo (hereda de GastoDTO, no requiere propiedades extra)
-            CreateMap<Gasto, GastoFijoDTO>().IncludeBase<Gasto, GastoDTO>();
+            // Mapeo para gasto fijo
+            CreateMap<GastoFijo, GastoFijoDTO>()
+                .IncludeBase<Gasto, GastoDTO>()
+                .ForMember(dest => dest.EsFijo, opt => opt.MapFrom(src => true))
+                .ForMember(dest => dest.Periodicidad, opt => opt.MapFrom(src => src.Periodicidad))
+                .ForMember(dest => dest.FechaInicio, opt => opt.MapFrom(src => src.FechaInicio))
+                .ForMember(dest => dest.FechaFin, opt => opt.MapFrom(src => src.FechaFin));
 
-            // Mapeo para gasto compartido
-            CreateMap<Gasto, GastoCompartidoDTO>()
+            // Mapeo para gasto mensual
+            CreateMap<GastoMensual, GastoDTO>()
+                .IncludeBase<Gasto, GastoDTO>();
+
+            // Mapeo para gasto compartido principal
+            CreateMap<GastoCompartidoPrincipal, GastoCompartidoDTO>()
                 .IncludeBase<Gasto, GastoDTO>()
                 .ForMember(dest => dest.CompartidoCon, opt => opt.MapFrom(src => src.CompartidoCon));
             CreateMap<GastoCompartido, GastoCompartidoDetalleDTO>()
@@ -184,7 +193,7 @@ namespace Servicio.Automapper
                 .ForMember(dest => dest.Porcentaje, opt => opt.MapFrom(src => src.Porcentaje));
 
             // Mapeo para gasto en cuotas
-            CreateMap<Gasto, GastoCuotaDTO>()
+            CreateMap<GastoEnCuotas, GastoCuotaDTO>()
                 .IncludeBase<Gasto, GastoDTO>()
                 .ForMember(dest => dest.CantidadDeCuotas, opt => opt.MapFrom(src => src.CantidadDeCuotas))
                 .ForMember(dest => dest.Cuotas, opt => opt.MapFrom(src => src.Cuotas));

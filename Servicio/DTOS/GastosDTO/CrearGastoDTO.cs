@@ -21,9 +21,9 @@ namespace Servicio.DTOS.GastosDTO
         [Required(ErrorMessage = "El monto del gasto es obligatorio")]
         public decimal Monto { get; set; }
         public bool EsFinanciado { get; set; }
-        public int CantidadDeCuotas { get; set; }
         public bool EsCompartido { get; set; }
-
+        public bool EsFijo { get; set; } // Indica si el gasto es fijo
+        public int CantidadDeCuotas { get; set; }
         public List<string> UsuariosCompartidosIds { get; set; }
         [Required(ErrorMessage = "La categoria es obligatoria")]
         public int SubCategoriaId { get; set; }

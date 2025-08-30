@@ -35,6 +35,28 @@ namespace Repositorio
             ConfigurarBuilderTipoDeDocumento(builder);
             ConfigurarBuilderGastoCompartido(builder);
             ConfigurarBuilderGasto(builder);
+
+            // Herencia TPH para Gasto y subclases
+            builder.Entity<Gasto>()
+                .HasDiscriminator<string>("TipoGasto")
+                .HasValue<GastoFijo>("Fijo")
+                .HasValue<GastoMensual>("Mensual")
+                .HasValue<GastoCompartidoPrincipal>("Compartido")
+                .HasValue<GastoEnCuotas>("EnCuotas");
+
+            // Relación GastoCompartidoPrincipal -> GastoCompartido
+            builder.Entity<GastoCompartidoPrincipal>()
+                .HasMany(g => g.CompartidoCon)
+                .WithOne(gc => gc.GastoPrincipal)
+                .HasForeignKey(gc => gc.GastoPrincipalId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación GastoEnCuotas -> Cuota
+            builder.Entity<GastoEnCuotas>()
+                .HasMany(g => g.Cuotas)
+                .WithOne(c => c.Gasto)
+                .HasForeignKey(c => c.GastoId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         protected private void ConfigurarBuilderNotificacion(ModelBuilder builder)
@@ -200,8 +222,20 @@ namespace Repositorio
         }
         protected private void ConfigurarBuilderGastoCompartido(ModelBuilder builder)
         {
-            builder.Entity<GastoCompartido>()
-                   .HasKey(gc => new { gc.GastoId, gc.MiembroId });
+            builder.Entity<GastoCompartido>(entity =>
+            {
+                entity.HasKey(gc => new { gc.GastoPrincipalId, gc.MiembroId });
+                entity.HasOne(gc => gc.GastoPrincipal)
+                      .WithMany(gcp => gcp.CompartidoCon)
+                      .HasForeignKey(gc => gc.GastoPrincipalId)
+                      .OnDelete(DeleteBehavior.Restrict); // Cambiado de Cascade a Restrict
+                entity.HasOne(gc => gc.Miembro)
+                      .WithMany()
+                      .HasForeignKey(gc => gc.MiembroId)
+                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(gc => gc.GastoPrincipalId);
+                entity.HasIndex(gc => gc.MiembroId);
+            });
         }
 
         protected private void ConfigurarBuilderUsuario(ModelBuilder builder)

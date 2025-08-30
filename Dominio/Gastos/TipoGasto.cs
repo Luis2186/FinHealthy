@@ -3,8 +3,9 @@ namespace Dominio.Gastos
     public enum TipoGasto
     {
         Fijo = 0,
-        Compartido = 1,
-        Cuota = 2,
-        Todos = 3
+        Mensual = 1,
+        Compartido = 2,
+        Cuota = 3,
+        Todos = 4
     }
 }

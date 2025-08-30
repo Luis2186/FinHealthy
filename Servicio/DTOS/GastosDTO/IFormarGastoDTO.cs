@@ -1,6 +1,5 @@
 ﻿using Dominio.Documentos;
 using Dominio.Gastos;
-using Dominio.Gastos.IGastos;
 using Dominio.Grupos;
 using Dominio.Usuarios;
 using System;
@@ -15,20 +14,20 @@ namespace Servicio.DTOS.GastosDTO
 {
     public interface IFormarGastoDTO
     {
-        int GrupoId { get; }
-        string UsuarioCreadorId { get; }
-        int SubCategoriaId { get; }
-        int MetodoDePagoId { get; }
-        string MonedaId { get; }
-        List<string> UsuariosCompartidosIds { get; }
-        DateTime FechaDeGasto { get;}
-        string Descripcion { get;}
-        string Lugar { get;}
-        string Etiqueta { get; }
-        bool EsFinanciado { get; }
-        int CantidadDeCuotas { get; }
-        bool EsCompartido { get; }
-        decimal Monto { get; }
+        int GrupoId { get; set; }
+        string UsuarioCreadorId { get; set; }
+        int SubCategoriaId { get; set; }
+        int MetodoDePagoId { get; set; }
+        string MonedaId { get; set; }
+        List<string> UsuariosCompartidosIds { get; set; }
+        DateTime FechaDeGasto { get; set; }
+        string Descripcion { get; set; }
+        string Lugar { get; set; }
+        string Etiqueta { get; set; }
+        bool EsFinanciado { get; set; }
+        int CantidadDeCuotas { get; set; }
+        bool EsCompartido { get; set; }
+        decimal Monto { get; set; }
 
     }
 }
