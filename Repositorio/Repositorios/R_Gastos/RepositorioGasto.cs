@@ -24,21 +24,17 @@ namespace Repositorio.Repositorios.R_Gastos
         {
             try
             {
-                var gastos = await _context.Gastos
-                    .Where(g => g.GrupoId == grupoId && g.UsuarioCreadorId == usuarioId &&
-                        ((esFijo && g is GastoFijo) || (!esFijo && g is GastoMensual)))
-                    .Include(g => g.SubCategoria)
-                    .Include(g => g.MetodoDePago)
-                    .Include(g => g.Moneda)
-                    .Include(g => g.Grupo)
-                    .Include(g => g.UsuarioCreador)
-                    .AsNoTracking()
-                    .ToListAsync(cancellationToken);
+                var query = _context.Gastos.AsQueryable();
+                query = query.Where(g => g.GrupoId == grupoId && g.UsuarioCreadorId == usuarioId && g.Estado);
+                if (esFijo)
+                    query = query.Where(g => g is GastoFijo);
+                var gastos = await query.ToListAsync(cancellationToken);
+                CargarRelacionesGasto(gastos);
                 return Resultado<List<Gasto>>.Success(gastos);
             }
             catch (Exception ex)
             {
-                return Resultado<List<Gasto>>.Failure(new Dominio.Abstracciones.Error("RepositorioGasto.ObtenerGastosFijosPorGrupoYUsuarioIncluyendoTodo", ex.Message));
+                return Resultado<List<Gasto>>.Failure(new Dominio.Abstracciones.Error("RepositorioGasto.ObtenerGastosPorGrupoYUsuario", ex.Message));
             }
         }
 
@@ -47,28 +43,15 @@ namespace Repositorio.Repositorios.R_Gastos
         {
             try
             {
-                var gastos = await _context.Gastos
-                    .Where(g => g.GrupoId == grupoId && g.UsuarioCreadorId == usuarioId && g is GastoCompartidoPrincipal)
-                    .ToListAsync(cancellationToken);
-                var gastosCompartidos = gastos.OfType<GastoCompartidoPrincipal>().ToList();
-                foreach (var gasto in gastosCompartidos)
-                {
-                    _context.Entry(gasto).Collection(x => x.CompartidoCon).Load();
-                    foreach (var detalle in gasto.CompartidoCon)
-                    {
-                        _context.Entry(detalle).Reference(x => x.Miembro).Load();
-                    }
-                    _context.Entry(gasto).Reference(x => x.SubCategoria).Load();
-                    _context.Entry(gasto).Reference(x => x.MetodoDePago).Load();
-                    _context.Entry(gasto).Reference(x => x.Moneda).Load();
-                    _context.Entry(gasto).Reference(x => x.Grupo).Load();
-                    _context.Entry(gasto).Reference(x => x.UsuarioCreador).Load();
-                }
-                return Resultado<List<Gasto>>.Success(gastosCompartidos.Cast<Gasto>().ToList());
+                var query = _context.Gastos.AsQueryable();
+                query = query.Where(g => g.GrupoId == grupoId && g.UsuarioCreadorId == usuarioId && g.Estado && g is GastoCompartidoPrincipal);
+                var gastos = await query.ToListAsync(cancellationToken);
+                CargarRelacionesGasto(gastos);
+                return Resultado<List<Gasto>>.Success(gastos);
             }
             catch (Exception ex)
             {
-                return Resultado<List<Gasto>>.Failure(new Dominio.Abstracciones.Error("RepositorioGasto.ObtenerGastosCompartidosPorGrupoYUsuarioIncluyendoTodo", ex.Message));
+                return Resultado<List<Gasto>>.Failure(new Dominio.Abstracciones.Error("RepositorioGasto.ObtenerGastosCompartidosPorGrupoYUsuario", ex.Message));
             }
         }
 
@@ -77,23 +60,16 @@ namespace Repositorio.Repositorios.R_Gastos
             try
             {
                 var gastos = await _context.Gastos
-                    .Where(g => g.GrupoId == grupoId && g.UsuarioCreadorId == usuarioId && g is GastoEnCuotas)
+                    .Where(g => g.GrupoId == grupoId && g.UsuarioCreadorId == usuarioId && g.Estado && g is GastoEnCuotas)
                     .ToListAsync(cancellationToken);
-                var gastosEnCuotas = gastos.OfType<GastoEnCuotas>().ToList();
-                foreach (var gasto in gastosEnCuotas)
-                {
-                    _context.Entry(gasto).Collection(x => x.Cuotas).Load();
-                    _context.Entry(gasto).Reference(x => x.SubCategoria).Load();
-                    _context.Entry(gasto).Reference(x => x.MetodoDePago).Load();
-                    _context.Entry(gasto).Reference(x => x.Moneda).Load();
-                    _context.Entry(gasto).Reference(x => x.Grupo).Load();
-                    _context.Entry(gasto).Reference(x => x.UsuarioCreador).Load();
-                }
-                return Resultado<List<Gasto>>.Success(gastosEnCuotas.Cast<Gasto>().ToList());
+
+                CargarRelacionesGasto(gastos);
+
+                return Resultado<List<Gasto>>.Success(gastos);
             }
             catch (Exception ex)
             {
-                return Resultado<List<Gasto>>.Failure(new Dominio.Abstracciones.Error("RepositorioGasto.ObtenerGastosEnCuotasPorGrupoYUsuarioIncluyendoTodo", ex.Message));
+                return Resultado<List<Gasto>>.Failure(new Dominio.Abstracciones.Error("RepositorioGasto.ObtenerGastosEnCuotasPorGrupoYUsuario", ex.Message));
             }
         }
 
@@ -105,26 +81,7 @@ namespace Repositorio.Repositorios.R_Gastos
                 var gastos = await _context.Gastos
                     .Where(g => g.GrupoId == grupoId && g.UsuarioCreadorId == usuarioId)
                     .ToListAsync(cancellationToken);
-                foreach (var gasto in gastos)
-                {
-                    if (gasto is GastoCompartidoPrincipal compartido)
-                    {
-                        _context.Entry(compartido).Collection(x => x.CompartidoCon).Load();
-                        foreach (var detalle in compartido.CompartidoCon)
-                        {
-                            _context.Entry(detalle).Reference(x => x.Miembro).Load();
-                        }
-                    }
-                    if (gasto is GastoEnCuotas enCuotas)
-                    {
-                        _context.Entry(enCuotas).Collection(x => x.Cuotas).Load();
-                    }
-                    _context.Entry(gasto).Reference(x => x.SubCategoria).Load();
-                    _context.Entry(gasto).Reference(x => x.MetodoDePago).Load();
-                    _context.Entry(gasto).Reference(x => x.Moneda).Load();
-                    _context.Entry(gasto).Reference(x => x.Grupo).Load();
-                    _context.Entry(gasto).Reference(x => x.UsuarioCreador).Load();
-                }
+                CargarRelacionesGasto(gastos);
                 return Resultado<List<Gasto>>.Success(gastos);
             }
             catch (Exception ex)
@@ -163,31 +120,38 @@ namespace Repositorio.Repositorios.R_Gastos
                         break;
                 }
                 var gastos = await query.ToListAsync(cancellationToken);
-                foreach (var gasto in gastos)
-                {
-                    if (gasto is GastoCompartidoPrincipal compartido)
-                    {
-                        _context.Entry(compartido).Collection(x => x.CompartidoCon).Load();
-                        foreach (var detalle in compartido.CompartidoCon)
-                        {
-                            _context.Entry(detalle).Reference(x => x.Miembro).Load();
-                        }
-                    }
-                    if (gasto is GastoEnCuotas enCuotas)
-                    {
-                        _context.Entry(enCuotas).Collection(x => x.Cuotas).Load();
-                    }
-                    _context.Entry(gasto).Reference(x => x.SubCategoria).Load();
-                    _context.Entry(gasto).Reference(x => x.MetodoDePago).Load();
-                    _context.Entry(gasto).Reference(x => x.Moneda).Load();
-                    _context.Entry(gasto).Reference(x => x.Grupo).Load();
-                    _context.Entry(gasto).Reference(x => x.UsuarioCreador).Load();
-                }
+                CargarRelacionesGasto(gastos);
                 return Resultado<List<Gasto>>.Success(gastos);
             }
             catch (Exception ex)
             {
                 return Resultado<List<Gasto>>.Failure(new Dominio.Abstracciones.Error("RepositorioGasto.ObtenerGastosPorGrupoYUsuarioPorTipo", ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Carga las relaciones necesarias para cualquier tipo de gasto.
+        /// </summary>
+        private void CargarRelacionesGasto(List<Gasto> gastos)
+        {
+            foreach (var gasto in gastos)
+            {
+                switch (gasto)
+                {
+                    case GastoCompartidoPrincipal compartido:
+                        _context.Entry(compartido).Collection(x => x.CompartidoCon).Load();
+                        foreach (var detalle in compartido.CompartidoCon)
+                            _context.Entry(detalle).Reference(x => x.Miembro).Load();
+                        break;
+                    case GastoEnCuotas enCuotas:
+                        _context.Entry(enCuotas).Collection(x => x.Cuotas).Load();
+                        break;
+                }
+                _context.Entry(gasto).Reference(x => x.SubCategoria).Load();
+                _context.Entry(gasto).Reference(x => x.MetodoDePago).Load();
+                _context.Entry(gasto).Reference(x => x.Moneda).Load();
+                _context.Entry(gasto).Reference(x => x.Grupo).Load();
+                _context.Entry(gasto).Reference(x => x.UsuarioCreador).Load();
             }
         }
     }

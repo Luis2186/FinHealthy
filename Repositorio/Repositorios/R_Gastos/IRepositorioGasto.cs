@@ -16,6 +16,5 @@ namespace Repositorio.Repositorios.R_Gastos
         Task<Resultado<List<Gasto>>> ObtenerGastosPorGrupoYUsuario(int grupoId, string usuarioId, CancellationToken cancellationToken, bool esFijo = false);
         Task<Resultado<List<Gasto>>> ObtenerGastosCompartidosPorGrupoYUsuario(int grupoId, string usuarioId, CancellationToken cancellationToken, bool esFijo = false);
         Task<Resultado<List<Gasto>>> ObtenerGastosEnCuotasPorGrupoYUsuario(int grupoId, string usuarioId, CancellationToken cancellationToken);
-        Task<Resultado<List<Gasto>>> ObtenerGastosPorGrupoYUsuarioPorTipo(int grupoId, string usuarioId, TipoGasto tipoGasto, int? anio, int? mes, CancellationToken cancellationToken);
     }
 }

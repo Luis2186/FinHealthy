@@ -267,12 +267,13 @@ namespace Servicio.S_Gastos
             var gastosFiltrados = gastosFijosResult.Valor
                 .OfType<GastoFijo>()
                 .Where(g =>
-                    (!anio.HasValue || !mes.HasValue) ||
+                    g.Estado && // Solo activos
+                    ((!anio.HasValue || !mes.HasValue) ||
                     (
                         g.FechaInicio.HasValue && g.FechaFin.HasValue &&
                         new DateTime(anio.Value, mes.Value, 1) >= g.FechaInicio.Value.Date &&
                         new DateTime(anio.Value, mes.Value, 1) <= g.FechaFin.Value.Date
-                    )
+                    ))
                 )
                 .ToList();
             return _mapper.Map<List<GastoFijoDTO>>(gastosFiltrados);
@@ -285,7 +286,10 @@ namespace Servicio.S_Gastos
                 return new List<GastoDTO>();
             var gastosFiltrados = gastosResult.Valor
                 .OfType<GastoMensual>()
-                .Where(g => (!anio.HasValue || g.FechaDeGasto.Year == anio.Value) && (!mes.HasValue || g.FechaDeGasto.Month == mes.Value))
+                .Where(g =>
+                    g.Estado && // Solo activos
+                    (!anio.HasValue || g.FechaDeGasto.Year == anio.Value) && (!mes.HasValue || g.FechaDeGasto.Month == mes.Value)
+                )
                 .ToList();
             return _mapper.Map<List<GastoDTO>>(gastosFiltrados);
         }
@@ -297,7 +301,10 @@ namespace Servicio.S_Gastos
                 return new List<GastoCompartidoDTO>();
             var gastosFiltrados = gastosCompartidosResult.Valor
                 .OfType<GastoCompartidoPrincipal>()
-                .Where(g => (!anio.HasValue || g.FechaDeGasto.Year == anio.Value) && (!mes.HasValue || g.FechaDeGasto.Month == mes.Value))
+                .Where(g =>
+                    g.Estado && // Solo activos
+                    (!anio.HasValue || g.FechaDeGasto.Year == anio.Value) && (!mes.HasValue || g.FechaDeGasto.Month == mes.Value)
+                )
                 .ToList();
             return _mapper.Map<List<GastoCompartidoDTO>>(gastosFiltrados);
         }
@@ -309,7 +316,10 @@ namespace Servicio.S_Gastos
                 return new List<GastoCuotaDTO>();
             var gastosFiltrados = gastosEnCuotasResult.Valor
                 .OfType<GastoEnCuotas>()
-                .Where(g => (!anio.HasValue || g.FechaDeGasto.Year == anio.Value) && (!mes.HasValue || g.FechaDeGasto.Month == mes.Value))
+                .Where(g =>
+                    g.Estado && // Solo activos
+                    (!anio.HasValue || g.FechaDeGasto.Year == anio.Value) && (!mes.HasValue || g.FechaDeGasto.Month == mes.Value)
+                )
                 .ToList();
             return _mapper.Map<List<GastoCuotaDTO>>(gastosFiltrados);
         }
