@@ -156,15 +156,7 @@ namespace Servicio.S_Gastos
             var nuevoGasto = gastoResult.Valor;
 
             // Validación de negocio
-            if (nuevoGasto is GastoCompartidoPrincipal gastoCompartido)
-            {
-                var participantesIds = (dto as CrearGastoCompartidoDTO)?.ObtenerParticipantesIds();
-                var participantes = grupo.MiembrosGrupoGasto.Where(u => participantesIds != null && participantesIds.Contains(u.Id)).ToList();
-                var resultadoValidacion = gastoCompartido.EsValido(participantes);
-                if (resultadoValidacion.TieneErrores)
-                    return Resultado<Gasto>.Failure(resultadoValidacion.Errores);
-            }
-            else
+            if (!(nuevoGasto is GastoCompartidoPrincipal))
             {
                 var resultadoValidacion = nuevoGasto.EsValido();
                 if (resultadoValidacion.TieneErrores)
@@ -198,19 +190,7 @@ namespace Servicio.S_Gastos
                 case CrearGastoMensualDTO mensual:
                     return Resultado<Gasto>.Success(new GastoMensual(subCategoria, metodoDePago, moneda, mensual.FechaDeGasto, mensual.Descripcion, mensual.Etiqueta, mensual.Lugar, mensual.Monto, grupo, usuarioCreador));
                 case CrearGastoCompartidoDTO compartido:
-                    var participantesIds = compartido.ObtenerParticipantesIds();
-                    var participantes = grupo.MiembrosGrupoGasto.Where(u => participantesIds.Contains(u.Id)).ToList();
-                    var gastoCompartido = new GastoCompartidoPrincipal(subCategoria, metodoDePago, moneda, compartido.FechaDeGasto, compartido.Descripcion, compartido.Etiqueta, compartido.Lugar, compartido.Monto, grupo, usuarioCreador);
-                    var resultadoGeneracion = gastoCompartido.GenerarGastosCompartidos(
-                        participantes,
-                        compartido.PorcentajesCompartidos
-                    );
-                    if (resultadoGeneracion.TieneErrores)
-                        return Resultado<Gasto>.Failure(resultadoGeneracion.Errores);
-                    var resultadoValidacion = gastoCompartido.EsValido(participantes);
-                    if (resultadoValidacion.TieneErrores)
-                        return Resultado<Gasto>.Failure(resultadoValidacion.Errores);
-                    return Resultado<Gasto>.Success(gastoCompartido);
+                    return CrearGastoCompartido(compartido, grupo, subCategoria, metodoDePago, moneda, usuarioCreador);
                 case CrearGastoEnCuotasDTO cuotas:
                     var gastoEnCuotas = new GastoEnCuotas(subCategoria, metodoDePago, moneda, cuotas.FechaDeGasto, cuotas.Descripcion, cuotas.Etiqueta, cuotas.Lugar, cuotas.Monto, cuotas.CantidadDeCuotas, grupo, usuarioCreador);
                     var resultadoCuotas = gastoEnCuotas.GenerarCuotas(cuotas.CantidadDeCuotas);
@@ -219,6 +199,26 @@ namespace Servicio.S_Gastos
                 default:
                     return Resultado<Gasto>.Failure(new Error("Tipo de gasto no soportado", "El tipo de DTO recibido no es válido para la creación de gastos."));
             }
+        }
+
+        private Resultado<Gasto> CrearGastoCompartido(
+            CrearGastoCompartidoDTO dto,
+            Grupo grupo,
+            SubCategoria subCategoria,
+            MetodoDePago metodoDePago,
+            Moneda moneda,
+            Usuario usuarioCreador)
+        {
+            var participantesIds = dto.ObtenerParticipantesIds();
+            var participantes = grupo.MiembrosGrupoGasto.Where(u => participantesIds.Contains(u.Id)).ToList();
+            var gastoCompartido = new GastoCompartidoPrincipal(subCategoria, metodoDePago, moneda, dto.FechaDeGasto, dto.Descripcion, dto.Etiqueta, dto.Lugar, dto.Monto, grupo, usuarioCreador);
+            var resultadoGeneracion = gastoCompartido.GenerarGastosCompartidos(participantes, dto.PorcentajesCompartidos);
+            if (resultadoGeneracion.TieneErrores)
+                return Resultado<Gasto>.Failure(resultadoGeneracion.Errores);
+            var resultadoValidacion = gastoCompartido.EsValido(participantes);
+            if (resultadoValidacion.TieneErrores)
+                return Resultado<Gasto>.Failure(resultadoValidacion.Errores);
+            return Resultado<Gasto>.Success(gastoCompartido);
         }
 
         public async Task<Resultado<GastosSegmentadosDTO>> ObtenerGastosSegmentados(
