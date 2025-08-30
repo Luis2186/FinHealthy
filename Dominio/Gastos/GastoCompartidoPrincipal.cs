@@ -34,54 +34,68 @@ namespace Dominio.Gastos
             UsuarioCreadorId = usuarioCreador?.Id;
         }
 
-        /// <summary>
-        /// Genera la lista de GastoCompartido para cada usuario, asignando porcentajes y montos.
-        /// </summary>
-        public Resultado<GastoCompartidoPrincipal> GenerarGastosCompartidos(
-    List<Usuario> participantes,
-    List<decimal>? porcentajes = null)
-{
-    var errores = new List<Error>();
-    if (participantes == null || participantes.Count < 1)
-        errores.Add(new Error("GastoCompartidoPrincipal", "Debe seleccionar al menos un miembro para compartir el gasto (incluyendo al creador)."));
-    if (porcentajes != null)
-    {
-        if (porcentajes.Count != participantes.Count)
-            errores.Add(new Error("GastoCompartidoPrincipal", "La cantidad de porcentajes debe coincidir con la cantidad de usuarios (incluyendo el creador)."));
-        if (Math.Abs(porcentajes.Sum() - 100m) > 0.01m)
-            errores.Add(new Error("GastoCompartidoPrincipal", "La suma de los porcentajes debe ser 100%"));
-    }
-    if (Monto <= 0)
-        errores.Add(new Error("GastoCompartidoPrincipal", "El monto debe ser mayor a 0."));
-    if (errores.Any())
-        return Resultado<GastoCompartidoPrincipal>.Failure(errores);
-
-    CompartidoCon.Clear();
-    decimal montoRestante = Monto;
-    for (int i = 0; i < participantes.Count; i++)
-    {
-        var porcentaje = porcentajes != null ? porcentajes[i] : Math.Round(100m / participantes.Count, 2);
-        var montoAsignado = Math.Round(Monto * porcentaje / 100m, 2);
-        if (i == participantes.Count - 1) montoAsignado = montoRestante; // Ajuste para redondeo
-        montoRestante -= montoAsignado;
-        CompartidoCon.Add(new GastoCompartido(this, participantes[i])
+        public Resultado<GastoCompartidoPrincipal> GenerarGastosCompartidos(List<Usuario> participantes, List<decimal>? porcentajes = null)
         {
-            Porcentaje = porcentaje,
-            MontoAsignado = montoAsignado
-        });
-    }
-    return Resultado<GastoCompartidoPrincipal>.Success(this);
-}
+            var errores = ValidarGeneracion(participantes, porcentajes);
+            if (errores.Any())
+                return Resultado<GastoCompartidoPrincipal>.Failure(errores);
+            CompartidoCon.Clear();
+            RepartirMontos(participantes, porcentajes);
+            return Resultado<GastoCompartidoPrincipal>.Success(this);
+        }
+
+        private List<Error> ValidarGeneracion(List<Usuario> participantes, List<decimal>? porcentajes)
+        {
+            var errores = new List<Error>();
+            if (participantes == null || participantes.Count < 1)
+                errores.Add(new Error("GastoCompartidoPrincipal", "Debe seleccionar al menos un miembro para compartir el gasto (incluyendo al creador)."));
+            var usarPorcentajes = porcentajes != null && porcentajes.Count == participantes.Count;
+            if (usarPorcentajes)
+            {
+                if (Math.Abs(porcentajes.Sum() - 100m) > 0.01m)
+                    errores.Add(new Error("GastoCompartidoPrincipal", "La suma de los porcentajes debe ser 100%"));
+            }
+            if (!usarPorcentajes && porcentajes != null && porcentajes.Count > 0)
+                errores.Add(new Error("GastoCompartidoPrincipal", "La cantidad de porcentajes debe coincidir con la cantidad de usuarios o estar vacío para partes iguales."));
+            if (Monto <= 0)
+                errores.Add(new Error("GastoCompartidoPrincipal", "El monto debe ser mayor a 0."));
+            return errores;
+        }
+
+        private void RepartirMontos(List<Usuario> participantes, List<decimal>? porcentajes)
+        {
+            var usarPorcentajes = porcentajes != null && porcentajes.Count == participantes.Count;
+            decimal montoRestante = Monto;
+            for (int i = 0; i < participantes.Count; i++)
+            {
+                var porcentaje = usarPorcentajes ? porcentajes[i] : Math.Round(100m / participantes.Count, 2);
+                var montoAsignado = Math.Round(Monto * porcentaje / 100m, 2);
+                if (i == participantes.Count - 1) montoAsignado = montoRestante; // Ajuste para redondeo
+                montoRestante -= montoAsignado;
+                CompartidoCon.Add(new GastoCompartido(this, participantes[i])
+                {
+                    Porcentaje = porcentaje,
+                    MontoAsignado = montoAsignado
+                });
+            }
+        }
 
         /// <summary>
         /// Valida el gasto compartido y los usuarios involucrados.
         /// </summary>
         public override Resultado<Gasto> EsValido(List<Usuario> participantesGasto = null)
         {
+            var errores = ValidarNegocio(participantesGasto);
+            if (errores.Any())
+                return Resultado<Gasto>.Failure(errores);
+            return Resultado<Gasto>.Success(this);
+        }
+
+        private List<Error> ValidarNegocio(List<Usuario> participantesGasto)
+        {
             var errores = new List<Error>();
             if (Monto <= 0)
                 errores.Add(new Error("GastoCompartidoPrincipal", "El monto debe ser mayor a 0."));
-            // Incluir el creador si no está en la lista
             var participantes = participantesGasto ?? new List<Usuario>();
             if (UsuarioCreador != null && !participantes.Any(u => u.Id == UsuarioCreador.Id))
                 participantes = new List<Usuario>(participantes) { UsuarioCreador };
@@ -92,16 +106,13 @@ namespace Dominio.Gastos
             var sumaPorcentajes = CompartidoCon.Sum(x => x.Porcentaje);
             if (Math.Abs(sumaPorcentajes - 100m) > 0.01m)
                 errores.Add(new Error("GastoCompartidoPrincipal", "La suma de los porcentajes debe ser 100%"));
-            // Validar que todos los usuarios compartidos pertenezcan al grupo
             var idsGrupo = Grupo?.MiembrosGrupoGasto?.Select(u => u.Id).ToHashSet() ?? new HashSet<string>();
             foreach (var gc in CompartidoCon)
             {
                 if (!idsGrupo.Contains(gc.MiembroId))
                     errores.Add(new Error("GastoCompartidoPrincipal", $"El usuario {gc.MiembroId} no pertenece al grupo."));
             }
-            if (errores.Any())
-                return Resultado<Gasto>.Failure(errores);
-            return Resultado<Gasto>. Success(this);
+            return errores;
         }
 
         public override Gasto ActualizarGasto(Gasto datosNuevos)

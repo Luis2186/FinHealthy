@@ -40,6 +40,14 @@ namespace Dominio.Gastos
 
         public override Resultado<Gasto> EsValido(List<Usuario> usuariosParaCompartirGasto = null)
         {
+            var errores = ValidarNegocio();
+            if (errores.Any())
+                return Resultado<Gasto>.Failure(errores);
+            return Resultado<Gasto>.Success(this);
+        }
+
+        private List<Error> ValidarNegocio()
+        {
             var errores = new List<Error>();
             if (Monto <= 0)
                 errores.Add(new Error("GastoEnCuotas", "El monto debe ser mayor a 0."));
@@ -55,21 +63,31 @@ namespace Dominio.Gastos
                 errores.Add(new Error("GastoEnCuotas", "No se puede generar cuotas si el gasto no es financiado o la cantidad es inválida."));
             if (Cuotas.Count != CantidadDeCuotas)
                 errores.Add(new Error("GastoEnCuotas", "La cantidad de cuotas no coincide."));
-            if (errores.Any())
-                return Resultado<Gasto>.Failure(errores);
-            return Resultado<Gasto>.Success(this);
+            return errores;
         }
 
         public Resultado<GastoEnCuotas> GenerarCuotas(int cantidadCuotas)
+        {
+            var errores = ValidarGeneracion(cantidadCuotas);
+            if (errores.Any())
+                return Resultado<GastoEnCuotas>.Failure(errores);
+            Cuotas.Clear();
+            RepartirCuotas(cantidadCuotas);
+            return Resultado<GastoEnCuotas>.Success(this);
+        }
+
+        private List<Error> ValidarGeneracion(int cantidadCuotas)
         {
             var errores = new List<Error>();
             if (!EsFinanciado || cantidadCuotas <= 1)
                 errores.Add(new Error("GenerarCuotas","No se puede generar cuotas si el gasto no es financiado o la cantidad es inválida."));
             if (Monto <= 0)
                 errores.Add(new Error("GenerarCuotas","El monto debe ser mayor a 0."));
-            if (errores.Any())
-                return Resultado<GastoEnCuotas>.Failure(errores);
-            Cuotas.Clear();
+            return errores;
+        }
+
+        private void RepartirCuotas(int cantidadCuotas)
+        {
             decimal montoPorCuota = Math.Round(Monto / cantidadCuotas, 2);
             decimal montoRestante = Monto;
             for (int i = 0; i < cantidadCuotas; i++)
@@ -85,7 +103,6 @@ namespace Dominio.Gastos
                     Pagado = false
                 });
             }
-            return Resultado<GastoEnCuotas>.Success(this);
         }
 
         public override Gasto ActualizarGasto(Gasto datosNuevos)
